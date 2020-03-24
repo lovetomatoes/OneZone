@@ -1,0 +1,1 @@
+void get_inverse (double *mA_inv, double *mA, int const N);

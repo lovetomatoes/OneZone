@@ -1,0 +1,3 @@
+this version:
+1. mk    (by "mk" command, get operatable files *.o;
+2. sh MYJOB.sh      (python evol.py 用到PYmodule/__init__.py里面生成的cc.so
