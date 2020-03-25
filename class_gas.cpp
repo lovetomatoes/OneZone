@@ -99,9 +99,9 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     ys = new double[(Nt+1)*N];
     k = new double [N_react+1]; rf = new double[N_react+1];
 
-    kpd_Hm_H2p(Tb, k[22],k[23]); //返回的是kappa 需乘J21
+    kpd_Hm_H2p(Tb, k[22],k[23]); //返回的是kappa 需乘J21 k_pdHm k_pdH2p 没有self-shielding
     k[22] *= J21; k[23] *= J21;
-    
+    printf("CONSTRUCTOR: k_pdH2=%3.2e, k_pdHm=%3.2e, k_pdH2p=%3.2e\n",k[21],k[22],k[23]);
     cs = sqrt( gamma_adb*k_B*T_K0/(mu*m_H) );
     RJ = cs*t_ff0;//RJ = sqrt( pi*k_B*T_K0/ (G*pow(mu*m_H,2)*nH0) );
     printf("cs_0 is %3.2e km/s; R_vir is %3.2e pc, RJ_0 is %3.2e pc \n",cs/1.e5,halo.Rvir/pc, RJ/pc);
@@ -152,7 +152,7 @@ void GAS:: a_react_sol(bool write){
         }
         int iter0 = 0;
         while ( len_v(N, dy) > epE8*len_v(N, y_i1) ){
-            SOL_IMPLICIT(dy, y_i0, y_i1, ts[i+1]-ts[i], nH0, T_K0, J_LW, Tb); // y_i0 passed but UNCHANGED.
+            SOL_IMPLICIT(dy, y_i0, y_i1, ts[i+1]-ts[i], nH0, T_K0, k, J_LW, Tb); // y_i0 passed but UNCHANGED.
             //printf("iter0=%d ",iter0++);
             /* for (isp=0;isp<N;isp++) {
                 y_i0[isp] = y_i1[isp];//printf("y_i0=%3.2e, dy=%3.2e\t");
@@ -349,7 +349,7 @@ void GAS:: timescales(){
     if (MerMod==0) { 
         r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_chem(nH0, T_K0, y0, k)/rho0;
         t_c = e0/r_c;
-        t_h = e0/r_h;
+        t_h = abs(e0/r_h);
         Dt = 0.1* min( min(t_c,t_h), t_ff );  //sufficiently same with Dt = 0.01*...
         //Dt = 0.1*min(t_h, t_ff);
     }

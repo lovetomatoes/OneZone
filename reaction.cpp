@@ -299,12 +299,21 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
     fsh = 0.965/pow(1+x/b5,1.1) + 0.035/sqrt(1+x)*exp(-8.5e-4*sqrt(1+x)); 
 //DB 96 shielding factor: 
     //fsh = min(1, pow(nH*y_H2*R_core/1.e14,-0.75)); 
-//   tried fsh = 1, fsh严重影响pd给出的y_H2,equi
+    //fsh = 1; // fsh严重影响pd给出的y_H2,equi
     double kh2pd = 1.39e-12 * J_LW;
-    //printf("IN REACTION: J_LW=%3.2e\n",J_LW);
     k[21] = kh2pd * fsh;
 
 //  (22) H-   +   ph  ->  H   +  e
+    double ratioT = 0;
+    if (Tb == 8.e3) ratioT = 8.7e5;
+    if (Tb == 1.e4) ratioT = 4.6e4; // T=10^4K, ratioT = 4.6e4; 
+    if (Tb == 2.e4) ratioT = 2.1e2;
+    if (Tb == 3.e4) ratioT = 4.6e1;
+    if (Tb == 5.e4) ratioT = 1.7e1;
+    if (Tb == 1.e5) ratioT = 10; //T=10^5K, ratioT = 10.
+    if (Tb == 2.e5) ratioT = 8.1;
+    //printf("from RATIO = %3.2e\n",ratioT*kh2pd);
+    
 //  (23) H2+  +   ph  ->  H   +  H+
 
 //  (24-30) blank:

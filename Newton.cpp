@@ -29,11 +29,11 @@ int const N = N_sp +1;
 //  7)    H-    +     ph       ->   H    +     e
 //  8)    H    +     e-       ->   H+    +     2e-
 
-void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, double T_K, double J_LW, double Tb){
+void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, double T_K, double* xk, double J_LW, double Tb){
     double* j = new double [N*N]; double* j_inv = new double [N*N];
     double F[N];
     double r_f[N], r_f_fw[N], r_f_bw[N];
-    double xk[N_react1];
+    // double xk[N_react1];
     double delta_y;
     double y_tmp[N], err_0, r_f_big, dr_f,
            y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp;
@@ -41,6 +41,7 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
     
     react_coef(xk, nH, y1[1], y1[2], T_K, J_LW, Tb);
     react_rat(r_f, y1, xk, nH, T_K);
+    //printf("NEWTON: k_pdH2=%3.2e, k_pdHm=%3.2e, k_pdH2p=%3.2e\n",xk[21],xk[22],xk[23]);
 
     // numerically calculate dr_fdy 
     for (jsp=1;jsp<N;jsp++){
