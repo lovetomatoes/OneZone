@@ -1,3 +1,9 @@
-this version:
-1. mk    (by "mk" command, get operatable files *.o;
-2. sh MYJOB.sh      (python evol.py 用到PYmodule/__init__.py里面生成的cc.so
+1. mc, rm Jcs.txt in appending mode; rm evol.o so it can make again generating cc.so 
+2. mk
+3. main.cpp now can call function evol, evol_Jcs (or use evol.py)
+
+#-------------------------------------------------------
+corrections regarding class_gas, Newton, evol, kpd
+class_gas: add react_coef in constructor, for calculate timescales;
+Newton: set lower lim=0 for y1[i];
+kpd: set initial kpd=0;  

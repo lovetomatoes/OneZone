@@ -29,8 +29,8 @@ int main(){
     printf("################################################################################\n");
 
     int MerMod = 0;
-    double J21 = 100.; //without mergers, WG11 shielding, Jcrit~50 for Tb=1.e4K, Jcrit~3000 for Tb=1.e5K
-    double Tbb = 8.e3;
+    double J21 = 1875.; //without mergers, WG11 shielding, Jcrit~50 for Tb=1.e4K, Jcrit~3000 for Tb=1.e5K
+    double Tbb = 2.e5;
 
     double tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-6, y_Hm = 1.0e-12, y_H2p = 1.0e-12;
     double y_Hp = 1.0e-4, y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;

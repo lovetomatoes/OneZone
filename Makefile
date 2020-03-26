@@ -1,9 +1,10 @@
-main: main.cpp class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
-	g++ main.cpp -L/usr/local/lib class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o main
+main: main.cpp evol.o class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
+	g++ main.cpp -L/usr/local/lib evol.o class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o main
 
 # 用 make evol 生成cc.so以供evol.py 
-evol: evol.cpp class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
+evol.o: evol.cpp class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
 	g++ evol.cpp -L/usr/local/lib class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o cc.so -shared -fPIC
+	g++ evol.cpp -L/usr/local/lib -Wall -I/usr/local/include -c class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -shared -fPIC
 
 LE_iso.o: LE_iso.cpp RK4.o class_halo.o PARA.o
 	g++ -c LE_iso.cpp -o LE_iso.o -shared -fPIC 

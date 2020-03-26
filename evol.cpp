@@ -23,13 +23,12 @@ using namespace std;
 *     7 : He     8 : He+    9 : He++               *
 ****************************************************/
 
-int i =0;
 
 void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool Ma_on){
     printf("################################################################################\n");
     printf("################################################################################\n");
     printf("################################################################################\n");
-
+    int i =0;
     double tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-6, y_Hm = 1.0e-12, y_H2p = 1.0e-12;
     double y_Hp = 1.0e-4, y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
     double y_He = yHe - 2.*tiny, y_Hep = tiny, y_Hepp = tiny;
@@ -221,6 +220,7 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool M
     printf(" z from 35 to 10 %f Myr\n", (t_from_z(10) - t_from_z(35))/Myr );
     printf(" freefall timescale %f Myr\n", gas.t_ff0/Myr );
     printf("1.93/2.2*dTvir = %f K\n",1.89/2.2*(gas.MPs[gas.iMer].Tvir - gas.MPs[0].Tvir));
+    printf("J21= %5.2f\n",J21);
 }
 
 // resembling main_Jc1.cpp
