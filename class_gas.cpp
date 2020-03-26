@@ -128,6 +128,9 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
         y0[i] = *(frac0++); y1[i] = y0[i];
         ys[i] = y0[i]; 
     }
+    react_coef(k,nH0,y0[1],y0[2],T_K0,J21,Tb);
+    react_rat(rf, y0, k, nH0, T_K0);
+    printf("J_LW=%3.2e, Tb=%3.2e\n",J_LW,Tb);
 }
 
 

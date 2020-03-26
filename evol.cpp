@@ -25,14 +25,10 @@ using namespace std;
 
 int i =0;
 
-void evol(char* treename, char* fout, int mode, double Jlw, bool Ma_on){
+void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool Ma_on){
     printf("################################################################################\n");
     printf("################################################################################\n");
     printf("################################################################################\n");
-
-    int MerMod = mode;
-    double J21 = Jlw; //without mergers, WG11 shielding, Jcrit~50 for Tb=1.e4K, Jcrit~3000 for Tb=1.e5K
-    double Tbb = 1.e4;
 
     double tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-6, y_Hm = 1.0e-12, y_H2p = 1.0e-12;
     double y_Hp = 1.0e-4, y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
@@ -43,8 +39,7 @@ void evol(char* treename, char* fout, int mode, double Jlw, bool Ma_on){
 
     double frac0[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
   
-    char* fname = "../code_tree/fort.217";
-    GAS gas(frac0,MerMod,J21,Tbb,fname,true);
+    GAS gas(frac0,MerMod,J21,Tbb,treename,Ma_on);
     double t_ff0 = 1./C/sqrt(gas.nH0);
     double t1 = 1.9999*t_ff0;
     printf("z0 = %3.2f, initial nH = %3.2e /cc & T = %3.2e K\n",gas.z0,gas.nH0,gas.T_K0);
@@ -73,7 +68,7 @@ void evol(char* treename, char* fout, int mode, double Jlw, bool Ma_on){
     } */
 
     ofstream file;
-    file.open("../data/evolve.txt", ios::out | ios::trunc );
+    file.open(fout, ios::out | ios::trunc );
     bool py = true;
     bool DM = true;
     bool fract = true;
@@ -230,81 +225,60 @@ void evol(char* treename, char* fout, int mode, double Jlw, bool Ma_on){
 
 // resembling main_Jc1.cpp
 double getT(int MerMod, double J, double Tb, char* treename, bool Ma_on, double nH_tell = 5.e5){
-    double frac0[] = {0.,
-                        1.-4.e-6-4.5e-3,
-                        2.e-6,
-                        4.5e-3,
-                        4.5e-3+1.e-10,
-                        1.e-10};
+    double tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-6, y_Hm = 1.0e-12, y_H2p = 1.0e-12;
+    double y_Hp = 1.0e-4, y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
+    double y_He = yHe - 2.*tiny, y_Hep = tiny, y_Hepp = tiny;
+    double y_e = y_Hp + y_H2p - y_Hm + y_Hep + 2.*y_Hepp;
+
+    double frac0[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
 
     GAS gas(frac0,MerMod,J,Tb,treename,Ma_on);
     while (gas.nH0<nH_tell){
         gas.setMerger();
         gas.timescales(); 
         gas.freefall(); 
-        gas.react_sol(0); 
+        gas.react_sol(1); 
         gas.T_sol();
         gas.get_para();
     }
-    cout<<J<<"\t"<<gas.T_K0<<endl;
     return gas.T_K0;
 }
 
-void evol_Jc(char* treename, char* fout, double Tb, bool Ma_on){
+void evol_Jc(char* treename, char* fout, double Tb, int MerMod, bool Ma_on){
     printf("################################################################################\n");
-    int MerMod = 1; 
     printf("f_Ma is %d\n",(Ma_on)?1:0);
     double T_tell = 4000;
-    //without mergers, WG11 shielding, Jcrit~50 for Tb=1.e4K, Jcrit~3000 for Tb=1.e5K
-    double J0, J1;
+    // boundary of bisection J21
+    double J0 = epE6, J1 = 1.e4;
     double T0, T1, T;
     char fout_malloc[100];
-    // sprintf(fname, "../code_tree/fort.217"); 
     sprintf(fout_malloc,fout); 
     ofstream file;
     if (FILE *f = fopen(fout_malloc, "r")) fclose(f);
     else {
         file.open(fout_malloc, ios::out | ios::trunc);
-        file<<" Tb Jc Tg"<<endl;
+        file<<" Tb Jc"<<endl;
         file.close();
     }
     file.open(fout_malloc, ios::out | ios::app);
 
-    //J0 = 0, J1 = 4000;
-    //***** fMa off
-    //  tree211, fMa off
-    J0 = 60, J1 = 70;
-    // tree 212, fMa off
-    J0 = 50, J1 = 60;
-    //  WLI put, try for tree 217. check if J~2.2*31.2=68
-    //J0 = 50, J1 = 60;
 
-    //***** fMa on
-    //  WLI put, try for tree 211.
-    J0 = 15, J1 = 25;
-    //  WLI put, try for tree 212.
-    //J0 = 25, J1 = 35;
-
-    printf("T_tell = %3.2e\n",T_tell);
     T0 = getT(MerMod, J0, Tb, treename, Ma_on); T1 = getT(MerMod, J1, Tb, treename, Ma_on);
     cout<<"***********log**************\n";
     printf("T0 and T1: %3.2e\t%3.2e\n",T0-T_tell,T1-T_tell);
-    if ( T0-T_tell>0 || T1-T_tell<0 ) cout<<"wrong INITIAL boundaries"<<endl;
+    if ( T0-T_tell>0 or T1-T_tell<0 ) cout<<"wrong INITIAL boundaries"<<endl;
 
     else{
-        while (J1-J0 > 0.1*J0){
+        while (J1-J0 > 0.05*J0){
             T = getT(MerMod, (J0+J1)/2., Tb, treename, Ma_on);
-            printf("#######\t########\t########\t#########");
-            printf("J=%4.3f\tT=%3.2e\n",(J0+J1)/2.,T);
+            /* printf("#######\t########\t########\t#########");
+            printf("J=%4.3f\tT=%3.2e\n",(J0+J1)/2.,T); */
             if (T-T_tell>=0) {J1 = (J0+J1)/2.; T1 = getT(MerMod, J1, Tb, treename, Ma_on);}
             else {J0 = (J0+J1)/2.; T0 = getT(MerMod, J0, Tb, treename, Ma_on);}
         }   
     }
-    printf("J0=%4.3f\tT0=%3.2e\tJ1=%4.3f\tT1=%3.2e\n",J0,T0,J1,T1);
-    cout<<"Tb= "<<Tb<<"Jc_sol= "<<(J0+J1)/2.<<"Tg at nH_tell= "<<"is: "<<T<<endl;
+    printf("J0=%4.3f\tT0=%3.2e\tJ1=%4.3f\tT1=%3.2e\n --> Jc_sol=%3.2e\n",J0,T0,J1,T1, (J0+J1)/2.);
     file<<" "<<Tb<<" "<<(J0+J1)/2.<<endl;
     file.close();
     
 }
-
-//(Sugimura et al. 2014): 8000:0.8; 10000:20; 20000:800; 30000: 1000+; 50000: 1100; 100000:1100; 

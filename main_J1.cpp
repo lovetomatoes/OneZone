@@ -7,6 +7,7 @@
 #include<algorithm>
 
 #include "reaction.h"
+#include "kpd.h"
 #include "class_gas.h"
 #include "LE_iso.h"
 #include "class_halo.h"
@@ -25,21 +26,31 @@ int i =0;
 
 int main(){
     printf("################################################################################\n");
+    printf("################################################################################\n");
 
-    int MerMod = 1;
-    double J21 = 50.; //without mergers, WG11 shielding, Jcrit~50 for Tb=1.e4K, Jcrit~3000 for Tb=1.e5K
-    double Tbb = 1.e4;
-    double frac0[] = {0.,
-                      1.-4.e-6-4.5e-3,
-                      2.e-6,
-                      4.5e-3,
-                      4.5e-3+1.e-10,
-                      1.e-10};
+    int MerMod = 0;
+    double J21 = 100.; //without mergers, WG11 shielding, Jcrit~50 for Tb=1.e4K, Jcrit~3000 for Tb=1.e5K
+    double Tbb = 8.e3;
+
+    double tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-6, y_Hm = 1.0e-12, y_H2p = 1.0e-12;
+    double y_Hp = 1.0e-4, y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
+    double y_He = yHe - 2.*tiny, y_Hep = tiny, y_Hepp = tiny;
+    double y_e = y_Hp + y_H2p - y_Hm + y_Hep + 2.*y_Hepp;
+    double nH = 1.e8;
+    double T_K = 1.e3;
+    //* previous    1 : H      2 : H2     3 : e      4 : H+      5 : H-      *
+    /****************************************************
+    *     SPECIES                                      *
+    *     1 : H      2 : H2     3 : e      4 : H+      *
+    *     5 : H2+    6 : H-                            *
+    *     7 : He     8 : He+    9 : He++               *
+    ****************************************************/
+    double frac0[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
+
     char* fname = "../code_tree/fort.217";
     GAS gas(frac0,MerMod,J21,Tbb,fname,true);
-
     double t_ff0 = 1./C/sqrt(gas.nH0);
-    double t1 = 1.9999*t_ff0; //to n = 1.e6/cm^3
+    double t1 = 1.9999*t_ff0;
     printf("z0 = %3.2f, initial nH = %3.2e /cc & T = %3.2e K\n",gas.z0,gas.nH0,gas.T_K0);
     printf("t_ff,0 = %e Myr\n",t_ff0/Myr);
     printf("t1 in main is :  %f t_ff0\n", t1/t_ff0);
@@ -50,7 +61,7 @@ int main(){
 
     //merger tree information in GAS::gas
     ofstream f1;
-    f1.open("data/atree.txt", ios::out | ios::trunc );
+    f1.open("../data/atree.txt", ios::out | ios::trunc );
     for (i=0;i<gas.nMer;i++){
         HALO halo(gas.MPs[i].mhalo,gas.MPs[i].z);
         if (i==0) f1<<"\tj\tz\tt(Myr)\tdt(Myr)\tt_dyn(Myr)\tM8\tdM8\tq\tRvir\tRs\tc\tTvir\trho_c\trho_crit\td0\n";
@@ -66,15 +77,15 @@ int main(){
     } */
 
     ofstream file;
-    file.open("data/evolve.txt", ios::out | ios::trunc );
+    file.open("../data/evolve.txt", ios::out | ios::trunc );
     bool py = true;
     bool DM = true;
     bool fract = true;
     bool react = false;
     bool tscales = true;
-    bool haloinfo = true;
-    bool heatingcooling = true;
-    bool mer = true;
+    bool haloinfo = false;
+    bool heatingcooling = false;
+    bool mer = false;
     double kform, rform, yequi, ycool;
     int itime=0;
 
@@ -86,12 +97,14 @@ int main(){
             else file <<" t Dt z nH T";
         }
         else file<<" "<<gas.t_act/t_ff0<<" "<<gas.Dt<<" "<<gas.z<<" "<<gas.nH0<<" "<<gas.T_K0;
-        
+            
+        //printf("nH=%3.2e, T_K=%3.2e\t k[15,+]=%3.2e, k[7,-]=%3.2e, y_H2=%3.2e\n",gas.nH0, gas.T_K0,gas.k[15],gas.k[7],gas.y0[2]);
+
         //cout<<z_ana(35,gas.t_act)<<gas.z<<endl; //not exactly the same...
         if (fract){
             if (i==0){
-                if (py) file<<" yH yH2 ye yH+ yH- y_equi y_cool Ma v_tur MJ_eff";
-                else    file<<" yH yH2 ye yH+ yH- y_{equi} y_{cool} Ma v_{tur} MJ_{eff}";
+                if (py) file<<" yH yH2 ye yH+ yH2+ yH- yHe yHe+ yHe++ Ma v_tur MJ_eff"; //y_equi y_cool
+                else    file<<" y_H y_{H2} y_e y_{H+} y_{H2+} y_{H-} y_{He} y_{y_He+} y_{He++} Ma v_{tur} MJ_{eff}";
             }
             else {
                 for (int i=1; i<N_sp+1; i++) file<<" "<<gas.y0[i];
@@ -101,12 +114,12 @@ int main(){
                             //H-, n小                              3b,  n>~10^9/cm^3
                 yequi = min(rform/gas.k[6], rform/(gas.k[4]*gas.y0[1]*gas.nH0) );
                                 // pd,  n<~100/cm^3      cd n大 
-                file<<" "<<yequi;
+                //file<<" "<<yequi;
                 //file<<" "<<gas.Dt*gas.rf[2]+gas.y0[2]; prediciton of yH2
-                ycool = 3.*k_B*gas.T_K0*gas.y0[2]/(2.*gas.t_ff*Lambda_H2(gas.nH0,gas.T_K0,gas.y0)*(mu*m_H));
-                file<<" "<<ycool;
+                //ycool = 3.*k_B*gas.T_K0*gas.y0[2]/(2.*gas.t_ff*Lambda_H2(gas.nH0,gas.T_K0,gas.y0[2])*(mu*m_H));
+                //file<<" "<<ycool;
 
-                file<<" "<<gas.Ma<<" "<<sqrt(gas.v_tur2);//( k_B*8000/(mu*m_H) ); // cs^2 = k_B*T_K/(mu*m_H)
+                file<<" "<<gas.Ma<<" "<<sqrt(gas.v_tur2);
                 file<<" "<<gas.MJ_eff/Ms;
 
             }
@@ -114,8 +127,6 @@ int main(){
 
         if (DM){
             HALO halo(gas.Mh,gas.z);
-            //printf("z = %3.2f, Tvir = %3.2f\n",halo.z, halo.Tvir);
-
             double d0 = 200./3.*pow(halo.c,3)/(log(1+halo.c)-halo.c/(1+halo.c));
             if (i==0){
                 if (py) file <<" nc_DM z_Mh t_Mh Vc inMer";
@@ -123,7 +134,6 @@ int main(){
             } //rho_c = d0*RHO_DM(gas.z)/m_H checked right. 
             else file<<" "<<gas.rhoc_DM/m_H<<" "<<gas.MPs[gas.iMer].z<<" "<<gas.MPs[gas.iMer].t/gas.t_ff0<<" "<<halo.Vc<<" "<<((gas.inMer)?1:0);
         }
-        //if (gas.nH0<=12) cout<<"z = "<<gas.z<<" nc_DM = "<<gas.rhoc_DM/m_H<<" 200n_DM "<<200*RHO_DM(gas.z)/m_H<<endl;
         if (react){
             if (i==0){
                 if (py) file<<" k1 k2 k3 k4 k5 k6 k7 k8";
@@ -156,16 +166,15 @@ int main(){
 
         if (tscales) {            
             if (i==0) {
-                //        Lambda_H2 in erg /g /s         Lambda_H in erg /cm^3 /s
-                if (py) file<<" t_ff t_cH2 t_cH t_h t_rcb t_1 t_2 t_3 t_4 t_5";
-                else file<<" t_{ff} t_{c,H2} t_{c,H} t_h t_{rcb} t_1 t_2 t_3 t_4 t_5";
+                if (py) file<<" t_ff t_cH2 t_cH t_h t_rcb t_chem";
+                else file<<" t_{ff} t_{c,H2} t_{c,H} t_h t_{rcb} t_{chem}";
             }
             else {
                 file<<" "<<gas.t_ff;
-                file<<" "<<gas.e0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0);
-                file<<" "<<1.5*gas.nH0*k_B*gas.T_K0/Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3]);
+                file<<" "<<gas.e0*gas.rho0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0);
+                file<<" "<<gas.e0*gas.rho0/Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3],gas.k[1]);
                 file<<" "<<gas.t_h<<" "<<gas.t_rcb;
-                for (i=1;i<N_sp+1;i++) file<<" "<<abs(gas.y0[i]/gas.rf[i]);
+                file<<" "<<0;
             }
         }
         if (i!=0){
@@ -188,7 +197,7 @@ int main(){
             else{
                 file<<" "<<gas.r_c;
                 file<<" "<<Lambda_H2(gas.nH0,gas.T_K0,gas.y0);
-                file<<" "<<Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3])/gas.rho0;
+                file<<" "<<Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3],gas.k[1]);
                 file<<" "<<Gamma_compr(gas.cs,gas.f_Ma,gas.t_ff);
                 file<<" "<<gas.Gamma_mer;
             }

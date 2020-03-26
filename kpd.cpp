@@ -37,7 +37,7 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    double nu_min = 0.45*eV/h_p;
    double nurat = nurat0, nu_prev = nu_min;
    double nu_eV;
-   //, k_Hm=0., k_H2p=0.;
+  
 
    double** sigmaa = new double* [nT];
    for (i=0;i<nT;i++) sigmaa[i] = new double[45];
@@ -78,6 +78,7 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    
    //printf("NF=%d\n",NF);// wli note: NF=70
    
+   k_Hm=0.; k_H2p=0.;
    double dnu[NF-1];
    fstream f1;
    f1.open("../data/k_intg.txt", ios::out | ios::trunc );

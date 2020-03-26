@@ -6,22 +6,27 @@ finprefix = "../code_tree/fort."
 trs = [211,212,216,217]
 Nfile = 4
 
-Mermode = 1
-Tb = 1.e4
-
+Mermode = 0
+Tb = 2.e5
 
 Ma_on = bool(1)
-J21 = 60
+J21 = 1875
 
-for i in range(1):
+Tbs = [8.e3, 1.e4, 2.e4, 3.e4, 5.e4, 1.e5, 2.e5]
+n = len(Tbs)
+i = 0
+for iT in range(n):
     
     treename = finprefix+ str(trs[i]);print(treename)
     foutprefix = "../data/evolveTb4J"
     foutprefix = foutprefix + str(J21) + "_"
     foutprefix = foutprefix+"fMaon" if Ma_on else foutprefix+"fMaoff"
-    foutprefix = '../data/temp'
-    libc.evol(c_char_p(bytes(treename,encoding='utf-8')), c_char_p(bytes(foutprefix+str(trs[i])+".txt",encoding='utf-8')), c_int(Mermode), c_double(J21), Ma_on)
-    print("J21= ",J21, foutprefix+'.txt',treename)
+    # fout = "../data/temp"
+    # libc.evol(c_char_p(bytes(treename,encoding='utf-8')), c_char_p(bytes(fout,encoding='utf-8')), c_int(Mermode), c_double(Tb), c_double(J21), Ma_on)
+    fout = "Jcs_py.txt"
+    libc.evol_Jc(c_char_p(bytes(treename,encoding='utf-8')), c_char_p(bytes(fout,encoding='utf-8')), 
+                 c_double(Tbs[iT]), c_int(Mermode), Ma_on)
+    print("J21=",J21, "Tb=",Tb, fout)
 
 # Ma_on = bool(1)
 # J21 = 60

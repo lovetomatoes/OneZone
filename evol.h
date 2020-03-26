@@ -1,3 +1,3 @@
 double getT(int MerMod, double J, double Tb, char* treename, double nH_tell, bool Ma_on);
-extern "C" void evol(char* treename, char* fout, int mode, double Jlw, bool Ma_on);
-extern "C" void evol_Jc(char* treename, char* fout, double Tb, bool Ma_on);
+extern "C" void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool Ma_on);
+extern "C" void evol_Jc(char* treename, char* fout, double Tb, int MerMod, bool Ma_on);

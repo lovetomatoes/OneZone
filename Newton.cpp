@@ -89,6 +89,13 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
 
     dot(dy, N, j_inv, F);
     for (isp=1;isp<N;isp++) y1[isp] -= dy[isp];
-
+    
+// if solved y_i<0, make it previous value 
+    for (isp=1;isp<N;isp++){
+        if (y1[isp]<0.) {
+            y1[isp] = y0[isp];
+            dy[isp] = 0.;
+        }
+    }
     delete [] j; delete [] j_inv;
 }
