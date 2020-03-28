@@ -48,9 +48,9 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     T_K0 = halo.Tvir;
     nH0 = 6.*pow(T_K0/1000.,1.5); // Visbal 2014 Eq(2)
     printf("MerMod=%d\n",MerMod);
-    /* if (MerMod==0){
-        nH0 = 1.e8;
-        T_K0 = 1.e3;
+    /* if (MergerModel==0){
+        nH0 = 4.5e-3;
+        T_K0 = 20;
     } */
     rho0 = (mu*m_H) * nH0;
     e0 = k_B*T_K0/(gamma_adb-1)/(mu*m_H); // in erg/g
@@ -155,7 +155,7 @@ void GAS:: a_react_sol(bool write){
         }
         int iter0 = 0;
         while ( len_v(N, dy) > epE8*len_v(N, y_i1) ){
-            SOL_IMPLICIT(dy, y_i0, y_i1, ts[i+1]-ts[i], nH0, T_K0, k, J_LW, Tb); // y_i0 passed but UNCHANGED.
+            SOL_IMPLICIT(dy, y_i0, y_i1, ts[i+1]-ts[i], nH0, T_K0, k,rf, J_LW, Tb); // y_i0 passed but UNCHANGED.
             //printf("iter0=%d ",iter0++);
             /* for (isp=0;isp<N;isp++) {
                 y_i0[isp] = y_i1[isp];//printf("y_i0=%3.2e, dy=%3.2e\t");
@@ -355,6 +355,7 @@ void GAS:: timescales(){
         t_h = abs(e0/r_h);
         Dt = 0.1* min( min(t_c,t_h), t_ff );  //sufficiently same with Dt = 0.01*...
         //Dt = 0.1*min(t_h, t_ff);
+        //printf("in TIMESCALES:t_c=%3.2e,t_h=%3.2e,t_ff=%3.2e\n",t_c,t_h,t_ff);
     }
     // time++ by Dt
     t_act += Dt;

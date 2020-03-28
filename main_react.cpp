@@ -27,7 +27,7 @@ int main(){
     printf("################################################################################\n");
     printf("################################################################################\n");
     char* treename = "../code_tree/fort.217"; //不行！！！会
-    char* fout = "data/temp";
+    char* fout = "temp.txt";
     bool Ma_on = true;
     int MerMod = 0;
     double J21 = 60; //without mergers, WG11 shielding, Jcrit~50 for Tb=1.e4K, Jcrit~3000 for Tb=1.e5K

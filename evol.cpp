@@ -35,6 +35,12 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool M
     double y_e = y_Hp + y_H2p - y_Hm + y_Hep + 2.*y_Hepp;
     double nH = 1.e8;
     double T_K = 1.e3;
+    
+    tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-7, y_Hm = 1.0e-13, y_H2p = 1.0e-13;
+    y_Hp = 1.0e-5;
+    y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
+    y_He = yHe - 2.*tiny; y_Hep = tiny; y_Hepp = tiny;
+    y_e = y_Hp + y_H2p - y_Hm + y_Hep + 2.*y_Hepp;
 
     double frac0[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
   
@@ -229,6 +235,12 @@ double getT(int MerMod, double J, double Tb, char* treename, bool Ma_on, double 
     double y_Hp = 1.0e-4, y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
     double y_He = yHe - 2.*tiny, y_Hep = tiny, y_Hepp = tiny;
     double y_e = y_Hp + y_H2p - y_Hm + y_Hep + 2.*y_Hepp;
+    
+    tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-7, y_Hm = 1.0e-13, y_H2p = 1.0e-13;
+    y_Hp = 1.0e-5;
+    y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
+    y_He = yHe - 2.*tiny; y_Hep = tiny; y_Hepp = tiny;
+    y_e = y_Hp + y_H2p - y_Hm + y_Hep + 2.*y_Hepp;
 
     double frac0[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
 

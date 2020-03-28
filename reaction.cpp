@@ -208,11 +208,13 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
 //     Coppola et al.(2011) high density Table3-4
     xk_H=exp(-33.081+6.3173e-5*T_K-2.3478e4/T_K
         -1.8691e-9*pow(T_K,2) )*1.e6;
-    
+// wli if T_K <30.0 xk_L wrong...
+    if (xk_L<0.) xk_L = -xk_L; 
 //     connect between v=0 and LTE
     if(a==1.) k[8] = xk_L;
     else if (a==0.) k[8] = xk_H;
     else k[8] = pow(xk_H, 1.-a) * pow(xk_L,a);
+
 //  (9)   H2    +   e     -> 2 H     +   e
 //     Trevisan  Tennyson (2002): GA08 TableA1-8
     xk_L = 4.49e-9*pow(T_K,0.11) *exp(-101858./T_K);
@@ -394,6 +396,10 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
 //     GA08 TableA1-32
     k[42] = 6.9e-32/pow(T_K,0.4);
 
+    for (int i=0;i<N_react1;i++) {
+        if (isnan(k[i])) k[i]=0.;
+        if (k[i]<0.) k[i]=0.;
+    }
 }
 
 void react_rat(double *r_f_tot, double *y, double *k, double nH, double T_K){

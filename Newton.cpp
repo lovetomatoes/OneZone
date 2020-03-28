@@ -29,10 +29,10 @@ int const N = N_sp +1;
 //  7)    H-    +     ph       ->   H    +     e
 //  8)    H    +     e-       ->   H+    +     2e-
 
-void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, double T_K, double* xk, double J_LW, double Tb){
+void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, double T_K, double* xk,double*r_f, double J_LW, double Tb){
     double* j = new double [N*N]; double* j_inv = new double [N*N];
     double F[N];
-    double r_f[N], r_f_fw[N], r_f_bw[N];
+    double r_f_fw[N], r_f_bw[N];
     // double xk[N_react1];
     double delta_y;
     double y_tmp[N], err_0, r_f_big, dr_f,
@@ -58,7 +58,6 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
 
         for (isp=1; isp<N; isp++){
             dr_fdy[isp][jsp] = (r_f_fw[isp] - r_f_bw[isp]) /delta_y;
-            //printf("dr_fdy = %3.2e\n",dr_fdy[isp][jsp]);
             r_f_big = max( abs(r_f_fw[isp]) , abs(r_f_bw[isp]) );
             if (r_f_big != 0.) {
                 dr_f = abs(r_f_fw[isp] -r_f_bw[isp] );
@@ -77,19 +76,19 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
         for (jsp = 1; jsp<N; jsp++){
             if(isp != jsp) j[isp*N+jsp] = -dt*dr_fdy[isp][jsp];
             else j[isp*N+jsp] = 1. - dt*dr_fdy[isp][jsp];
-            //printf("%3.2e, ",j[isp*N+jsp]);
+            //printf("dr_fdy=%3.2e, ",dr_fdy[isp][jsp]);
         }
         //printf("]\n");
     }
-    //printf("\n");
+    // printf("\n");
     get_inverse (j_inv, j, N);
 
     F[0] = 0;
-    for (isp=1;isp<N;isp++) F[isp] = y1[isp] - dt*r_f[isp] -y0[isp];
+    for (isp=1;isp<N;isp++) F[isp] = y1[isp] - dt*r_f[isp] - y0[isp];
 
     dot(dy, N, j_inv, F);
     for (isp=1;isp<N;isp++) y1[isp] -= dy[isp];
-    
+
 // if solved y_i<0, make it previous value 
     for (isp=1;isp<N;isp++){
         if (y1[isp]<0.) {
@@ -97,5 +96,43 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
             dy[isp] = 0.;
         }
     }
+
+//charge neutrality & H neuclei conservation
+    y_H    = y1[1];
+    y_H2   = y1[2];
+    y_e    = y1[3];
+    y_Hp   = y1[4];
+    y_H2p  = y1[5];
+    y_Hm   = y1[6];
+    y_He   = y1[7];
+    y_Hep  = y1[8];
+    y_Hepp = y1[9];
+    
+    if(y_H<y_Hp) y_Hp = 1.0-y_H -2.*y_H2-2.*y_H2p-y_Hm;
+    if(y_H>y_Hp) y_H  = 1.0-y_Hp-2.*y_H2-2.*y_H2p-y_Hm;
+
+    double yHe = 8.3333333e-2; //number fraction of He neuclei;
+    if(y_He>y_Hep) {
+        if(y_He>y_Hepp) y_He = yHe - y_Hep - y_Hepp;
+    }
+    if(y_Hep>y_He) {
+        if(y_Hep>y_Hepp) y_Hep = yHe - y_He - y_Hepp;
+    }
+    if(y_Hepp>y_He) {
+        if(y_Hepp>y_Hep) y_Hepp = yHe - y_He - y_Hep;
+    }
+
+    y_e = y_Hp + y_Hep + 2.0*y_Hepp + y_H2p - y_Hm;
+
+    y1[1] = y_H;
+    y1[2] = y_H2;
+    y1[3] = y_e;
+    y1[4] = y_Hp;
+    y1[5] = y_H2p;
+    y1[6] = y_Hm;
+    y1[7] = y_He;
+    y1[8] = y_Hep;
+    y1[9] = y_Hepp;
+
     delete [] j; delete [] j_inv;
 }

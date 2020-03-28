@@ -44,7 +44,7 @@
          if (time>8.d10) exit
          call react_coef(xnH, T_K, y(1), y(2), xk)
          !call solve_chem_simple(xk,xnH,T_K,y,dt,t_chem)
-         print*, time
+         !print*, time
          call solve_chem_implicit(xnH, T_K, y, dt, t_chem, i) 
 !     set time step
 c         dt = 0.01d0 * t_chem
@@ -59,8 +59,8 @@ c         dt = 0.01d0 * t_chem
 c            print*, i,time, dt, y(1), y(4), y(2),
 c     &           y(1)+2.0d0*y(2)+y(4)+2.0d0*y(5)+y(6),
 c     &           y(3)+y(6), y(4)+y(5)+y(8)+2.0d0*y(9)     
-c            write(10,*), time, y(1), y(2), y(3), y(4), y(5), y(6),
-c     &           y(7), y(8), y(9)
+            write(10,*), time, y(1), y(2), y(3), y(4), y(5), y(6),
+     &           y(7), y(8), y(9)
          endif
 
 c         print*, y(1)+2.0d0*y(2)+y(4)+2.0d0*y(5)+y(6),
@@ -487,7 +487,7 @@ C     (C) Copr. 1986-92 Numerical Recipes Software v%1jw#<?4210(93Y"+91.d0
       zH2=1.0d1**(2.20859d0  -1.8089d0*dlog10(T_K)
      &     + 0.451858d0*(dlog10(T_K)**2.0d0))
             
-      print*, n_cr, zH, zH2
+      ! print*, n_cr, zH, zH2
 
 !================= Hydrogen (1-20) =================!
 !
