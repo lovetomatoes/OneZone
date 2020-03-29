@@ -1,9 +1,14 @@
 1. mc, rm Jcs.txt in appending mode; rm evol.o so it can make again generating cc.so 
 2. mk
-3. main.cpp now can call function evol, evol_Jcs (or use evol.py)
+3. main.cpp now can call function evol, evol_Jcs (evol.py?)
 
 #-------------------------------------------------------
-corrections regarding class_gas, Newton, evol, kpd
+corrections regarding class_gas, Newton, evol
 class_gas: add react_coef in constructor, for calculate timescales;
-Newton: set lower lim=0 for y1[i];
-kpd: set initial kpd=0;  
+
+evol: frac0 set once;
+react_sol: charge neutrality;
+Newton: delete charge neutrality, allow negative y
+reaction: change k[i]<0 or infinity to k[i]=0,  k[3] back to Wishart79, correction of k[8];
+timescales: add t_chem into criteria;
+
