@@ -106,6 +106,11 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    delete[] nua;
 }
 
+/* !     H- photodetachment
+!     H-   +  ph.   ->   H    +    e
+!     photon energy E in eV
+!     ref. T.L.John (1988 A&A 193,189)
+ */
 void Hm_CrossSec(double& sigma, double E){
    double x,y_w,y_0,y_1,y,P,y_a,
           a1,s,a2,a3,
@@ -128,6 +133,11 @@ void Hm_CrossSec(double& sigma, double E){
    if(rlmbd<=0.09) sigma = 0.0;
 }
 
+/* C     cross section of H2+ b-f
+C     H2+   +  ph.   ->   H   +   H+
+C     frequency rnu in eV
+C     ref. P.C.Stancil (1994 ApJ 430,360)
+ */
 void H2p_bf_CrossSec(double& sigma, double nu_eV, double T_K, double* Ta, double* nua, double** sigmaa){
 //         H2p_bf_CrossSec(sigma_H2p, nu[k], T_H2, Ta, nua, sigmaa);
   /*  cout<<"IN H2P CROSS_SEC:  ";

@@ -35,8 +35,8 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
     double r_f_fw[N], r_f_bw[N];
     // double xk[N_react1];
     double delta_y;
-    double y_tmp[N], err_0, r_f_big, dr_f,
-           y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp;
+    double y_tmp[N], err_0, r_f_big, dr_f;
+    double y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp;
     double dr_fdy[N][N];
     
     react_coef(xk, nH, y1[1], y1[2], T_K, J_LW, Tb);
@@ -92,7 +92,9 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
 // if solved y_i<0, make it previous value 
     for (isp=1;isp<N;isp++){
         if (y1[isp]<0.) {
-            y1[isp] = y0[isp];
+            printf("NEGATIVE VALUE: y[%d]=%3.2e\n",isp,y1[isp]);
+            y1[isp] += dy[isp]; // 原来 y1[isp] = y0[isp]; 现在更准确？回到之前解
+            printf("AFTER CORRECTION: y[%d]=%3.2e\n",isp,y1[isp]);
             dy[isp] = 0.;
         }
     }
@@ -113,7 +115,7 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
 
     double yHe = 8.3333333e-2; //number fraction of He neuclei;
     if(y_He>y_Hep) {
-        if(y_He>y_Hepp) y_He = yHe - y_Hep - y_Hepp;
+        if(y_He>y_Hepp) y_He = yHe - y_Hep - y_Hepp; 
     }
     if(y_Hep>y_He) {
         if(y_Hep>y_Hepp) y_Hep = yHe - y_He - y_Hepp;
@@ -123,16 +125,28 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
     }
 
     y_e = y_Hp + y_Hep + 2.0*y_Hepp + y_H2p - y_Hm;
-
+    
+    dy[1] -= (y1[1] - y_H);           
+    dy[2] -= (y1[2] - y_H2);          
+    dy[3] -= (y1[3] - y_e);           
+    dy[4] -= (y1[4] - y_Hp);           
+    dy[5] -= (y1[5] - y_H2p);          
+    dy[6] -= (y1[6] - y_Hm);          
+    //dy[7] -= (y1[7] - y_He);  //如果不comment掉 loop跑不出来   
+    dy[8] -= (y1[8] - y_Hep);         
+    dy[9] -= (y1[9] - y_Hepp);        
+    
+    y1[0] = 1.; dy[0] = 0.;
     y1[1] = y_H;
-    y1[2] = y_H2;
+    y1[2] = y_H2; 
     y1[3] = y_e;
-    y1[4] = y_Hp;
-    y1[5] = y_H2p;
+    y1[4] = y_Hp;   
+    y1[5] = y_H2p;  
     y1[6] = y_Hm;
-    y1[7] = y_He;
-    y1[8] = y_Hep;
-    y1[9] = y_Hepp;
-
+    y1[7] = y_He; 
+    y1[8] = y_Hep;   
+    y1[9] = y_Hepp;  
+    for(int isp=0;isp<N_sp1;isp++) printf("in NEWTON, IMPLICIT: y1[%d]=%3.2e, dy/y1=%3.2e\n",isp,y1[isp],dy[isp]/y1[isp]);
+    printf("\n");
     delete [] j; delete [] j_inv;
 }

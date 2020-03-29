@@ -22,19 +22,10 @@ using namespace std;
 *     5 : H2+    6 : H-                            *
 *     7 : He     8 : He+    9 : He++               *
 ****************************************************/
-
-
-void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool Ma_on){
-    printf("################################################################################\n");
-    printf("################################################################################\n");
-    printf("################################################################################\n");
-    int i =0;
-    double tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-6, y_Hm = 1.0e-12, y_H2p = 1.0e-12;
+/* double tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-6, y_Hm = 1.0e-12, y_H2p = 1.0e-12;
     double y_Hp = 1.0e-4, y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
     double y_He = yHe - 2.*tiny, y_Hep = tiny, y_Hepp = tiny;
     double y_e = y_Hp + y_H2p - y_Hm + y_Hep + 2.*y_Hepp;
-    double nH = 1.e8;
-    double T_K = 1.e3;
     
     tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-7, y_Hm = 1.0e-13, y_H2p = 1.0e-13;
     y_Hp = 1.0e-5;
@@ -43,7 +34,21 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool M
     y_e = y_Hp + y_H2p - y_Hm + y_Hep + 2.*y_Hepp;
 
     double frac0[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
-  
+ */
+double evol_tiny = 1.0e-20, evol_yHe = 8.33333e-2, evol_y_H2 = 1.0e-5, evol_y_Hm = 1.0e-12, evol_y_H2p = 1.0e-12;
+double evol_y_Hp = 1.0e-5; // cannnot be too small like 1.e-5; --> now change a_react_sol criteria; shrink IMPLICIT times
+double evol_y_H = 1.0 - 2.*evol_y_H2 - 2.*evol_y_H2p - evol_y_Hm - evol_y_Hp;
+double evol_y_He = evol_yHe - 2.*evol_tiny, evol_y_Hep = evol_tiny, evol_y_Hepp = evol_tiny;
+double evol_y_e = evol_y_Hp + evol_y_H2p - evol_y_Hm + evol_y_Hep + 2.*evol_y_Hepp;
+
+double frac0[] = {0., evol_y_H, evol_y_H2, evol_y_e, evol_y_Hp, evol_y_H2p, evol_y_Hm, evol_y_He, evol_y_Hep, evol_y_Hepp};
+
+void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool Ma_on){
+    printf("################################################################################\n");
+    printf("################################################################################\n");
+    printf("################################################################################\n");
+    int i =0;
+    
     GAS gas(frac0,MerMod,J21,Tbb,treename,Ma_on);
     double t_ff0 = 1./C/sqrt(gas.nH0);
     double t1 = 1.9999*t_ff0;
@@ -231,19 +236,6 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool M
 
 // resembling main_Jc1.cpp
 double getT(int MerMod, double J, double Tb, char* treename, bool Ma_on, double nH_tell = 5.e5){
-    double tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-6, y_Hm = 1.0e-12, y_H2p = 1.0e-12;
-    double y_Hp = 1.0e-4, y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
-    double y_He = yHe - 2.*tiny, y_Hep = tiny, y_Hepp = tiny;
-    double y_e = y_Hp + y_H2p - y_Hm + y_Hep + 2.*y_Hepp;
-    
-    tiny = 1.0e-20, yHe = 8.33333e-2, y_H2 = 1.0e-7, y_Hm = 1.0e-13, y_H2p = 1.0e-13;
-    y_Hp = 1.0e-5;
-    y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
-    y_He = yHe - 2.*tiny; y_Hep = tiny; y_Hepp = tiny;
-    y_e = y_Hp + y_H2p - y_Hm + y_Hep + 2.*y_Hepp;
-
-    double frac0[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
-
     GAS gas(frac0,MerMod,J,Tb,treename,Ma_on);
     while (gas.nH0<nH_tell){
         gas.setMerger();

@@ -26,7 +26,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
 //  2)   H     +   e     ->   H-    +   ph.
 //     Glover  Abel 2008, reation (1), Table A1
     if (T_K<=6000) k[2] = pow(10, -17.845 + 0.762*lgT + 0.1523*pow(lgT,2) - 0.03274*pow(lgT,3) );
-    else k[2] = pow(10, -16.4199 + 0.1998*pow(lgT, 2) - 5.447e-3*pow(T_K,4) + 4.0415e-5*pow(lgT,6) );
+    else k[2] = pow(10, -16.4199 + 0.1998*pow(lgT, 2) - 5.447e-3*pow(lgT,4) + 4.0415e-5*pow(lgT,6) );
 
 //  3)   H-    +   H     ->   H2    +   e              
 //     Glover  Abel 2008 reation (2), Table A1; Eq(5)
@@ -145,12 +145,13 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
 //     Wishart (1979): GA08 TableA1-1
     if (T_K<=6.e3) k[3] = pow(10., -17.845 + 0.762*lgT + 0.1523*pow(lgT,2) - 0.03274*pow(lgT,3) );
     else k[3] = pow(10., -16.4199 + 0.1998*pow(lgT,2) - 5.447e-3*pow(lgT,4) + 4.0415e-5*pow(lgT,6) );
-
+    //k[3] *= 0.5;
+    k[3] = 1.4e-18*pow(T_K,0.928)*exp(-T_K/16200.); //Galli Palla 1998
 
 //  (4)   H-    +   H     ->   H2    +   e
 //     Kreckel et al. (2010): 
     //     The most recent experiment
-      k[4] = 1.35e-9 * ( pow(T_K,9.8493e-2)
+    k[4] = 1.35e-9 * ( pow(T_K,9.8493e-2)
            + 0.32852*pow(T_K,0.5561) 
            + 2.771e-7*pow(T_K,2.1826))
            /(1.0 + 6.1910e-3*pow(T_K,1.0461)
@@ -315,7 +316,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
     if (Tb == 1.e5) ratioT = 10; //T=10^5K, ratioT = 10.
     if (Tb == 2.e5) ratioT = 8.1;
     //printf("from RATIO = %3.2e\n",ratioT*kh2pd);
-    
+
 //  (23) H2+  +   ph  ->  H   +  H+
 
 //  (24-30) blank:
@@ -397,7 +398,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
     k[42] = 6.9e-32/pow(T_K,0.4);
 
     for (int i=0;i<N_react1;i++) {
-        if (isnan(k[i])) k[i]=0.;
+        if (not isfinite(k[i])) k[i]=0.;
         if (k[i]<0.) k[i]=0.;
     }
 }
@@ -582,7 +583,7 @@ void react_rat(double *r_f_tot, double *y, double *k, double nH, double T_K){
 
 //  22)  H-   +   ph  ->  H   +  e
 //       6                1      3
-    rate  = k[22] * y[6];
+    rate  = k[22] * y[6]; // wli  rate = 0.;
     r_f[22][1] = rate;
     r_f[22][3] = rate;
     r_f[22][6] = -rate;

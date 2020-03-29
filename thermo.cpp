@@ -187,6 +187,7 @@ double Lambda_H2(double nH, double T_K, double* y){
 double Lambda_H(double nH, double T_K, double y_H, double y_e, double k_ion){
     double col_exc = 7.5e-19/(1.+sqrt(T_K/1.e5))*exp(-118348./T_K)*y_e*y_H*pow(nH,2);
     double col_ion = 2.179e-11*k_ion*y_e*y_H*pow(nH,2);
+    //printf("IN THERMO-LAMBDA_H: col_exc=%3.2e, col_ion=%3.2e\n");
     return col_exc + col_ion;
 }
 // collision w/ e, excitation of He+ GJ07, adopted from Cen 1992

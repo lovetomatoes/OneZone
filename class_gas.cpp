@@ -154,14 +154,15 @@ void GAS:: a_react_sol(bool write){
             //printf("y_i0[%d]=%3.2e, y_i1=%3.2e, dy=%3.2e\n",isp,y_i0[isp],y_i1[isp],dy[isp]);
         }
         int iter0 = 0;
-        while ( len_v(N, dy) > epE8*len_v(N, y_i1) ){
+        //while ( len_v(N, dy) > epE8*len_v(N, y_i1) ){ //original, 对于initial y_H+<=1.e-5 可能太精细 循环出不来
+        //for(int i=1;i<3;i++){ //会有较大的起伏偏差
+        // y_i1[0]=1;
+        while ( len_v(N-1, dy) > epE8*len_v(N, y_i1) ){
             SOL_IMPLICIT(dy, y_i0, y_i1, ts[i+1]-ts[i], nH0, T_K0, k,rf, J_LW, Tb); // y_i0 passed but UNCHANGED.
-            //printf("iter0=%d ",iter0++);
-            /* for (isp=0;isp<N;isp++) {
-                y_i0[isp] = y_i1[isp];//printf("y_i0=%3.2e, dy=%3.2e\t");
-            } */
-            //printf("\n");
+            iter0++;
+            printf("LOOP TIME %d IN REACT_SOL\n",iter0);
         }
+        //printf("LOOP TIME %d IN REACT_SOL\n",iter0);
     }
     // set  y1, the reaction result at time t1 by initial set of Nt grids (a react sol)
     // y1[0] = 0 already set in constructor
@@ -188,7 +189,6 @@ void GAS:: react_sol(bool write){
             y1_prev[i] = y1[i];
         }
     }while ( len_v(N, delta_y) > epE3*len_v(N, y1_prev) );
-    
 
 //charge neutrality & H neuclei conservation
     double y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp;
@@ -228,7 +228,9 @@ void GAS:: react_sol(bool write){
     y0[7] = y_He;
     y0[8] = y_Hep;
     y0[9] = y_Hepp;
-
+    
+    /* for(int isp=1;isp<N_sp1;isp++) printf("in REACT_SOL, IMPLICIT: y1[%d]=%3.2e\n",isp,y0[isp]);
+    printf("\n"); */
 //reset Nt
     Nt = 5;
 }
@@ -351,11 +353,13 @@ void GAS:: timescales(){
 // no merger case, just free fall; one-zone case of former work
     if (MerMod==0) { 
         r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_chem(nH0, T_K0, y0, k)/rho0;
-        t_c = e0/r_c;
+        t_c = e0/r_c;// abs(e0/r_c); //seems <0 and crash
         t_h = abs(e0/r_h);
-        Dt = 0.1* min( min(t_c,t_h), t_ff );  //sufficiently same with Dt = 0.01*...
+        Dt = 0.01* min( min(t_c,t_h), t_ff );  //sufficiently same with Dt = 0.01*...
         //Dt = 0.1*min(t_h, t_ff);
-        //printf("in TIMESCALES:t_c=%3.2e,t_h=%3.2e,t_ff=%3.2e\n",t_c,t_h,t_ff);
+        printf("in TIMESCALES:t_c=%3.2e,t_h=%3.2e,t_ff=%3.2e\n",t_c,t_h,t_ff);
+        printf("k_Hion=%3.2e, k_Heion=%3.2e, r_cH=%3.2e, r_cH2=%3.2e, r_cHep=%3.2e, r_h=%3.2e\n",
+            k_Hion,k_Heion,r_cH,r_cH2,Lambda_Hep(nH0, T_K0, y_Hep, y_e, y_He, k_Heion)/rho0,r_h);
     }
     // time++ by Dt
     t_act += Dt;
