@@ -146,7 +146,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
     if (T_K<=6.e3) k[3] = pow(10., -17.845 + 0.762*lgT + 0.1523*pow(lgT,2) - 0.03274*pow(lgT,3) );
     else k[3] = pow(10., -16.4199 + 0.1998*pow(lgT,2) - 5.447e-3*pow(lgT,4) + 4.0415e-5*pow(lgT,6) );
     //k[3] *= 0.5;
-    k[3] = 1.4e-18*pow(T_K,0.928)*exp(-T_K/16200.); //Galli Palla 1998
+    //k[3] = 1.4e-18*pow(T_K,0.928)*exp(-T_K/16200.); //Galli Palla 1998
 
 //  (4)   H-    +   H     ->   H2    +   e
 //     Kreckel et al. (2010): 
@@ -209,7 +209,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
 //     Coppola et al.(2011) high density Table3-4
     xk_H=exp(-33.081+6.3173e-5*T_K-2.3478e4/T_K
         -1.8691e-9*pow(T_K,2) )*1.e6;
-// wli if T_K <30.0 xk_L wrong...
+// wli if T_K < 30.0 xk_L NEGATIVE...
     if (xk_L<0.) xk_L = -xk_L; 
 //     connect between v=0 and LTE
     if(a==1.) k[8] = xk_L;
@@ -397,10 +397,13 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
 //     GA08 TableA1-32
     k[42] = 6.9e-32/pow(T_K,0.4);
 
-    for (int i=0;i<N_react1;i++) {
-        if (not isfinite(k[i])) k[i]=0.;
-        if (k[i]<0.) k[i]=0.;
-    }
+// wli: in case k <0 or = infinity or nan
+    /* for (int i=0;i<N_react1;i++) {
+        if (not isfinite(k[i]) or k[i]<0.) {
+            printf("k[%d] wrong: =%3.2e\n", k[i]);
+            k[i]=0.;
+        }
+    } */
 }
 
 void react_rat(double *r_f_tot, double *y, double *k, double nH, double T_K){
@@ -583,7 +586,7 @@ void react_rat(double *r_f_tot, double *y, double *k, double nH, double T_K){
 
 //  22)  H-   +   ph  ->  H   +  e
 //       6                1      3
-    rate  = k[22] * y[6]; // wli  rate = 0.;
+    rate  = k[22] * y[6];
     r_f[22][1] = rate;
     r_f[22][3] = rate;
     r_f[22][6] = -rate;

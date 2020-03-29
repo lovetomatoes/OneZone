@@ -36,7 +36,7 @@ using namespace std;
     double frac0[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
  */
 double evol_tiny = 1.0e-20, evol_yHe = 8.33333e-2, evol_y_H2 = 1.0e-5, evol_y_Hm = 1.0e-12, evol_y_H2p = 1.0e-12;
-double evol_y_Hp = 1.0e-5; // cannnot be too small like 1.e-5; --> now change a_react_sol criteria; shrink IMPLICIT times
+double evol_y_Hp = 1.0e-3;
 double evol_y_H = 1.0 - 2.*evol_y_H2 - 2.*evol_y_H2p - evol_y_Hm - evol_y_Hp;
 double evol_y_He = evol_yHe - 2.*evol_tiny, evol_y_Hep = evol_tiny, evol_y_Hepp = evol_tiny;
 double evol_y_e = evol_y_Hp + evol_y_H2p - evol_y_Hm + evol_y_Hep + 2.*evol_y_Hepp;
@@ -102,6 +102,25 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool M
         //printf("nH=%3.2e, T_K=%3.2e\t k[15,+]=%3.2e, k[7,-]=%3.2e, y_H2=%3.2e\n",gas.nH0, gas.T_K0,gas.k[15],gas.k[7],gas.y0[2]);
 
         //cout<<z_ana(35,gas.t_act)<<gas.z<<endl; //not exactly the same...
+
+        if (tscales) {            
+            if (i==0) {
+                if (py) file<<" t_ff t_c t_h t_rcb t_chem";
+                else file<<" t_{ff} t_{c} t_h t_{rcb} t_{chem}";
+            }
+            else {
+                file<<" "<<gas.t_ff/t_ff0;
+                file<<" "<<gas.t_c/t_ff0;
+                file<<" "<<gas.t_h/t_ff0;
+                file<<" "<<gas.t_rcb/t_ff0;
+                file<<" "<<gas.t_chem/t_ff0;
+                /* 
+                file<<" "<<gas.e0*gas.rho0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0); //t_cH2
+                file<<" "<<gas.e0*gas.rho0/Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3],gas.k[1]); //t_cH
+                 */
+            }
+        }
+
         if (fract){
             if (i==0){
                 if (py) file<<" yH yH2 ye yH+ yH2+ yH- yHe yHe+ yHe++ Ma v_tur MJ_eff"; //y_equi y_cool
@@ -165,19 +184,7 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool M
             else file<<" "<<gas.iMer<<" "<<gas.Mh/Ms<<" "<<gas.MPs[gas.iMer].Tvir<<" "<<gas.MPs[gas.iMer].dm/Ms<<" "<<gas.MPs[gas.iMer].mratio;
         }
 
-        if (tscales) {            
-            if (i==0) {
-                if (py) file<<" t_ff t_cH2 t_cH t_h t_rcb t_chem";
-                else file<<" t_{ff} t_{c,H2} t_{c,H} t_h t_{rcb} t_{chem}";
-            }
-            else {
-                file<<" "<<gas.t_ff;
-                file<<" "<<gas.e0*gas.rho0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0);
-                file<<" "<<gas.e0*gas.rho0/Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3],gas.k[1]);
-                file<<" "<<gas.t_h<<" "<<gas.t_rcb;
-                file<<" "<<0;
-            }
-        }
+
         if (i!=0){
             gas.setMerger();
             gas.timescales(); 

@@ -89,6 +89,7 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
     dot(dy, N, j_inv, F);
     for (isp=1;isp<N;isp++) y1[isp] -= dy[isp];
 
+// 以下不行 允许计算中 y<0 并乱改 造成过class_gas里a_react_sol跑不出循环...
 // if solved y_i<0, make it previous value 
     /* for (isp=1;isp<N;isp++){
         if (y1[isp]<0.) {
@@ -99,54 +100,5 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
         }
     }
  */
-//charge neutrality & H neuclei conservation
-    y_H    = y1[1];
-    y_H2   = y1[2];
-    y_e    = y1[3];
-    y_Hp   = y1[4];
-    y_H2p  = y1[5];
-    y_Hm   = y1[6];
-    y_He   = y1[7];
-    y_Hep  = y1[8];
-    y_Hepp = y1[9];
-    
-    if(y_H<y_Hp) y_Hp = 1.0-y_H -2.*y_H2-2.*y_H2p-y_Hm;
-    if(y_H>y_Hp) y_H  = 1.0-y_Hp-2.*y_H2-2.*y_H2p-y_Hm;
-
-    double yHe = 8.3333333e-2; //number fraction of He neuclei;
-    if(y_He>y_Hep) {
-        if(y_He>y_Hepp) y_He = yHe - y_Hep - y_Hepp; 
-    }
-    if(y_Hep>y_He) {
-        if(y_Hep>y_Hepp) y_Hep = yHe - y_He - y_Hepp;
-    }
-    if(y_Hepp>y_He) {
-        if(y_Hepp>y_Hep) y_Hepp = yHe - y_He - y_Hep;
-    }
-
-    y_e = y_Hp + y_Hep + 2.0*y_Hepp + y_H2p - y_Hm;
-    
-    dy[1] -= (y1[1] - y_H);           
-    dy[2] -= (y1[2] - y_H2);          
-    dy[3] -= (y1[3] - y_e);           
-    dy[4] -= (y1[4] - y_Hp);           
-    dy[5] -= (y1[5] - y_H2p);          
-    dy[6] -= (y1[6] - y_Hm);          
-    //dy[7] -= (y1[7] - y_He);  //如果不comment掉 loop跑不出来   
-    dy[8] -= (y1[8] - y_Hep);         
-    dy[9] -= (y1[9] - y_Hepp);        
-    
-    y1[0] = 1.; dy[0] = 0.;
-    y1[1] = y_H;
-    y1[2] = y_H2; 
-    y1[3] = y_e;
-    y1[4] = y_Hp;   
-    y1[5] = y_H2p;  
-    y1[6] = y_Hm;
-    y1[7] = y_He; 
-    y1[8] = y_Hep;   
-    y1[9] = y_Hepp;  
-    for(int isp=0;isp<N_sp1;isp++) printf("in NEWTON, IMPLICIT: y1[%d]=%3.2e, dy/y1=%3.2e\n",isp,y1[isp],dy[isp]/y1[isp]);
-    printf("\n");
     delete [] j; delete [] j_inv;
 }
