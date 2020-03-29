@@ -157,7 +157,7 @@ void GAS:: a_react_sol(bool write){
         //while ( len_v(N, dy) > epE8*len_v(N, y_i1) ){ //original, 对于initial y_H+<=1.e-5 可能太精细 循环出不来
         //for(int i=1;i<3;i++){ //会有较大的起伏偏差
         // y_i1[0]=1;
-        while ( len_v(N-1, dy) > epE8*len_v(N, y_i1) ){
+        while ( len_v(N, dy) > epE8*len_v(N, y_i1) ){
             SOL_IMPLICIT(dy, y_i0, y_i1, ts[i+1]-ts[i], nH0, T_K0, k,rf, J_LW, Tb); // y_i0 passed but UNCHANGED.
             iter0++;
             printf("LOOP TIME %d IN REACT_SOL\n",iter0);
@@ -303,6 +303,14 @@ void GAS:: setMerger(){
 }
 
 void GAS:: timescales(){
+    /* 不行 因为t_chem太小无法演化下去
+    // chemical reaction timescale; use minimum to avoid too absurd fowarding
+    t_chem = 1.e100;
+    for (int isp=1; isp<N;isp++) {
+        if (rf[isp]!=0. and y0[isp]!=0) t_chem = min( abs(y0[isp]/rf[isp]), t_chem );
+        printf("y0[%d]=%3.2e,rf[%d]=%3.2e\n",isp,y0[isp],isp,rf[isp]);
+        printf("t_ch1=%3.2e, t_chem",abs(y0[isp]/rf[isp]), t_chem);
+    } */
     //Hm + H -> H2+e  &  3H -> H2+H  
     double y_H = y0[1], y_H2 = y0[2], y_e = y0[3], y_Hep = y0[8], y_He = y0[7];
     double k_Hion = k[1], k_Heion = k[31];
@@ -357,7 +365,7 @@ void GAS:: timescales(){
         t_h = abs(e0/r_h);
         Dt = 0.01* min( min(t_c,t_h), t_ff );  //sufficiently same with Dt = 0.01*...
         //Dt = 0.1*min(t_h, t_ff);
-        printf("in TIMESCALES:t_c=%3.2e,t_h=%3.2e,t_ff=%3.2e\n",t_c,t_h,t_ff);
+        printf("in TIMESCALES:t_c=%3.2e,t_h=%3.2e,t_ff=%3.2e,t_chem=%3.2e\n",t_c,t_h,t_ff,t_chem);
         printf("k_Hion=%3.2e, k_Heion=%3.2e, r_cH=%3.2e, r_cH2=%3.2e, r_cHep=%3.2e, r_h=%3.2e\n",
             k_Hion,k_Heion,r_cH,r_cH2,Lambda_Hep(nH0, T_K0, y_Hep, y_e, y_He, k_Heion)/rho0,r_h);
     }

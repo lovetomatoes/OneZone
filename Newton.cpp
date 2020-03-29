@@ -90,7 +90,7 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
     for (isp=1;isp<N;isp++) y1[isp] -= dy[isp];
 
 // if solved y_i<0, make it previous value 
-    for (isp=1;isp<N;isp++){
+    /* for (isp=1;isp<N;isp++){
         if (y1[isp]<0.) {
             printf("NEGATIVE VALUE: y[%d]=%3.2e\n",isp,y1[isp]);
             y1[isp] += dy[isp]; // 原来 y1[isp] = y0[isp]; 现在更准确？回到之前解
@@ -98,7 +98,7 @@ void SOL_IMPLICIT(double* dy, double *y0, double* y1, double dt, double nH, doub
             dy[isp] = 0.;
         }
     }
-
+ */
 //charge neutrality & H neuclei conservation
     y_H    = y1[1];
     y_H2   = y1[2];
