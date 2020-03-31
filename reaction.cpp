@@ -157,7 +157,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
            /(1.0 + 6.1910e-3*pow(T_K,1.0461)
            + 8.9712e-11*pow(T_K,3.0424)  
            + 3.2576e-14*pow(T_K,3.7741));
-      
+
 // 5)   H     +   H+    ->   H2+   +   ph.
 //     Coppola et al. (2011): // wli: did not find... but plotted checked
     if(T_K<=30.0) k[5] = 2.1e-20/pow( T_K/30.0, 0.15); 
@@ -257,6 +257,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
 //     GA08 TableA1-30 text following Abel 2002, lowest rates among literature; also default value in Glover & Savin 2009 section 3.1.7
     if (T_K<=300.) k[15] = 1.14e-31*pow(T_K,-0.38);
     else k[15] = 3.9e-30/T_K;
+
 //  (16) 2 H2           -> 2 H    +   H2
 //     Martin+1998; Shapiro&Kang 1987 GA08 TableA1-10 
     xk_L=5.996e-30*pow(T_K,4.1881) / pow(1.0+6.761e-6*T_K, 5.6881) *exp(-54657.4/T_K);
@@ -273,11 +274,11 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
     k[17] = 6.9e-30/T_K;
 //     GA08 TableA1-31 following Palla, Salpeter& Stahler 1983 actually quoting Jacobs+1967
 //    k[17] = k[15]/8.;
+
 //  (18) H-   +   H  -> 2 H   +  e 
 //     Janev et al. (1987): GA08 TableA1-15
     if(T_eV<=0.1) k[18] = 2.5634e-9 * pow(T_eV,1.78186);
-    else
-        k[18] = exp( -2.0372609e1 
+    else k[18] = exp( -2.0372609e1 
               + (1.13944933+(-1.4210135e-1 + (8.4644554e-3
               +(-1.4327641e-3+(2.0122503e-4+(8.6639632e-5
               +(-2.5850097e-5 + (2.4555012e-6 - 8.0683825e-8*lnT_eV)

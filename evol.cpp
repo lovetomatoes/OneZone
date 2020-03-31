@@ -36,7 +36,7 @@ using namespace std;
     double frac0[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
  */
 double evol_tiny = 1.0e-20, evol_yHe = 8.33333e-2, evol_y_H2 = 1.0e-5, evol_y_Hm = 1.0e-12, evol_y_H2p = 1.0e-12;
-double evol_y_Hp = 1.0e-3;
+double evol_y_Hp = 1.0e-4;
 double evol_y_H = 1.0 - 2.*evol_y_H2 - 2.*evol_y_H2p - evol_y_Hm - evol_y_Hp;
 double evol_y_He = evol_yHe - 2.*evol_tiny, evol_y_Hep = evol_tiny, evol_y_Hepp = evol_tiny;
 double evol_y_e = evol_y_Hp + evol_y_H2p - evol_y_Hm + evol_y_Hep + 2.*evol_y_Hepp;

@@ -27,10 +27,10 @@ int main(){
 
     char* ftree = "../code_tree/fort.217"; //不行！！！会
     char* fout = "Jcs_cpp.txt";
-    double Tb = 2.e5;
+    double Tb = 1.e4;
     bool Ma_on = true;
     int MerMod = 0;
-    double J21 = 1875;
+    double J21 = 50;
 
     fout = "evolve.txt";
     evol(ftree, fout, MerMod, Tb, J21, Ma_on);

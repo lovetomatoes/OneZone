@@ -180,7 +180,9 @@ void GAS:: react_sol(bool write){
     for (int i=0; i<N; i++) y1_prev[i] = 0.;
     react_coef(k,nH0,y0[1],y0[2],T_K0,J_LW,Tb);
     react_rat(rf,y0,k,nH0,T_K0);
-    do{ add_Nt(2);
+    do{ /* if (nH0>60. and nH0 <1.e4) add_Nt(10);
+        else  */
+        add_Nt(10);
         //printf("in REACT_SOL: Nt=%d\n",Nt);
         a_react_sol(0);  
         for (int i=0; i<N; i++){
@@ -316,13 +318,27 @@ void GAS:: timescales(){
     //不行 因为t_chem太小无法演化下去
     // chemical reaction timescale; use minimum to avoid too absurd fowarding
     t_chem = 1.e100;
-    for (int isp=1; isp<N;isp++) {
-        if (rf[isp]!=0. and y0[isp]!=0) t_chem = min( abs(y0[isp]/rf[isp]), t_chem );
-        //printf("t_ch[%d]=%3.2e, t_chem",abs(y0[isp]/rf[isp]), t_chem);
+    int isp, ifast;
+    for (isp=1; isp<7;isp++) { //不管He
+    //for (isp=1; isp<N_sp1;isp++) {
+        if (rf[isp]!=0. and y0[isp]!=0) {
+            t_chem = min( abs(y0[isp]/rf[isp]), t_chem );
+            ifast = isp;
+        }
     }
+    //if (nH0<1.5e3 and nH0>900) printf("t_ch[%d]=%3.2e t_ff0\n",t_chem, y0[ifast]/rf[ifast]/t_ff0);
+
     //Hm + H -> H2+e  &  3H -> H2+H  
     double y_H = y0[1], y_H2 = y0[2], y_e = y0[3], y_Hep = y0[8], y_He = y0[7];
     double k_Hion = k[1], k_Heion = k[31];
+ 
+    double t_ion = y_e/(k_Hion * y_e*y_H*nH0);
+    double alpha_B = k[2]; ////  2)   H     +   e     ->   H-    +   ph.
+    t_rcb = 1./(y_e*alpha_B*nH0); // recombination timescale = (ye_0*alpha_B*nH)^-1
+    /* if (nH0<1.5e3 and nH0>900) printf("t_chem=%3.2e,t_rcb=%3.2e,t_ion=%3.2e t_ff0\n",
+       t_chem/t_ff0, t_rcb/t_ff0, t_ion/t_ff0);   */
+    if (t_rcb>t_ion) printf("t_rcb>t_ion: %3.2e,%3.2e t_chem=%3.2e,nH0=%3.2e\n",
+        t_rcb/t_ff0, t_ion/t_ff0,t_chem/t_ff0,nH0);  
     r_cH = Lambda_H(nH0,T_K0,y_H,y_e, k_Hion)/rho0;
     r_cH2 = Lambda_H2(nH0,T_K0,y0)/rho0;
     r_c =  r_cH2 + r_cH + Lambda_Hep(nH0, T_K0, y_Hep, y_e, y_He, k_Heion)/rho0;
@@ -350,6 +366,7 @@ void GAS:: timescales(){
     Dt = 0.1* min( min(t_c,t_h), t_ff ); 
     //Dt = 0.1*min(t_h,t_ff); //!!!!! WLI appended here when freefall off, if including t_c can be too short and never evolve...
 
+// merger case
     if (MerMod !=0){
         inDelay = false;
         if (iMer<nMer-1){
@@ -374,8 +391,34 @@ void GAS:: timescales(){
         t_h = abs(e0/r_h); //可能为负 potential well dilution
         Dt = 0.1* min( min(t_c,t_h), t_ff ); //sufficiently same with Dt = 0.01*... 
                                              //WRONG for y_e<1.e-5, could use 0.01, 计算耗时多于带着t_chem判断
-        //加入t_chem决定Dt 权重经过调试
-        Dt = 0.1*min( min(t_ff,10*t_chem),min(t_c,t_h));
+        //加入t_chem, t_rcb决定Dt 权重1, 0.0001经过调试 
+        Dt = 0.1*min( min(t_ff,100*t_chem),min(t_c,t_h));
+        if (nH0>60 and nH0<1.e4) Dt = min(0.0001*t_rcb,Dt);
+        
+        
+        //if (nH0>60 and nH0<1.e4) Dt = min(0.0001*t_ion,Dt);//不行 -4结果错误rcb被延迟
+
+        //if (nH0>150. and nH0<400.) Dt = min(0.0001*t_ion,Dt);//这样放宽加细范围不行
+        //if (nH0>60 and nH0<1.e4) Dt = min(0.001*t_rcb,Dt);//add_Nt=10, 对于-4不行 不够细 后续大的y_e
+
+        // 下面的对于y_e=1.e-3, -4, -5都可以 就是慢 add_Nt=10 
+        //不在一条线上 -3下降的更快 -4 -5重合
+        /* Dt = 0.1*min( min(t_ff,10*t_chem),min(t_c,t_h));
+        Dt = 0.1*min( min(t_ff,.01*t_rcb),min(t_c,t_h));
+        Dt = min(10*t_chem,Dt);
+         */
+        //为了-3而试
+        /* Dt = 0.1*min( min(t_ff,.001*t_rcb),min(t_c,t_h));
+        Dt = min(10*t_chem,Dt); */
+        /* Dt = 0.1*min( min(t_ff,10.*t_chem),min(t_c,t_h));
+        if (nH0>60 and nH0<1.e4) Dt = min(0.0001*t_rcb,Dt); */
+
+        //Dt = 0.1*min( min(t_ff,100*t_chem),min(t_c,t_h));
+        //if (nH0>60. and nH0<1.e3) Dt = min(0.0001*t_rcb,Dt);//不行 -4结果错误rcb被延迟
+        //if (nH0>100. and nH0<1.e3) Dt = min(0.0001*t_rcb,Dt);
+
+        //Dt = min(Dt, 0.001*t_ion);
+        //t_rcb = t_ion;
 
         //printf("in TIMESCALES:t_c=%3.2e,t_h=%3.2e,t_ff=%3.2e,t_chem=%3.2e\n",t_c,t_h,t_ff,t_chem);
     }
@@ -383,9 +426,6 @@ void GAS:: timescales(){
     t_act += Dt;
     z0 = z;
     z = z_ana(z,Dt); //推进 redshift
-
-    double alpha_B = k[2]; ////  2)   H     +   e     ->   H-    +   ph.
-    t_rcb = 1./(y_e*alpha_B*nH0); // recombination timescale = (ye_0*alpha_B*nH)^-1
 }
 
 // cloud evolution: freefall() -> react_sol() -> T_sol

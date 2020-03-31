@@ -49,4 +49,4 @@ gsl_inverse.o: gsl_inverse.cpp
 # g++  gsl_inverse.o 
 
 clean:
-	rm *.o *.txt *.10 *.so *.out main
+	rm *.o *.txt *.10 *.so *.out *.plt main
