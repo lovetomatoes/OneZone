@@ -189,7 +189,7 @@ void GAS:: react_sol(bool write){
             delta_y[i] = y1[i] - y1_prev[i];
             y1_prev[i] = y1[i];
         }
-    }while ( len_v(N, delta_y) > epE6*len_v(N, y1_prev) );
+    }while ( len_v(N, delta_y) > epE5*len_v(N, y1_prev) );
 
 //charge neutrality & H neuclei conservation
     double y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp;
@@ -335,14 +335,9 @@ void GAS:: timescales(){
     t_ion = 1/(k_Hion*y_H*nH0);
     double alpha_B = k[2]; ////  2)   H     +   e     ->   H-    +   ph.
     t_rcb = 1./(y_e*alpha_B*nH0); // recombination timescale = (ye_0*alpha_B*nH)^-1
-    /* if (nH0<1.5e3 and nH0>900) printf("t_chem=%3.2e,t_rcb=%3.2e,t_ion=%3.2e t_ff0\n",
-       t_chem/t_ff0, t_rcb/t_ff0, t_ion/t_ff0);   */
-    /* if (t_rcb>t_ion) printf("t_rcb>t_ion: %3.2e,%3.2e t_chem=%3.2e,nH0=%3.2e\n",
-        t_rcb/t_ff0, t_ion/t_ff0,t_chem/t_ff0,nH0); */  
 
     r_cH = Lambda_H(nH0,T_K0,y_H,y_e, k_Hion)/rho0;
     r_cH2 = Lambda_H2(nH0,T_K0,y0)/rho0;
-    r_cH2 = 0;
     r_c =  r_cH2 + r_cH + Lambda_Hep(nH0, T_K0, y_Hep, y_e, y_He, k_Heion)/rho0;
     //开关 turn_off cooling
     //r_c = 0;
@@ -393,44 +388,8 @@ void GAS:: timescales(){
         t_h = abs(e0/r_h); //可能为负 potential well dilution
         Dt = 0.1* min( min(t_c,t_h), t_ff ); //sufficiently same with Dt = 0.01*... 
                                              //WRONG for y_e<1.e-5, could use 0.01, 计算耗时多于带着t_chem判断
-        //加入t_chem, t_rcb决定Dt 权重1, 0.0001经过调试 
-        Dt = 0.1*min( min(t_ff,100*t_chem),min(t_c,t_h));
-        //if (nH0>60 and nH0<1.e4) Dt = min(0.01*t_rcb,Dt);
-        /* if (t_ion<100*t_ff and nH0<1.e4) {
-            Dt = min(Dt, 0.001*t_rcb);
-            printf("nH0=%3.2e\n",nH0);
-        } */
-        //if (nH0>60 and nH0<1.e4) Dt = min(0.0001*t_ion,Dt);//不行 -4结果错误rcb被延迟
-
-        //if (nH0>150. and nH0<400.) Dt = min(0.0001*t_rcb,Dt);//这样放宽加细范围不行
-        //if (nH0>60 and nH0<1.e4) Dt = min(0.001*t_rcb,Dt);// 对于-4不行 不够细 后续大的y_e
-
-        // 10*t_chem, 0.001*t_rcb: 下面的对于y_e=1.e-3, -4, -5都可以 结果-4 和3 5不同 也影响Jc
-        Dt = 0.1*min( min(t_ff,100*t_chem),min(t_c,t_h));
-        if (nH0>60 and nH0<1.e4) Dt = min(.001*t_rcb,Dt); //改成0.0001也改不了-4 改成0.01则-5也不对
-
-        //********************************************************************************
-        // add_Nt没关系 设为2
-        //以下3行 可以给出比较一致的-3 -4 -5 但是500->1000这个判断不好 是判断的t_rcb比较小的时候
-        Dt = 0.1*min( min(t_ff,100*t_chem),min(t_c,t_h));
-        Dt = min(.001*t_rcb,Dt);
-        if (nH0<1000. and nH0>500.) Dt = min(.0001*t_rcb,Dt);
-        //*********************************************************************************
-
-        //以下得到-3下降更快 reaction算得更细了 按理应该对 试了-1 和-3重合 都快于-4和-5
-        Dt = 0.1*min( min(t_ff,100*t_chem),min(t_c,t_h));
-        Dt = min(.0001*t_rcb,Dt);
-        
-        //关掉H2 cooling 放宽了t_rcb尝试
+        //不需要t_rcb //如果加细Dt 用0.001仍然converge而且似乎更smooth但是慢得多 //不能放宽了 0.1明显不行
         Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h));
-        //Dt = min(.001*t_rcb,Dt);
-        
-        //不在一条线上 -4下降的更慢 -3 -5重合 add_Nt = 5/2
-        /* Dt = 0.1*min( min(t_ff,100*t_chem),min(t_c,t_h));
-        if (nH0>60 and nH0<1.e4) Dt = min(.001*t_rcb,Dt); */
-
-        /* Dt = 0.1*min( min(t_ff,100.*t_chem),min(t_c,t_h));
-        if (nH0>60 and nH0<1.e4) Dt = min(0.0001*t_rcb,Dt); */
 
         //printf("in TIMESCALES:t_c=%3.2e,t_h=%3.2e,t_ff=%3.2e,t_chem=%3.2e\n",t_c,t_h,t_ff,t_chem);
     }

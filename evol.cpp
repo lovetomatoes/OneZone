@@ -245,7 +245,7 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool M
 }
 
 // resembling main_Jc1.cpp
-double getT(int MerMod, double J, double Tb, char* treename, bool Ma_on, double nH_tell = 5.e5){
+double getT(int MerMod, double J, double Tb, char* treename, bool Ma_on, double nH_tell = 1.e4){
     GAS gas(frac0,MerMod,J,Tb,treename,Ma_on);
     while (gas.nH0<nH_tell){
         gas.setMerger();
