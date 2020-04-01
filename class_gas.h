@@ -35,7 +35,7 @@ class GAS
         double J_LW, Tb;
         double *y0, *y1, *ys,  *k, *rf;
         double r_h, r_c, r_cH, r_cH2;
-        double t_ff, t_h, t_c, t_rcb, t_chem;
+        double t_ff, t_h, t_c, t_rcb, t_chem, t_ion;
         int evol_stage;
         double n_iso, Mh_prev, t_prev, dt_iso;
         //label density evolve: MerMod==0直接freefall; MerMod==1, evol_stage=1 等熵,2 Eli saturated core,3 等温,4 freefall

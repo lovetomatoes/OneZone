@@ -105,8 +105,8 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool M
 
         if (tscales) {            
             if (i==0) {
-                if (py) file<<" t_ff t_c t_h t_rcb t_chem";
-                else file<<" t_{ff} t_{c} t_h t_{rcb} t_{chem}";
+                if (py) file<<" t_ff t_c t_h t_rcb t_chem t_ion 0 0 0 0";
+                else file<<" t_{ff} t_{c} t_h t_{rcb} t_{chem} t_{ion} 0 0 0 0";
             }
             else {
                 file<<" "<<gas.t_ff/t_ff0;
@@ -114,6 +114,9 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool M
                 file<<" "<<gas.t_h/t_ff0;
                 file<<" "<<gas.t_rcb/t_ff0;
                 file<<" "<<gas.t_chem/t_ff0;
+
+                file<<" "<<gas.t_ion/t_ff0;
+                file<<" "<<0<<" "<<0<<" "<<0<<" "<<0;
                 /* 
                 file<<" "<<gas.e0*gas.rho0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0); //t_cH2
                 file<<" "<<gas.e0*gas.rho0/Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3],gas.k[1]); //t_cH
