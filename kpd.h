@@ -1,4 +1,4 @@
-
+void read_spec(double* nub, double* fluxb_cont, double* fluxb_line, std::string fspec_cont, std::string fspec_line);
 void read_sigma(double* nua, double** sigmaa);
 void linear(double* xa, double* ya, int m, double x, double& y);
 void bilinear(double* x1a, double* x2a, double** ya, int m, int n, double x1, double x2, double& y);

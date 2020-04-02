@@ -1,5 +1,5 @@
 // kpd for H2, H- and H2+
-// g++ kpd.cpp PARA.cpp -o kpd && ./kpd
+// g++ kpd.cpp PARA.cpp -o kpd.out && ./kpd.out
 #include <iostream>
 #include <stdio.h>
 #include <cmath>
@@ -14,33 +14,37 @@ using namespace std;
 
 
 //int i,j; 
-/* 报错 duplicate symbol _i in:
+/* 与其他file里面的声明冲突了 
+   报错 duplicate symbol _i in:
     /var/folders/q8/6kwqz_k539x_42fy_9xhrlhm0000gn/T/main-35c185.o
     kpd.o */
 int const nnu = 45;
 int const nT = 10;
+int const nnu_spec = 1221;
 
-//void set_freq(); //从main改为
-double h_p = 6.63e-27, eV = 1.60217657e-12;
-
-/* int main(){
-   double T_rad = 2.e5;
+int main(){
+   double T_rad = 1.e5;
    double k_Hm=0, k_H2p=0;
    kpd_Hm_H2p(T_rad,k_Hm,k_H2p);
-} */
+}
 
 void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    int i,j;
    //double T_rad = 5.e4; 
    printf("IN KPD: T_rad=%5.2f\n", T_rad);
-   double nurat0 = 1.05;
+   double nurat0 = 1.005;
    double nu_min = 0.45*eV/h_p;
    double nurat = nurat0, nu_prev = nu_min;
    double nu_eV;
   
+   double* nub = NULL; double* fluxb_cont = NULL; double* fluxb_line = NULL;
+   nub = new double [nnu_spec]; fluxb_cont = new double [nnu_spec]; fluxb_line = new double [nnu_spec];
+   string fspec_cont = "rspec_pop3_cont_fe00.txt";
+   string fspec_line = "rspec_pop3_line_fe00.txt";
+   read_spec(nub, fluxb_cont, fluxb_line, fspec_cont, fspec_line);
 
    double** sigmaa = new double* [nT];
-   for (i=0;i<nT;i++) sigmaa[i] = new double[45];
+   for (i=0;i<nT;i++) sigmaa[i] = new double[nnu];
    double* nua = new double [nnu];
    double Ta[nT] = {0,2520,3150,4200,5040,6300,8400,12600,16800,25200};
    read_sigma(nua,sigmaa);
@@ -50,9 +54,9 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
 //     H2+ photodetachment
    T_H2 = 8.0e3;
    double E_ly = 12.4, E_end = 13.6;
-   int k, NF=100, k_ly;
+   int k, NF = 1000, k_ly;
    double nu[NF], Planck[NF], Flux[NF];
-
+   
    for (k=0;k<NF;k++){
       nu[k] = nu_prev*nurat;
       if (nu_prev<E_ly*eV/h_p and nu[k]>=E_ly*eV/h_p) {
@@ -64,39 +68,43 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
          //printf("E_end=%3.2e,  hnu=%3.2eV\n",E_end, h_p*nu[k]/eV);
          NF = k+1;
       }
-         
+
       //printf(" hnu[%d]=%3.2e\n", k, h_p*nu[k]/eV);
 
       Planck[k] = pow(nu[k],3)/(exp(h_p*nu[k]/k_B/T_rad)-1.0);
       Flux[k] = pow(h_p*nu[k]/eV,-1.5);
-      Flux[k] = Planck[k];
 
+      // interpolation from spectrum x:lambda in Angstron
+      linear(nub,fluxb_cont,nnu_spec,c/nu[k]/Angstron,Flux[k]);
+      //Flux[k] = Planck[k];
+ 
       nu_prev = nu[k];
-
    }
 
    
-   //printf("NF=%d\n",NF);// wli note: NF=70
+   printf("NF=%d\n",NF);// wli note: NF=684
    
    k_Hm=0.; k_H2p=0.;
    double dnu[NF-1];
    fstream f1;
    f1.open("../data/k_intg.txt", ios::out | ios::trunc );
-   f1<<" k E flux sigma_Hm sigma_H2p k_pd_Hm, k_pd_H2p\n";
+   f1<<" k E Planck flux sigma_Hm sigma_H2p k_pd_Hm, k_pd_H2p\n";
    for (k=0;k<NF-1;k++){
       dnu[k] = nu[k+1]-nu[k];
+      printf("dnu/nu*c=%3.2e\n",dnu[k]*c/nu[k]/km);
       if (nu[k] < E_end*eV/h_p){
          nu_eV = h_p*nu[k]/eV;
          Hm_CrossSec(sigma_Hm, nu_eV);
          H2p_bf_CrossSec(sigma_H2p, nu_eV, T_H2, Ta, nua, sigmaa);         
          k_Hm   += sigma_Hm*4*pi*Flux[k]/h_p/nu[k]*dnu[k];
          k_H2p += sigma_H2p*4*pi*Flux[k]/h_p/nu[k]*dnu[k];
-         f1<<" "<<k<<" "<<h_p*nu[k]/eV<<" "<<Flux[k]<<" "<<sigma_Hm<<" "
+         f1<<" "<<k<<" "<<h_p*nu[k]/eV<<" "<<Planck[k]<<" "<<Flux[k]<<" "<<sigma_Hm<<" "
            <<sigma_H2p<<" "<<k_Hm<<" "<<k_H2p<<endl;
       }
 
    }
-
+   
+   printf("norm for flux at 12.4eV: Planck:%3.2e Flux:%3.2e\n",Planck[k_ly],Flux[k_ly]);
    k_Hm *= (1.e-21/Flux[k_ly]);
    k_H2p *= (1.e-21/Flux[k_ly]);
    printf("k_Hm=%3.2e, k_H2p=%3.2e, kHm/kH2=%3.2e\n", k_Hm, k_H2p, k_Hm/1.39e-12);
@@ -104,6 +112,7 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    for(i=0; i<nT; i++) delete[] sigmaa[i];
    delete[] sigmaa;
    delete[] nua;
+   delete[] nub; delete[] fluxb_cont; delete[] fluxb_line;
 }
 
 /* !     H- photodetachment
@@ -225,12 +234,12 @@ void read_sigma(double* nua, double** sigmaa){
       while (getline(inFile, line)){
          istringstream isolated(line);
          isolated>>nu_str>>sigma_str;
-         nua[j] = stod(nu_str);
+         if (i==0) nua[j] = stod(nu_str);
          sigmaa[i][j] = stod(sigma_str);
          // cout<<j<<"\t"<<sigmaa[i][j]<<"\n";
          j++;
       }
-      if (j!=45) printf("line count error\n");
+      if (j!=nnu) printf("line count error\n");
       inFile.close();
    }
 
@@ -244,4 +253,38 @@ void read_sigma(double* nua, double** sigmaa){
       lna[i] = log(stod(aa_str));
    }
    fa.close(); */
+}
+
+void read_spec(double* nub, double* fluxb_cont, double* fluxb_line, string fspec_cont, string fspec_line){
+   string line, nu_str, flux1_str, flux2_str, flux3_str, flux4_str, name;
+   int i,j;
+   //in file is actually wavelength, here just call it nu 
+   name = "./spec_send/"+fspec_cont; //cout<<name<<endl;
+   ifstream inFile(name); if (!inFile) cout<<"read error\n";
+   j = 0;
+   while (getline(inFile, line)){
+      istringstream isolated(line);
+      isolated>>nu_str>>flux1_str>>flux2_str>>flux3_str>>flux4_str;
+      nub[j] = stod(nu_str);
+      fluxb_cont[j] = stod(flux1_str);
+      j++;
+      //if (j==1 or j==nnu_spec) cout<<nu_str<<" "<<flux4_str<<" "<<flux2_str<<" "<<flux3_str<<" "<<flux4_str<<endl;
+   }
+   
+   if (j!=nnu_spec) printf("line count error\n j=%d\n",j);
+   inFile.close();
+
+   name = "./spec_send/"+fspec_line; //cout<<name<<endl;
+   inFile.open(name); if (!inFile) cout<<"read error\n";
+   j = 0;
+   while (getline(inFile, line)){
+      istringstream isolated(line);
+      isolated>>nu_str>>flux1_str>>flux2_str>>flux3_str>>flux4_str;
+      //nub[j] = stod(nu_str);
+      fluxb_line[j] = stod(flux1_str);
+      j++;
+      //if (j==1 or j==nnu_spec) cout<<nu_str<<" "<<flux4_str<<" "<<flux2_str<<" "<<flux3_str<<" "<<flux4_str<<endl;
+   }
+   if (j!=nnu_spec) printf("line count error\n j=%d\n",j);
+   inFile.close();
 }
