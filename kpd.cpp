@@ -21,18 +21,18 @@ using namespace std;
 int const nnu = 45;
 int const nT = 10;
 int const nnu_spec = 1221;
-
+/* 
 int main(){
    double T_rad = 1.e5;
    double k_Hm=0, k_H2p=0;
    kpd_Hm_H2p(T_rad,k_Hm,k_H2p);
-}
+} */
 
 void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    int i,j;
    //double T_rad = 5.e4; 
    printf("IN KPD: T_rad=%5.2f\n", T_rad);
-   double nurat0 = 1.005;
+   double nurat0 = 1.0005;
    double nu_min = 0.45*eV/h_p;
    double nurat = nurat0, nu_prev = nu_min;
    double nu_eV;
@@ -53,9 +53,9 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    
 //     H2+ photodetachment
    T_H2 = 8.0e3;
-   double E_ly = 12.4, E_end = 13.6;
-   int k, NF = 1000, k_ly;
-   double nu[NF], Planck[NF], Flux[NF];
+   double E_ly = 12.4, E_lylim = 13.6, E_end = 15;
+   int k, NF = 10000, k_ly;
+   double nu[NF], Planck[NF], Flux[NF], Flux_c[NF], Flux_l[NF];
    
    for (k=0;k<NF;k++){
       nu[k] = nu_prev*nurat;
@@ -73,16 +73,19 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
 
       Planck[k] = pow(nu[k],3)/(exp(h_p*nu[k]/k_B/T_rad)-1.0);
       Flux[k] = pow(h_p*nu[k]/eV,-1.5);
+      Flux[k] = Planck[k]; Flux_c[k] = Planck[k];
 
       // interpolation from spectrum x:lambda in Angstron
-      linear(nub,fluxb_cont,nnu_spec,c/nu[k]/Angstron,Flux[k]);
-      //Flux[k] = Planck[k];
- 
+      /* linear(nub,fluxb_cont,nnu_spec,c/nu[k]/Angstron,Flux_c[k]);
+      linear(nub,fluxb_line,nnu_spec,c/nu[k]/Angstron,Flux_l[k]);
+      Flux[k] = Flux_c[k] + Flux_l[k];
+      //Flux[k] = Flux_c[k];
+ */
       nu_prev = nu[k];
    }
 
    
-   printf("NF=%d\n",NF);// wli note: NF=684
+   printf("NF=%d\n",NF);// wli note: NF=6820
    
    k_Hm=0.; k_H2p=0.;
    double dnu[NF-1];
@@ -91,8 +94,8 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    f1<<" k E Planck flux sigma_Hm sigma_H2p k_pd_Hm, k_pd_H2p\n";
    for (k=0;k<NF-1;k++){
       dnu[k] = nu[k+1]-nu[k];
-      printf("dnu/nu*c=%3.2e\n",dnu[k]*c/nu[k]/km);
-      if (nu[k] < E_end*eV/h_p){
+      //printf("dnu/nu*c=%3.2e\n",dnu[k]*c/nu[k]/km); = 150km/s
+      if (nu[k] < E_lylim*eV/h_p){
          nu_eV = h_p*nu[k]/eV;
          Hm_CrossSec(sigma_Hm, nu_eV);
          H2p_bf_CrossSec(sigma_H2p, nu_eV, T_H2, Ta, nua, sigmaa);         
@@ -105,8 +108,8 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    }
    
    printf("norm for flux at 12.4eV: Planck:%3.2e Flux:%3.2e\n",Planck[k_ly],Flux[k_ly]);
-   k_Hm *= (1.e-21/Flux[k_ly]);
-   k_H2p *= (1.e-21/Flux[k_ly]);
+   k_Hm *= (1.e-21/Flux_c[k_ly]);
+   k_H2p *= (1.e-21/Flux_c[k_ly]);
    printf("k_Hm=%3.2e, k_H2p=%3.2e, kHm/kH2=%3.2e\n", k_Hm, k_H2p, k_Hm/1.39e-12);
    
    for(i=0; i<nT; i++) delete[] sigmaa[i];

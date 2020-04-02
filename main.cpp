@@ -27,7 +27,7 @@ int main(){
 
     char* ftree = "../code_tree/fort.217"; //不行！！！会
     char* fout = "Jcs_cpp.txt";
-    double Tb = 1.e4;
+    double Tb = 2.e4;
     bool Ma_on = true;
     int MerMod = 0;
     double J21 = 50;
