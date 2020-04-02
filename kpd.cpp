@@ -89,8 +89,8 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
          nu_eV = h_p*nu[k]/eV;
          Hm_CrossSec(sigma_Hm, nu_eV);
          H2p_bf_CrossSec(sigma_H2p, nu_eV, T_H2, Ta, nua, sigmaa);         
-         k_Hm   += sigma_Hm*4*pi*Planck[k]/h_p/nu[k]*dnu[k];
-         k_H2p += sigma_H2p*4*pi*Planck[k]/h_p/nu[k]*dnu[k];
+         k_Hm   += sigma_Hm*4*pi*Flux[k]/h_p/nu[k]*dnu[k];
+         k_H2p += sigma_H2p*4*pi*Flux[k]/h_p/nu[k]*dnu[k];
          f1<<" "<<k<<" "<<h_p*nu[k]/eV<<" "<<Flux[k]<<" "<<sigma_Hm<<" "
            <<sigma_H2p<<" "<<k_Hm<<" "<<k_H2p<<endl;
       }
