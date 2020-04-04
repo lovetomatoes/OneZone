@@ -20,7 +20,7 @@ class GAS
 
 
         // member function definition
-        GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool Ma_turn);
+        GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool spec, bool Ma_turn);
         ~GAS();
     //private:
         int N, Nt;
@@ -49,6 +49,9 @@ class GAS
         MainProgenitor* MPs; //structure defined in read_aTree.h
         //HALO halo (1,1); must have initial parameters...
         ofstream file_ingas;
+    private :
+        int const n_ra = 40;
+        double* Ta, *ka;
 
 };
 

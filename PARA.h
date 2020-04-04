@@ -18,6 +18,7 @@ const double H0 = h0*100*km/Mpc;
 
 // Planck constant
 const double h_p = 6.63e-27, eV = 1.60217657e-12, Angstron = 1.e-8;
+const double Mb = 1.e-18;
 
 const double Omega_m0 = 0.311; // match calculation in code_tree/analysis_trees.f
 const double Omega_L0 = 1 - Omega_m0;

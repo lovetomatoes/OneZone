@@ -26,17 +26,23 @@ int main(){
     double Tbs[] = {8.e3, 1.e4, 1.5e4, 2.e4, 3.e4, 5.e4, 1.e5, 2.e5};
 
     char* ftree = "../code_tree/fort.217"; //不行！！！会
-    char* fout = "Jcs_cpp.txt";
-    double Tb = 2.e4;
-    bool Ma_on = true;
+    char* fout = NULL;
+    double Tb = 1.e4;
+    bool Ma_on = true, spec=false;
     int MerMod = 0;
-    double J21 = 50;
+    double J21 = 60;
 
     fout = "evolve.txt";
-    evol(ftree, fout, MerMod, Tb, J21, Ma_on);
+    spec = false;
+    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on);
 
     // fout = "Jcs_cpp.txt";
-    // for (i=0;i<n;i++) evol_Jc(ftree, fout, Tbs[i], MerMod, Ma_on);
+    // spec = false;
+    // for (i=0;i<n;i++) evol_Jc(ftree, fout, Tbs[i], MerMod, spec, Ma_on);
+
+    // fout = "Jcs_spec.txt";
+    // spec = true;
+    // evol_Jc(ftree, fout, Tbs[i], MerMod, true, Ma_on);
 
     return 0;
 }

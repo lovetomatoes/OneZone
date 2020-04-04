@@ -26,7 +26,7 @@ g++ class_gas.o -o gas
 */
 
 // constructor; initializes
-GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool Ma_turn){
+GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool spec, bool Ma_turn){
     //N_sp = 5; N_react = 6; 
     nMer = 0;
     MPs = NULL;
@@ -99,9 +99,15 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     ys = new double[(Nt+1)*N];
     k = new double [N_react+1]; rf = new double[N_react+1];
 
-    kpd_Hm_H2p(Tb, k[22],k[23]); //返回的是kappa 需乘J21 k_pdHm k_pdH2p 没有self-shielding
+
+    Ta = new double [n_ra]; ka = new double [n_ra];
+    read_k(n_ra, Ta, ka);
+
+    kra(k[3], T_K0, n_ra, Ta, ka);
+    kpd_Hm_H2p(Tb, k[22],k[23], spec); //返回的是kappa 需乘J21 k_pdHm k_pdH2p 没有self-shielding
     k[22] *= J21; k[23] *= J21;
-    printf("CONSTRUCTOR: k_pdH2=%3.2e, k_pdHm=%3.2e, k_pdH2p=%3.2e\n",k[21],k[22],k[23]);
+    //printf("CONSTRUCTOR: k_pdH2=%3.2e, k_pdHm=%3.2e, k_pdH2p=%3.2e\n",k[21],k[22],k[23]);
+
     cs = sqrt( gamma_adb*k_B*T_K0/(mu*m_H) );
     RJ = cs*t_ff0;//RJ = sqrt( pi*k_B*T_K0/ (G*pow(mu*m_H,2)*nH0) );
     printf("cs_0 is %3.2e km/s; R_vir is %3.2e pc, RJ_0 is %3.2e pc \n",cs/1.e5,halo.Rvir/pc, RJ/pc);
@@ -178,6 +184,8 @@ void GAS:: add_Nt(int N){
 void GAS:: react_sol(bool write){
     double y1_prev[N], delta_y[N];
     for (int i=0; i<N; i++) y1_prev[i] = 0.;
+
+    kra(k[3],T_K0,n_ra,Ta,ka);
     react_coef(k,nH0,y0[1],y0[2],T_K0,J_LW,Tb);
     react_rat(rf,y0,k,nH0,T_K0);
     do{ 
@@ -493,6 +501,7 @@ void GAS:: get_para(){
 GAS:: ~GAS(void){
     delete [] y0; delete [] y1; delete [] ys;
     delete [] k; delete [] rf;
+    delete [] Ta; delete [] ka;
     delete [] MPs;
     file_ingas.close();
 }

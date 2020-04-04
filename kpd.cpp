@@ -18,20 +18,39 @@ using namespace std;
    报错 duplicate symbol _i in:
     /var/folders/q8/6kwqz_k539x_42fy_9xhrlhm0000gn/T/main-35c185.o
     kpd.o */
-int const nnu = 45;
+int const nnu_H2p = 45;
 int const nT = 10;
 int const nnu_spec = 1221;
-/* 
+int const nnu_Hm = 14000;
+
 int main(){
    double T_rad = 1.e5;
    double k_Hm=0, k_H2p=0;
-   kpd_Hm_H2p(T_rad,k_Hm,k_H2p);
-} */
+   double T0 = 10, Trat = 1.001, lgT; 
+   double kra17=0, kra79;
+   kpd_Hm_H2p(T_rad,k_Hm,k_H2p,true);
+   double Ta[40], ka[40];
+   read_k(40,Ta,ka);
+   fstream f;
+   f.open("Hm/kra.txt", ios::out | ios::trunc);
+   f<<"kra17 kra79\n";
+   while (T0<5.e4){
+      kra(kra17, T0, 40, Ta, ka);
+      lgT = log10(T0);
+      if (T0<=6.e3) kra79 = pow(10., -17.845 + 0.762*lgT + 0.1523*pow(lgT,2) - 0.03274*pow(lgT,3) );
+      else kra79 = pow(10., -16.4199 + 0.1998*pow(lgT,2) - 5.447e-3*pow(lgT,4) + 4.0415e-5*pow(lgT,6) );
+      f<<T0<<" "<<kra17<<" "<<kra79<<endl;
+      T0 *= Trat;
+   }
+   
+   f.close();
+}
 
-void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
+void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p, bool spec){
    int i,j;
    //double T_rad = 5.e4; 
-   printf("IN KPD: T_rad=%5.2f\n", T_rad);
+   if (spec) printf("IN KPD: using real spectrum\t");
+   else printf("IN KPD: T_rad=%5.2f\t", T_rad);
    double nurat0 = 1.0005;
    double nu_min = 0.45*eV/h_p;
    double nurat = nurat0, nu_prev = nu_min;
@@ -41,13 +60,16 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    nub = new double [nnu_spec]; fluxb_cont = new double [nnu_spec]; fluxb_line = new double [nnu_spec];
    string fspec_cont = "rspec_pop3_cont_fe00.txt";
    string fspec_line = "rspec_pop3_line_fe00.txt";
-   read_spec(nub, fluxb_cont, fluxb_line, fspec_cont, fspec_line);
+   if (spec) read_spec(nub, fluxb_cont, fluxb_line, fspec_cont, fspec_line);
+
+   double* nuc = NULL; double* sigmac = NULL;
+   nuc = new double [nnu_Hm]; sigmac = new double [nnu_Hm];
 
    double** sigmaa = new double* [nT];
-   for (i=0;i<nT;i++) sigmaa[i] = new double[nnu];
-   double* nua = new double [nnu];
+   for (i=0;i<nT;i++) sigmaa[i] = new double[nnu_H2p];
+   double* nua = new double [nnu_H2p];
    double Ta[nT] = {0,2520,3150,4200,5040,6300,8400,12600,16800,25200};
-   read_sigma(nua,sigmaa);
+   read_sigma(nua,sigmaa, nuc,sigmac);
    double sigma_Hm, sigma_H2p;
    double T_H2, sigma;
    
@@ -76,16 +98,18 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
       Flux[k] = Planck[k]; Flux_c[k] = Planck[k];
 
       // interpolation from spectrum x:lambda in Angstron
-      /* linear(nub,fluxb_cont,nnu_spec,c/nu[k]/Angstron,Flux_c[k]);
-      linear(nub,fluxb_line,nnu_spec,c/nu[k]/Angstron,Flux_l[k]);
-      Flux[k] = Flux_c[k] + Flux_l[k];
-      //Flux[k] = Flux_c[k];
- */
+      if (spec){
+         linear(nub,fluxb_cont,nnu_spec,c/nu[k]/Angstron,Flux_c[k]);
+         linear(nub,fluxb_line,nnu_spec,c/nu[k]/Angstron,Flux_l[k]);
+         Flux[k] = Flux_c[k] + Flux_l[k];
+         //Flux[k] = Flux_c[k];
+      }
+
       nu_prev = nu[k];
    }
 
    
-   printf("NF=%d\n",NF);// wli note: NF=6820
+   //printf("NF=%d\n",NF);// wli note: NF=6820
    
    k_Hm=0.; k_H2p=0.;
    double dnu[NF-1];
@@ -94,10 +118,10 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
    f1<<" k E Planck flux sigma_Hm sigma_H2p k_pd_Hm, k_pd_H2p\n";
    for (k=0;k<NF-1;k++){
       dnu[k] = nu[k+1]-nu[k];
-      //printf("dnu/nu*c=%3.2e\n",dnu[k]*c/nu[k]/km); = 150km/s
+      //printf("dnu/nu*c=%3.2e\n",dnu[k]*c/nu[k]/km); // = 150km/s
       if (nu[k] < E_lylim*eV/h_p){
          nu_eV = h_p*nu[k]/eV;
-         Hm_CrossSec(sigma_Hm, nu_eV);
+         Hm_CrossSec(sigma_Hm, nu_eV, nuc, sigmac);
          H2p_bf_CrossSec(sigma_H2p, nu_eV, T_H2, Ta, nua, sigmaa);         
          k_Hm   += sigma_Hm*4*pi*Flux[k]/h_p/nu[k]*dnu[k];
          k_H2p += sigma_H2p*4*pi*Flux[k]/h_p/nu[k]*dnu[k];
@@ -107,23 +131,57 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p){
 
    }
    
-   printf("norm for flux at 12.4eV: Planck:%3.2e Flux:%3.2e\n",Planck[k_ly],Flux[k_ly]);
+   //printf("norm for flux at 12.4eV: Planck:%3.2e Flux:%3.2e\n",Planck[k_ly],Flux[k_ly]);
    k_Hm *= (1.e-21/Flux_c[k_ly]);
    k_H2p *= (1.e-21/Flux_c[k_ly]);
-   printf("k_Hm=%3.2e, k_H2p=%3.2e, kHm/kH2=%3.2e\n", k_Hm, k_H2p, k_Hm/1.39e-12);
-   
+   //printf("k_Hm=%3.2e, k_H2p=%3.2e, kHm/kH2=%3.2e\n", k_Hm, k_H2p, k_Hm/1.39e-12);
+   printf("kHm/kH2=%3.2e\n", k_Hm/1.39e-12);
+
    for(i=0; i<nT; i++) delete[] sigmaa[i];
    delete[] sigmaa;
    delete[] nua;
+   delete[] nuc; delete[] sigmac;
    delete[] nub; delete[] fluxb_cont; delete[] fluxb_line;
 }
 
 /* !     H- photodetachment
 !     H-   +  ph.   ->   H    +    e
 !     photon energy E in eV
-!     ref. T.L.John (1988 A&A 193,189)
+!     McLaughlin et al 2017
  */
-void Hm_CrossSec(double& sigma, double E){
+
+void Hm_CrossSec(double& sigma, double nu_eV, double* nuc, double* sigmac){
+   if (nu_eV<nuc[0]) sigma = 0;
+   else if (nu_eV>13.6) sigma = 0;
+   else linear(nuc,sigmac,nnu_Hm,nu_eV,sigma);
+   sigma = sigma*Mb;
+   
+   /* //John (1988 A&A 193,189)
+   //printf("%3.2e %3.2e ",nu_eV,sigma);
+   double x,y_w,y_0,y_1,y,P,y_a,
+          a1,s,a2,a3,
+          rlmbd_0,rlmbd, C1, C2, C3, C4, C5, C6, f;
+   
+   rlmbd_0=1.6419;
+   C1=152.519;
+   C2=49.534;
+   C3=-118.858;
+   C4=92.536;
+   C5=-34.194;
+   C6=4.982;
+   rlmbd=1.23985/nu_eV;
+   if(rlmbd<=rlmbd_0) {
+      x=sqrt(1./rlmbd-1./rlmbd_0);
+      f=C1+x*(C2+x*(C3+x*(C4+x*(C5+x*C6))));
+      sigma=1.e-18*pow(rlmbd,3)*pow(x,3)*f;
+   }
+   else sigma = 0.0;
+   if(rlmbd<=0.09) sigma = 0.0;
+   //printf("%3.2e\n",sigma); */
+}
+
+/* // ref. T.L.John (1988 A&A 193,189)
+ void Hm_CrossSec(double& sigma, double E){
    double x,y_w,y_0,y_1,y,P,y_a,
           a1,s,a2,a3,
           rlmbd_0,rlmbd, C1, C2, C3, C4, C5, C6, f;
@@ -143,7 +201,7 @@ void Hm_CrossSec(double& sigma, double E){
    }
    else sigma = 0.0;
    if(rlmbd<=0.09) sigma = 0.0;
-}
+}*/
 
 /* C     cross section of H2+ b-f
 C     H2+   +  ph.   ->   H   +   H+
@@ -153,7 +211,7 @@ C     ref. P.C.Stancil (1994 ApJ 430,360)
 void H2p_bf_CrossSec(double& sigma, double nu_eV, double T_K, double* Ta, double* nua, double** sigmaa){
 //         H2p_bf_CrossSec(sigma_H2p, nu[k], T_H2, Ta, nua, sigmaa);
   /*  cout<<"IN H2P CROSS_SEC:  ";
-   for(j=0; j<nnu; j++) cout<<nua[j]<<"\t";
+   for(j=0; j<nnu_H2p; j++) cout<<nua[j]<<"\t";
    cout<<endl<<endl; */
    int i,j;
    double s1, s2, lnu, lnu1, lnu2, ls, ls1, ls2; 
@@ -170,8 +228,8 @@ void H2p_bf_CrossSec(double& sigma, double nu_eV, double T_K, double* Ta, double
       ls = ((lnu-lnu1)/(lnu2-lnu1))*ls2 + ((lnu2-lnu)/(lnu2-lnu1))*ls1; // linear interpolation
       sigma = exp(ls);
    }
-   else if (nu_eV>nua[nnu-1]) sigma=0.0;
-   else bilinear(Ta,nua,sigmaa,nT,nnu,T_K,nu_eV,sigma);
+   else if (nu_eV>nua[nnu_H2p-1]) sigma=0.0;
+   else bilinear(Ta,nua,sigmaa,nT,nnu_H2p,T_K,nu_eV,sigma);
    
 }
 
@@ -179,7 +237,7 @@ void linear(double* xa, double* ya, int m, double x, double& y){
    int ms;
    int i,j;
    double y1, y2, t;
-   if( x<xa[0] or x>xa[m-1]) printf("xa_min=%3.2e, x=%3.2e, xa_max=%3.2e", xa[0],x,xa[m-1]);
+   //if( x<xa[0] or x>xa[m-1]) printf("xa_min=%3.2e, x=%3.2e, xa_max=%3.2e\n", xa[0],x,xa[m-1]);
    for (i=0;i<m;i++){
       if (x-xa[i]<=0.) {
          ms = i;
@@ -225,9 +283,10 @@ void bilinear(double* x1a, double* x2a, double** ya, int m, int n, double x1, do
    }
 }
 
-void read_sigma(double* nua, double** sigmaa){
+void read_sigma(double* nua, double** sigmaa, double* nuc, double* sigmac){
    string line, nu_str, sigma_str, name;
    int i,j;
+// H2p
    int const nfile = nT;
    int T[nfile] = {0,2520,3150,4200,5040,6300,8400,12600,16800,25200};
    for (i=0;i<nfile;i++){
@@ -242,20 +301,22 @@ void read_sigma(double* nua, double** sigmaa){
          // cout<<j<<"\t"<<sigmaa[i][j]<<"\n";
          j++;
       }
-      if (j!=nnu) printf("line count error\n");
+      if (j!=nnu_H2p) printf("line count error\n");
       inFile.close();
    }
 
-   /*  ifstream fa("./H2p/a"); if (!fa) cout<<"H2p/a read error\n";
-   for(i=0;i<148;i++){
-      getline(fa,line);
+// Hm
+   name = "./Hm/JPBaa6c1fSuppdata1.dat";
+   ifstream inFile(name); if (!inFile) cout<<"read error\n";
+   for (j=0;j<4;j++) getline(inFile, line);
+   for (j=0;j<nnu_Hm;j++){
+      getline(inFile, line);
       istringstream isolated(line);
-      string Taa_str, aa_str;
-      isolated>>Taa_str>>aa_str;
-      lnT[i] = log(stod(Taa_str));
-      lna[i] = log(stod(aa_str));
+      isolated>>nu_str>>sigma_str;
+      nuc[j] = stod(nu_str);
+      sigmac[j] = stod(sigma_str);    
    }
-   fa.close(); */
+   inFile.close();
 }
 
 void read_spec(double* nub, double* fluxb_cont, double* fluxb_line, string fspec_cont, string fspec_line){
@@ -290,4 +351,29 @@ void read_spec(double* nub, double* fluxb_cont, double* fluxb_line, string fspec
    }
    if (j!=nnu_spec) printf("line count error\n j=%d\n",j);
    inFile.close();
+}
+
+///**************************************************************************************
+///                         H- from radiative attatchment  H + e- --> H- + ph  
+
+void read_k(int n_ra, double* Ta, double* ka){
+   string line, T_str, k_str, name;
+   int i,j;
+// Hm
+   name = "./Hm/JPBaa6c1fSuppdata2.dat";
+   ifstream inFile(name); if (!inFile) cout<<"read error\n";
+   for (j=0;j<3;j++) getline(inFile, line);
+   for (j=0;j<n_ra;j++){
+      getline(inFile, line);
+      istringstream isolated(line);
+      isolated>>T_str>>k_str;
+      //cout<<j<<" "<<T_str<<" "<<k_str<<endl;
+      Ta[j] = stod(T_str);
+      ka[j] = stod(k_str);
+   }
+   inFile.close();
+}
+
+void kra(double& y, double T, int n_ra, double* Ta, double* ka){
+   linear(Ta, ka, n_ra, T, y);
 }

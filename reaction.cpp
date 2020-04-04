@@ -143,10 +143,12 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
 
 //  (3)   H     +   e     ->   H-    +   ph. 
 //     Wishart (1979): GA08 TableA1-1
-    if (T_K<=6.e3) k[3] = pow(10., -17.845 + 0.762*lgT + 0.1523*pow(lgT,2) - 0.03274*pow(lgT,3) );
-    else k[3] = pow(10., -16.4199 + 0.1998*pow(lgT,2) - 5.447e-3*pow(lgT,4) + 4.0415e-5*pow(lgT,6) );
-    //k[3] *= 0.5;
-    //k[3] = 1.4e-18*pow(T_K,0.928)*exp(-T_K/16200.); //Galli Palla 1998
+    double k3;
+    if (T_K<=6.e3) k3 = pow(10., -17.845 + 0.762*lgT + 0.1523*pow(lgT,2) - 0.03274*pow(lgT,3) );
+    else k3 = pow(10., -16.4199 + 0.1998*pow(lgT,2) - 5.447e-3*pow(lgT,4) + 4.0415e-5*pow(lgT,6) );
+    // printf("k[3] 2017 v.s. Wishart: %3.2e, %3.2e\n",k[3], k3); //updated one smaller, ->less H2 form
+    //k[3] = k3;
+    //k[3] = 1.4e-18*pow(T_K,0.928)*exp(-T_K/16200.); //Galli&Palla 1998
 
 //  (4)   H-    +   H     ->   H2    +   e
 //     Kreckel et al. (2010): 
@@ -302,7 +304,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
     b5 = sqrt(k_B*T_K/m_H)/1.e5;
     fsh = 0.965/pow(1+x/b5,1.1) + 0.035/sqrt(1+x)*exp(-8.5e-4*sqrt(1+x)); 
 //DB 96 shielding factor: 
-    //fsh = min(1, pow(nH*y_H2*R_core/1.e14,-0.75)); 
+    //fsh = min(1., pow(nH*y_H2*R_core/1.e14,-0.75)); 
     //fsh = 1; // fsh严重影响pd给出的y_H2,equi
     double kh2pd = 1.39e-12 * J_LW;
     k[21] = kh2pd * fsh;
