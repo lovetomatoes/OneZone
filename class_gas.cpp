@@ -359,17 +359,16 @@ void GAS:: timescales(){
     //printf("f_Ma=%3.2e, cs=%3.2e, t_ff=%3.2e, compr=%3.2e mer=%3.2e mer_th=%3.2e\n", f_Ma, cs, t_ff, Gamma_compr(cs,f_Ma,t_ff),Gamma_mer,Gamma_mer_th);
 
     t_c = e0/r_c;
-    t_h = e0/r_h;
+    t_h = abs(e0/r_h);
     HALO halo(Mh,z);
     rhoc_DM = halo.rho_c;
     t_ff = 1./(Cp * sqrt(rhoc_DM + (mu*m_H)*nH0));
 
     t_delay = t_ff; //delay of evolving time after merger NOT INCLUDED NOW.
     t_delay = 0;
-    t_h = (t_h>0)?t_h:-t_h; //
     // Dt firstly by cooling/heating/free-fall timescales; also all for NO merger case
     Dt = 0.1* min( min(t_c,t_h), t_ff ); 
-    //Dt = 0.1*min(t_h,t_ff); //!!!!! WLI appended here when freefall off, if including t_c can be too short and never evolve...
+    Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h));
 
 // merger case
     if (MerMod !=0){

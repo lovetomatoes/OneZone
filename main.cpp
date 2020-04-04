@@ -27,9 +27,9 @@ int main(){
 
     char* ftree = "../code_tree/fort.217"; //不行！！！会
     char* fout = NULL;
-    double Tb = 1.e4;
-    bool Ma_on = true, spec=false;
-    int MerMod = 0;
+    double Tb = 2.e4;
+    bool Ma_on = false, spec=false;
+    int MerMod = 1;
     double J21 = 60;
 
     fout = "evolve.txt";

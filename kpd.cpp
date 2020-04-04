@@ -23,7 +23,7 @@ int const nT = 10;
 int const nnu_spec = 1221;
 int const nnu_Hm = 14000;
 
-int main(){
+/* int main(){
    double T_rad = 1.e5;
    double k_Hm=0, k_H2p=0;
    double T0 = 10, Trat = 1.001, lgT; 
@@ -45,7 +45,7 @@ int main(){
    
    f.close();
 }
-
+ */
 void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p, bool spec){
    int i,j;
    //double T_rad = 5.e4; 

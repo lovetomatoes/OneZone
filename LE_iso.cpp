@@ -140,7 +140,7 @@ double Mg(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
         file.close();
     }
     file.open(filename, ios::out | ios::app);
-    
+
     // dx
     double dx;
     double err=.01;
@@ -226,7 +226,7 @@ double Mg_max(double Tg, double z, double Mh){
 double Mg2ng(double Mgas, double ni, double Tg, double z=z1, double Mh=Mh1 ){
     HALO halo1(Mh,z);
     double Ri = ni*(mu*m_H) / halo1.rho_c;
-    char* f1 = "1";
+    char* f1 = "Mg.txt";
     if (Mgas > (1+ep10)*Mg_max(Tg,z,Mh)) {
         printf("R for MAXIMUM gas mass cannot hold\n");
         return 0; 
