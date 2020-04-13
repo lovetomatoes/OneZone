@@ -11,10 +11,12 @@
 //#include "class_gas.h"
 using namespace std;
 
-/* g++ -c LE_iso.cpp
+/* 
+rm Mg*.txt
+g++ -c LE_iso.cpp
 g++ -c RK4.cpp
-g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso
-./le_iso
+g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
+./le_iso.out
 */
 
 //input para
@@ -22,7 +24,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso
 
 double Tvir = 1.6e4;
 //double z = 20; double Mh = 1.e7*Ms;
-double z1 = 20; double Mh1 = Mh_Tz(Tvir,z1);
+double z1 = 20; double Mh1 = 1.e5*Ms;
 //double z = 30; double Mh = Mh_Tz(Tvir,z);
 //double z = 25; double Mh = Mh_Tz(Tvir,z);
 //double z = 10; double Mh = Mh_Tz(Tvir,z);
@@ -157,11 +159,12 @@ double Mg(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
         x[i]=x[i-1]+dx;
 
         //integrate within R_vir
-        if (x[i]<=halo1.Rvir/a) M_intg += pow(a,3)* 4*pi*pow(x[i],2)*dx * rho_g0 *exp(-y[i][0]);  
+        if (x[i]<=halo1.Rvir/a) M_intg += pow(a,3)* 4*pi*pow(x[i],2)*dx * rho_g0 *exp(-y[i][0]);
+        else break;
     } 
     delete [] x; delete [] y; delete [] v; delete [] dydx0;
-    ////file<<"R alpha M_intg\n";
-    file<<" "<<R<<" "<<alpha<<" "<<M_intg<<endl;
+    ////file<<"R alpha M_intg n_vir\n";    
+    file<<" "<<R<<" "<<alpha<<" "<<M_intg/Ms<<" "<<rho_g0*exp(-y[i][0])/(mu*m_H)<<endl;
     file.close();
    
     //printf("z = %3.2f\tMh = %3.2e Ms\t rs=%3.2e cm\trhoc=%3.2e/cc\trvir=%3.2e cm\n",halo1.z,halo1.Mh/Ms,halo1.Rs,halo1.rho_c,halo1.Rvir);
@@ -216,7 +219,7 @@ double Mg_max(double Tg, double z, double Mh){
 
         //integrate within R_vir
         if (x[i]<=halo1.Rvir/a) M_intg += pow(a,3)* 4*pi*pow(x[i],2)*dx * rho_g0 *exp(-y[i][0]);
-
+        else break;
     }
     delete [] x; delete [] y; delete [] v; delete [] dydx0;
     printf("Mg_max=%3.2e\n",M_intg/Ms);
@@ -265,3 +268,26 @@ double Mg2ng(double Mgas, double ni, double Tg, double z=z1, double Mh=Mh1 ){
     printf("Mgas=%3.2e\t R solution=%3.2e\n",Mgas/Ms,R1);
     return nf;
 }
+
+// 画Mg_max v.s. Mh, 结果不是线性依赖...
+/* int main(){
+    char* fname = "MgT4.txt";
+    double R = 1;
+    double Tg = 1.e4;
+    double R1 = 1.e2, Rrat = exp(log(R1/R)/20.);
+    while (R<R1){
+        //Mg(fname,Tg,R);
+        R *= Rrat;
+    }
+    double z1 = 20; double Mh1 = 1.e5*Ms;
+    HALO halo(Mh1,z1);
+    printf("1.e5Ms: Rmax =%3.2e\n",R_EQ(Tg,halo.rho_c,halo.Rs));
+    Mh1 = 2.e6*Ms;
+    HALO halo1(Mh1,z1);
+    printf("2.e6Ms: Rmax =%3.2e\n",R_EQ(Tg,halo1.rho_c,halo1.Rs));
+    Mh1 = 1.e7*Ms;
+    HALO halo2(Mh1,z1);
+    printf("1.e7Ms: Rmax =%3.2e\n",R_EQ(Tg,halo2.rho_c,halo2.Rs));
+
+    return 0;
+} */

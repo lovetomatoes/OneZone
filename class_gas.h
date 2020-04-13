@@ -19,8 +19,8 @@ class GAS
         void T_sol();
 
 
-        // member function definition
-        GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool spec, bool Ma_turn);
+        // member function definition -- constructor
+        GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool spec, bool Ma_turn, int bsm);
         ~GAS();
     //private:
         int N, Nt;
@@ -36,14 +36,14 @@ class GAS
         double *y0, *y1, *ys,  *k, *rf;
         double r_h, r_c, r_cH, r_cH2;
         double t_ff, t_h, t_c, t_rcb, t_chem, t_ion;
-        int evol_stage;
+        int evol_stage, i_bsm;
         double n_iso, Mh_prev, t_prev, dt_iso;
         //label density evolve: MerMod==0直接freefall; MerMod==1, evol_stage=1 等熵,2 Eli saturated core,3 等温,4 freefall
         double Gamma_mer, Gamma_mer_th, Gamma_mer_k;
         double cs, MJ, RJ, MJ_eff, Mgas, Mcore, M_BE;
         double M_major, M_minor, MJ0, Ma, f_Ma, v_tur2, reduction, ncore, nb200;
         double de_tot, dM_tot;
-        double v_inf2;
+        double v_inf2, v_bsm;
         bool inMer, inDelay, not_adb, Ma_on;
         double Mh;
         MainProgenitor* MPs; //structure defined in read_aTree.h

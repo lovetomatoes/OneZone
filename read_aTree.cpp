@@ -12,7 +12,7 @@
 #include <cmath>
 using namespace std;
 /* 
-g++ read_aTree.cpp dyn.cpp PARA.cpp class_halo.o -o read && ./read
+g++ read_aTree.cpp dyn.cpp PARA.cpp class_halo.o -o read.out && ./read.out
  */
 
 void read_aTree (int& num, char* fname, MainProgenitor* MPs){

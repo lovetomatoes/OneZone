@@ -30,11 +30,12 @@ int main(){
     double Tb = 2.e4;
     bool Ma_on = false, spec=false;
     int MerMod = 1;
-    double J21 = 60;
+    double J21 = 2000;
+    int i_bsm = 1;
 
     fout = "evolve.txt";
     spec = false;
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on);
+    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
     // fout = "Jcs_cpp.txt";
     // spec = false;

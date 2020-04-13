@@ -26,7 +26,7 @@ g++ class_gas.o -o gas
 */
 
 // constructor; initializes
-GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool spec, bool Ma_turn){
+GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool spec, bool Ma_turn, int bsm){
     //N_sp = 5; N_react = 6; 
     nMer = 0;
     MPs = NULL;
@@ -34,6 +34,8 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     aTree(nMer,MPs,treefile);
     z0 = MPs[0].z;
     z = z0;
+    i_bsm = bsm;
+    v_bsm = i_bsm*sigma1*(1+z)/(1+z_rcb);
     Mh = MPs[0].mhalo;
 
     HALO halo(Mh,z0);
@@ -404,6 +406,7 @@ void GAS:: timescales(){
     t_act += Dt;
     z0 = z;
     z = z_ana(z,Dt); //推进 redshift
+    v_bsm = i_bsm*sigma1*(1+z)/(1+z_rcb);
 }
 
 // cloud evolution: freefall() -> react_sol() -> T_sol
@@ -467,12 +470,14 @@ void GAS:: freefall(){  //module of explicit integration over Dt
 
     reduction = 1;// WL ADDED //cout<<nH0<<"\t"<<ncore<<endl;
     v_tur2 += Dt * Gamma_mer_k*2; // 2 coz e=1/2v^2
-    f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * reduction :1; //wrong, didn't consider cs^2/gammas
+    f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * reduction :1; //wrong, didn't consider cs^2/gamma
 
     f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb :1; // corrected f_Ma, using P = rho_g v_tur^2
-    f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb/3. :1; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
+    //f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb/3. :1; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
+// bsm velocity
+    if (i_bsm) f_Ma = 1 + pow(4*v_bsm/cs,2);
     Ma = sqrt(v_tur2* reduction )/cs;
- 
+
     if (MerMod==0) f_Ma = 1; //for MerMod=0 case
 
     // update rho

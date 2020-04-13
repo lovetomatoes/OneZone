@@ -35,3 +35,5 @@ const int N_sp1 = N_sp+1, N_react1 = N_react+1;
 const double ep10 = 0.1, ep5 = .2, ep2 = .5;
 const double epE3 = .001, epE2 = .01, epE8 = 1.e-8, epE6 = 1.e-6, epE10 = 1.e-10;
 const double epE1 = 0.1, epE4 = 1.e-4, epE5 = 1.e-5, epE7 = 1.e-7, epE9 = 1.e-9;
+
+const double z_rcb = 1089, sigma1 = 30*km;
