@@ -82,11 +82,11 @@ void check_conv(double err_crit, double* yout, double x, double& h, double *y, i
             delta_y[i] = yout2[i] - yout[i];
             yout[i] = yout2[i];
         }
-        for (i=0;i<n;i++) if (!isfinite(yout[i])) throw "INFINITY condition!";
+        for (i=0;i<n;i++) if (!isfinite(yout[i])) cout<<"INFINITY condition! ";
         //printf("INFINITY! REFINE GRID where call RK4!!!!!!!!!!!!!\n"); // 异常需处理...
 
         if ( len_v(n,delta_y)>err_crit*len_v(n,yout) ){
-            cout<<"REFINING GRID in check_conv!!!!!!!!!!!!!\n"; // report iteration times! 
+            //cout<<"REFINING GRID in check_conv!!!!!!!!!!!!!\n"; // report iteration times! 
             i_fold += 1;
             h *= 0.5;
             hh = h/2.;
