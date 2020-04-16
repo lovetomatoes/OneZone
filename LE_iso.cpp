@@ -175,7 +175,7 @@ double Mg(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
 }
 
 double N_VIR(double Tg, double R, double z=z1, double Mh=Mh1){
-    printf("in N_VIR: R=%3.2e, Tg=%3.2e, z=%3.2e, Mh=%3.2e\n",R,Tg,z,Mh/Ms);
+    //printf("in N_VIR: R=%3.2e, Tg=%3.2e, z=%3.2e, Mh=%3.2e\n",R,Tg,z,Mh/Ms);
     HALO halo1(Mh,z);
     int const N = 100000;
     int const n = 2;
@@ -217,75 +217,52 @@ double N_VIR(double Tg, double R, double z=z1, double Mh=Mh1){
         else break;
     }
     double n_vir = rho_g0*exp(-y[i][0])/(mu*m_H);
-
+    printf("in N_VIR: n_vir=%3.2e\n",n_vir);
     delete [] x; delete [] y; delete [] v; delete [] dydx0;
 
-    printf("z = %3.2f\tMh = %3.2e Ms\t Mg_vir = %3.2e Ms\n",halo1.z,halo1.Mh/Ms,M_intg/Ms);
-    printf("in Mg func: R = %3.2e\t ng_0 = %3.2e\n", R, halo1.rho_c*R/(mu*m_H));   
+    // printf("z = %3.2f\tMh = %3.2e Ms\t Mg_vir = %3.2e Ms\n",halo1.z,halo1.Mh/Ms,M_intg/Ms);
+    // printf("in Mg func: R = %3.2e\t ng_0 = %3.2e\n", R, halo1.rho_c*R/(mu*m_H));   
 
     return n_vir;
 }
 
-double Mg_max(double Tg, double z, double Mh){
-    HALO halo1(Mh,z);
-    double beta = (4*pi*G*mu*m_H*halo1.rho_c)/(k_B*Tg);
-    double Req = 9./4.*beta*pow(halo1.Rs,2);
-    printf("Tg = %3.2e \t Req = %3.2e\n",Tg,Req);   
-    int const N = 1000000;
-    int const n = 2;
-    int i;
-    double rho_g0 = halo1.rho_c * Req; //################################# 现在用Req而不用R
-    double M_intg = 0;
-    double a = sqrt(k_B*Tg/(4*pi*G*mu*m_H*rho_g0));
-    double alpha = a/halo1.Rs;
-    // set x1, largest xi 
-    double x1 = halo1.Rvir *10 /a;
+void N_VIR_max(double& R_sol, double& n_max, double Tg, double z, double Mh){
+    double R0 = .1;
+    double delta_R = epE2*R0, R1;
+    double nvir_fw, nvir_bw ;
+    double nvir_0, nvir_1;
+    double dndR, d2ndR;
+    double dR = R0;
+    int it = 0;
+    printf("pow(R0-R1,2)=%3.2e;\nepE2*pow(R0,2)=%3.2e\n",pow(R0-R1,2), epE2*pow(R0,2) );
+    while ( pow(dR,2)>=epE4*pow(R0,2) && it<5){ //dM < 0.1 Mgas or it=5, 结束计算
+        delta_R = epE2*R0;
+        nvir_fw = N_VIR(Tg, R0+.5*delta_R, z, Mh); nvir_bw = N_VIR(Tg, R0-.5*delta_R, z, Mh); 
+        nvir_0 = N_VIR(Tg,R0,z,Mh);
+        dndR = ( nvir_fw - nvir_bw )/ delta_R;
+        d2ndR = 4.*( nvir_fw + nvir_bw - 2.*nvir_0)/ pow(delta_R, 2);
 
-    double* x = new double [N];
-    
-    double** y = new double* [N];
-    for (i=0;i<N;i++){
-        y[i] = new double [n];
+        dR = - dndR/d2ndR; R1 = R0 + dR;
+        printf("R1 update to %3.2e\t dR=%3.2e\n",R1, - dR);
+    // update R0
+        nvir_1 = N_VIR(Tg,R1,z,Mh);
+        R0 = R1;
+        it++;
+        printf("in LOOP: it=%d\n",it);
     }
-    int c = 2;
-    double* v = new double [c];
-    v[0] = alpha; v[1] = Req;  //################################# 现在用Req而不用R
-
-    //B for checking DM gravity w/ Suto, Sasaki, Makino 1998
-    double B = 4*pi*G*(mu*m_H)*halo1.rho_c*pow(halo1.Rs,2)/(k_B*Tg);
-    double* dydx0 = new double [n];    
-    // dx
-    double dx;
-    double err=.01;
-    // boundary conditions
-    i = 0;
-    dx = x1/N;
-    x[i] = dx/1.e8; y[i][0] = 0; y[i][1] = 0; // isothermal case
-    int count_in = 0;
-    for (i=1;i<N;i++){
-        dx = x1/N;
-        DyDx(x[i-1],y[i-1],dydx0,c,v);
-        rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx);
-        check_conv(err,y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx);
-        x[i]=x[i-1]+dx;
-
-        //integrate within R_vir
-        if (x[i]<=halo1.Rvir/a) M_intg += pow(a,3)* 4*pi*pow(x[i],2)*dx * rho_g0 *exp(-y[i][0]);
-        else break;
-    }
-    printf("Mh=%3.2e, Mg_max=%3.2e, n_vir=%3.2e\n",Mh/Ms,M_intg/Ms,rho_g0*exp(-y[i][0])/(mu*m_H));
-    delete [] x; delete [] y; delete [] v; delete [] dydx0;
-    return M_intg;
+    n_max = nvir_1;
+    printf("iteration time=%d, R_max=%3.2e, nvir_max=%3.2e\n",it,R0,nvir_1);
+    printf("z=%3.2e, Mh=%3.2e\n",z,Mh/Ms);
 }
 
 double Mg2ng(double Mgas, double ni, double Tg, double z=z1, double Mh=Mh1 ){
     HALO halo1(Mh,z);
     double Ri = ni*(mu*m_H) / halo1.rho_c;
     char* f1 = "Mg.txt";
-    if (Mgas > (1+ep10)*Mg_max(Tg,z,Mh)) {
+    /* if (Mgas > (1+ep10)*Mg_max(Tg,z,Mh)) {
         printf("R for MAXIMUM gas mass cannot hold\n");
         return 0; 
-    }
+    } */
 
     double dMgdR = ( Mg(f1, Tg, Ri*(1+ep10), z, Mh) - Mg(f1, Tg, Ri, z, Mh) )/ (ep10*Ri);
     int it = 0; // iteration times
@@ -329,79 +306,42 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 ./le_iso.out
 */
 
-// 画Mg_max v.s. Mh, 结果不是线性依赖...
 int main(){
-    /* double R = 10;
-    char* fname = "profile.txt";
+    double R = 1.64;
+    char* fname = "Mh_nmax.txt";
+    /* fstream f;
+    f.open(fname, ios::out | ios::trunc );
+    f<<" Mh Vc nvir_max nc nHug\n";
     double Tg = 1.e4;
-    double z = 20, Mh = 2.e6*Ms;
-    profile(fname, Tg, R, z, Mh);
- */
-    /* char* fname = "MgT4.txt";
-    double R = 1.e-2;
-    double z = 20, Mh = 1.e7*Ms;
-    double Tg = 1.e4;
-    int N = 50;
-    double R1 = 1.e2, Rrat = exp(log(R1/R)/N);
-    while (R<R1){
-        Mg(fname, Tg, R, z, Mh);
-        R *= Rrat;
+    double z = 10, Mh0 = 1.e5*Ms, Mh1 = 1.e8*Ms;
+    double R_sol = 0, n_max = 0;
+    double N = 20;
+    double Mh_rat = exp( log(Mh1/Mh0)/N ); cout<<Mh_rat<<endl;
+    for (int i=0; i<N; i++){
+        HALO halo1(Mh0,z);
+        N_VIR_max(R_sol, n_max, Tg, z, Mh0);
+        double cs2 = gamma_adb*k_B*8000/(mu*m_H);
+        f<<" "<<Mh0/Ms<<" "<<halo1.Vc/km<<" "<<n_max<<" "<<fb*halo1.rho_c/(mu*m_H)<<" "<<fb*200*halo1.rho_crit*pow(halo1.Vc,2)/cs2/(mu*m_H)<<endl;
+        Mh0 *= Mh_rat;
     } */
-
-// 看n, dndR, d2ndR 是否合理 Newton能否得到极大值的解
-    double z = 20, Mh = 1.e7*Ms;
-    double Tg = 1.e4;
-    double R0 = 1.e-2, delta_R = epE2*R0, R1;
-
-    double nvir_fw, nvir_bw ;
-    double nvir_0 = N_VIR(Tg,R0,z,Mh);
-    double nvir_1 = nvir_0;
-    double dndR, d2ndR;
-
-    int N = 50;
-    double Rend = 1.e2, Rrat = exp(log(Rend/R0)/N);
-    int it = 0;
-    fstream file;
-    file.open("derivatives.txt", ios::out | ios::trunc );
-    file<<" R n dndR d2ndR"<<endl;
-    while (R0<Rend){
-        R0 *= Rrat;
-        delta_R = epE2*R0;
-        nvir_fw = N_VIR(Tg, R0+.5*delta_R, z, Mh); nvir_bw = N_VIR(Tg, R0-.5*delta_R, z, Mh); 
-        nvir_0 = N_VIR(Tg,R0,z,Mh);
-        dndR = ( nvir_fw - nvir_bw )/ delta_R;
-        d2ndR = 4.*( nvir_fw + nvir_bw - 2.*nvir_0)/ pow(delta_R, 2);
-        file<<" "<<R0<<" "<<nvir_0<<" "<<dndR<<" "<<d2ndR<<endl;
-        it++;
+    //N_VIR(Tg,R,z,Mh);
+    char* f2name = "z_nmaxTv4.txt";
+    fstream f2;
+    f2.open(f2name, ios::out | ios::trunc );
+    f2<<" z Mh Vc nvir_max nc nHug\n";
+    double z0 = 35, z1=10, Mh;
+    double N = 20;
+    double Tvir = 1.e4, Tg = 1.e4;
+    double z_rat = exp( log(z1/z0)/N );
+    double R_sol, n_max;
+    for (int i=0; i<N; i++){
+        Mh = Mh_Tz(Tvir,z0);
+        HALO halo1(Mh,z0);
+        N_VIR_max(R_sol, n_max, Tg, z0, Mh);
+        double cs2 = gamma_adb*k_B*8000/(mu*m_H);
+        f2<<" "<<z0<<" "<<Mh/Ms<<" "<<halo1.Vc/km<<" "<<n_max<<" "<<fb*halo1.rho_c/(mu*m_H)<<" "<<fb*200*halo1.rho_crit*pow(halo1.Vc,2)/cs2/(mu*m_H)<<endl;
+        z0 *= z_rat;
     }
-    file.close();
-    /* int it = 0; // iteration times
-    while ( pow(nvir_0-nvir_1,2)>=epE2*pow(nvir_0,2) && it<5){ //dM < 0.1 Mgas or it=5, 结束计算
-        delta_R = epE2*R0;
-        nvir_fw = Mg(f1, Tg, R0+.5*delta_R, z, Mh); nvir_bw = Mg(f1, Tg, R0-.5*delta_R, z, Mh); 
-        if (it!=0) nvir_0 = Mg(f1,Tg,R0,z,Mh);
-
-        dndR = ( nvir_fw - nvir_bw )/ delta_R;
-        d2ndR = 4.*( nvir_fw + nvir_bw - 2.*nvir_0)/ pow(delta_R, 2);
-
-        R1 = R0 - dndR/d2ndR;
-        if (R1<0) {
-            printf("!!!!!!!!!\t SLOPE MAYBE TOO SHALLOW\n !!!!!!!!\tREPLACE A NEGATIVE R1 TO R0/10\n");
-            R1 = R0/10.;
-        }
-        nvir_1 = Mg(f1,Tg,R1,z,Mh);
-
-        R0 = R1; it++;
-        printf("--------------------------------------------------------------------------\n");
-        printf("nvir_0=%3.2e, Mgas=%3.2e, dMdR=%3.2e\n");
-        printf("it time=%d, R0=%3.2e, Rmax=%3.2e\n",it,R0);
-    } */
-    // 避免it3次, R解去到peak的右边
-    //if (R1>10*Rmax) R1 = Rmax;  // wli:不限R
-    
-    /* printf("it=%d\tni=%3.2e\tnf=%3.2e\n",it,ni,nf);
-    printf("halo: z=%3.2e, Mh=%3.2e, Tvir=%3.2e, rho_c=%3.2e\n",halo1.z,halo1.Mh/Ms,halo1.Tvir,halo1.rho_c);
-    printf("Mgas=%3.2e\t R solution=%3.2e\n",Mgas/Ms,R1);
- */
+    f2.close();
     return 0;
 }

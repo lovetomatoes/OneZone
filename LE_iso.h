@@ -4,3 +4,4 @@ double A_TR(double Tg, double rhoc, double R);
 extern "C" double Mg(char* filename, double Tg, double R, double z, double Mh);
 extern "C" double Mg2ng(double Mg, double ni, double Tg, double z, double Mh);
 extern "C" double N_VIR(double Tg, double R, double z, double Mh);
+void N_VIR_max(double& Rm, double& n_max, double Tg, double z, double Mh);

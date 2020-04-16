@@ -9,7 +9,7 @@
 using namespace std;
 
 /* to compile this file: 
-g++ class_halo.cpp PARA.cpp dyn.cpp -o halo && ./halo
+g++ class_halo.cpp PARA.cpp dyn.cpp -o halo.out && ./halo.out
 */
 
 HALO:: HALO(double Mh0, double z0){
@@ -65,7 +65,8 @@ double HALO:: V_inf2(double rout, double rin){
     return 2*(Phi(rout)-Phi(rin));
 }
 
-/* int main(){
+/* //origin, checking...(forget goal)
+int main(){
     int N = 1000;
     int i,j;
     double Mh0, z0;
@@ -103,5 +104,20 @@ double HALO:: V_inf2(double rout, double rin){
 } */
 
 double Mh_Tz(double Tvir, double z){
+    double alpha_T = 2.324e4; //Tvir = 2.324e4 M8^(2./3.) (1+z10)^-1
     return 1.e8*Ms*pow(Tvir/alpha_T*11/(1+z),1.5);
 }
+
+double Mh_Vc(double Vc, double z){
+    double alpha_Vc = 1.7945e6; // Vc = 1.7945e6 M8^(1/3) z11^(1/2) cm/s
+    return 1.e8*Ms*pow( Vc/alpha_Vc/sqrt((1+z)/11.), 3);
+}
+
+/* 
+// halo Vc, Rvir, n_crit at z...
+int main(){
+    double z = 17.2;
+    double Mh = 2.36e7*Ms;
+    HALO halo(Mh,z);
+    printf("n_crit:%6.4e, Rvir=%6.4e kpc, Vc=%6.4e km/s\n",halo.rho_crit/(mu*m_H), halo.Rvir/kpc, halo.Vc/km);
+} */

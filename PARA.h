@@ -22,7 +22,6 @@ const double Mb = 1.e-18;
 
 const double Omega_m0 = 0.311; // match calculation in code_tree/analysis_trees.f
 const double Omega_L0 = 1 - Omega_m0;
-const double alpha_T = 2.324e4; //Tvir = 2.324e4 M8^(2./3.) (1+z10)^-1
 
 const double fb = 0.16;
 const double rho_m0 = 3*pow(H0,2)/(8*pi*G);// not used;
