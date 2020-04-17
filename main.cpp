@@ -30,10 +30,10 @@ int main(){
     double Tb = 2.e4;
     bool Ma_on = false, spec=false;
     int MerMod = 1;
-    double J21 = 2000;
-    int i_bsm = 1;
+    double J21 = 5000;
+    int i_bsm = 3;
 
-    fout = "evolve.txt";
+    fout = "217bsm3evolve_Vc.txt";
     spec = false;
     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 

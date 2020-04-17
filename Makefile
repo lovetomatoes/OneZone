@@ -6,7 +6,7 @@ evol.o: evol.cpp class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o k
 	g++ evol.cpp -L/usr/local/lib class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o cc.so -shared -fPIC
 	g++ evol.cpp -L/usr/local/lib -Wall -I/usr/local/include -c class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -shared -fPIC
 
-LE_iso.o: LE_iso.cpp RK4.o class_halo.o PARA.o
+LE_iso.o: LE_iso.cpp RK4.o class_halo.o dyn.o PARA.o
 	g++ -c LE_iso.cpp -o LE_iso.o -shared -fPIC 
 	#g++ -c LE_iso.cpp RK4.o class_halo.o -o LE_iso.o -shared -fPIC
 

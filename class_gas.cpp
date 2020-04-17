@@ -414,6 +414,7 @@ void GAS:: timescales(){
 void GAS:: freefall(){  //module of explicit integration over Dt
     HALO halo1(Mh,z0);
     bool adjust_iso = false;
+    double nvir_max;
     switch(evol_stage){
         case 0:
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
@@ -438,7 +439,8 @@ void GAS:: freefall(){  //module of explicit integration over Dt
                 cout<<"ng_adb= "<<nH0<<endl;
                 cout<<"R_adb ="<< nH0*(mu*m_H)/halo1.rho_c;
                 evol_stage = 3;
-                n_iso = Mg2ng(Mh*fb,nH0,f_Ma*T_K0,z0,Mh);
+                //inside solving n_iso, n_vir comparing w/ cosmic mean determine if unstable
+                Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
                 printf("//////////\tSOLVED FOR THE 1ST TIME\n");
                 if (!n_iso) evol_stage = 4; // unstable case Mg2ng return 0
                 else nH0 = n_iso;
@@ -454,7 +456,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
                 printf("IN STAGE 3 f_Ma=%3.2e\n",f_Ma);
                 dt_iso = t_act - t_prev;
                 Mh_prev = Mh; t_prev = t_act;
-                n_iso = Mg2ng(Mh*fb,nH0,f_Ma*T_K0,z0,Mh);
+                Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
                 if (!n_iso) evol_stage = 4; // unstable case Mg2ng return 0
                 else nH0 = n_iso;
             }
@@ -473,9 +475,9 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * reduction :1; //wrong, didn't consider cs^2/gamma
 
     f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb :1; // corrected f_Ma, using P = rho_g v_tur^2
-    //f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb/3. :1; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
+    f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb/3. :1; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
 // bsm velocity
-    if (i_bsm) f_Ma = 1 + pow(4*v_bsm/cs,2);
+    if (i_bsm) f_Ma = 1 + pow(4*v_bsm/cs,2); //Eq3 in Hirano+2018
     Ma = sqrt(v_tur2* reduction )/cs;
 
     if (MerMod==0) f_Ma = 1; //for MerMod=0 case
