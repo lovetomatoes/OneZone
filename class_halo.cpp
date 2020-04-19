@@ -17,7 +17,7 @@ HALO:: HALO(double Mh0, double z0){
     z = z0;
     // concentration parameter c from Dekel & Birnboim 2006 Eq(22)
     c = 18*pow(Mh0/(1.e11*Ms), -0.13)/(1+z);
-
+    //c=4; //wli: trying fixed concentration factor!!!!
     double d = Omega_mz(z) - 1;
     Delta_crit = 18.0*pi*pi + 82*d - 39*d*d;
 
