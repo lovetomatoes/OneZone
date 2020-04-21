@@ -183,7 +183,8 @@ void Nvir2N0(double& n_sol, double& nvir_max, double ni, double Tg, double z, do
     printf("z=%3.2e, Mh=%3.2e\n",z,Mh/Ms);
 // unstable criterion: nvir_max < n_mean (cosmic mean density at z) 
     double n_mean = RHO_crit(z)/(mu*m_H);
-    printf("nmean=%3.2e, ni=%3.2e:  UNSTABLE\n",n_mean,ni);
+    //n_mean *=2;
+    printf("nmean=%3.2e, ni=%3.2e:\n",n_mean,ni);
     if (n_mean>nvir_max) n_sol = 0; //unstable
     // if (true) {} // wli: 不解n0 只要nvir_max
     else{ // get solution of given outer boundary n_mean
@@ -262,56 +263,119 @@ void Mg2N0(double& n_sol, double& Mg_max, double ni, double Tg, double z, double
 }
 
 
-// 画Mg_max v.s. Mh, 结果不是线性依赖...
-int main(){
-    double R = .01;
-    double Tg = 1.e4;
-    double Mg, nvir;
-    double R1 = 1.e2, Rrat = exp(log(R1/R)/20.);
-
-    double z = 20, Mh = 1.e5*Ms;
-    HALO halo1(Mh,z);
-    printf("1.e5Ms: Tvir=%3.2e\t",halo1.Tvir);
-    char* pfile1 = "profile1e5.txt";
-    profile(pfile1, Tg, R, z, Mh);
-
-    Mh = 2.e6*Ms;
-    HALO halo2(Mh, z);
-    printf("2.e6Ms: Tvir=%3.2e\t",halo2.Tvir);
-    char* pfile2 = "profile2e6.txt";
-    profile(pfile2, Tg, R, z, Mh);
-
-    Mh = 1.e7*Ms;
-    HALO halo3(Mh, z);
-    printf("1.e7Ms: Tvir=%3.2e\t",halo3.Tvir);
-    char* pfile3 = "profile1e7.txt";
-    profile(pfile3, Tg, R, z, Mh);
-
-
-    // z = 20, Mh = 1.e7*Ms;
-    // HALO halo(Mh,z);
-    // fstream f;
-    // char* fname = "RM1e7.txt";
-    // f.open(fname, ios::out | ios::trunc );
-    // f<<" R n_0 M_g n_vir\n";
-    // while (R<R1){
-    //     BOUNDARY(nvir,Mg,Tg,R,z,Mh);
-    //     f<<" "<<R<<" "<<R*halo.rho_c/(mu*m_H)<<" "<<Mg/Ms<<" "<<nvir<<endl;
-    //     R *= Rrat;
-    // }
-    // f.close();
-    cout<<endl;
-    return 0;
-}
 
 /* 
-rm Mg*.txt
 g++ -c LE_iso.cpp
 g++ -c RK4.cpp
 g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 ./le_iso.out
 */
 
+// 检查Nvir2N0, Mg2N0是否给出正确的nvir_max, Mg_max 
+// int main(){
+//     double R = 1.e-2;
+//     double Tg = 1.5e4;
+//     double R1 = 1.e2, Rrat = exp(log(R1/R)/20.);
+//     double n0_sol_M, Mg_max, n0_sol_N, nvir_max;
+//     double ni = 1;
+//     double z = 25, Mh = 1.e7*Ms;
+//     HALO halo(Mh,z);
+//     double n_mean = RHO_crit(z)/(mu*m_H);
+//     double n_vir, Mg_vir;
+
+//     char* fname = "boundary.txt";
+//     fstream f;
+//     f.open(fname, ios::out | ios::trunc );
+//     f<<" R ng0 Mg nvir\n";    
+//     while (R<R1){
+//         BOUNDARY(n_vir, Mg_vir, Tg, R, z, Mh);
+//         f<<" "<<R<<" "<<R*halo.rho_c/(mu*m_H)<<" "<<Mg_vir/Ms<<" "<<n_vir<<endl;
+//         R *= Rrat;
+//     }
+//     f.close();
+
+// // 检查求解函数
+//     // Mg2N0(n0_sol_M, Mg_max, ni, Tg, z, Mh);
+//     //Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
+//     // BOUNDARY(n_vir, Mg_vir,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
+//     // printf("z=%3.2e, Mh=%3.2e\tn_mean = %3.2e, fb*Mh = %3.2e Ms\n",z,Mh/Ms,n_mean, fb*Mh/Ms);
+//     // printf("local max: from Mg:%3.2e Ms, from n@vir:%3.2e\n", Mg_max/Ms, nvir_max);
+//     // printf("N0 solution: from Mg:%3.2e, from n@vir:%3.2e\n", n0_sol_M, n0_sol_N);
+//     // printf("fb=%3.2e\n",Mg_vir/Mh);
+
+// // 算由Nvir2N0得到的n0-->Mg -->fb
+//     char* fname = "fb_Mh.txt";
+//     fstream f;
+//     f.open(fname, ios::out | ios:: trunc);
+//     f<<" Mh fb\n";
+//     Mh = 1.e5*Ms;
+//     double Mh1 = 1.e7*Ms, Mhrat = exp(log(Mh1/Mh)/20.);
+//     while (Mh<Mh1){
+//         Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
+//         BOUNDARY(n_vir, Mg_vir,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
+//         f<<Mh/Ms<<" "<<Mg_vir/Mh<<endl;
+//         Mh *= Mhrat;
+//     }
+//     f.close();
+
+
+//     // double z1 = 20; double Mh1 = 1.e5*Ms;
+//     // HALO halo(Mh1,z1);
+//     // printf("1.e5Ms: Rmax =%3.2e\n",R_EQ(Tg,halo.rho_c,halo.Rs));
+//     // Mh1 = 2.e6*Ms;
+//     // HALO halo1(Mh1,z1);
+//     // printf("2.e6Ms: Rmax =%3.2e\n",R_EQ(Tg,halo1.rho_c,halo1.Rs));
+//     // Mh1 = 1.e7*Ms;
+//     // HALO halo2(Mh1,z1);
+//     // printf("1.e7Ms: Rmax =%3.2e\n",R_EQ(Tg,halo2.rho_c,halo2.Rs));
+
+//     return 0;
+// }
+
+// 1. density profile in 3 halos; 
+/* int main(){
+    double R = .01;
+    double Tg = 1.e4;
+    double Mg, nvir;
+    double R1 = 1.e2, Rrat = exp(log(R1/R)/20.);
+
+    double z = 20, Mh = 1.e5*Ms;
+    // HALO halo1(Mh,z);
+    // printf("1.e5Ms: Tvir=%3.2e\t",halo1.Tvir);
+    // char* pfile1 = "profile1e5.txt";
+    // profile(pfile1, Tg, R, z, Mh);
+
+    // Mh = 2.e6*Ms;
+    // HALO halo2(Mh, z);
+    // printf("2.e6Ms: Tvir=%3.2e\t",halo2.Tvir);
+    // char* pfile2 = "profile2e6.txt";
+    // profile(pfile2, Tg, R, z, Mh);
+
+    // Mh = 1.e7*Ms;
+    // HALO halo3(Mh, z);
+    // printf("1.e7Ms: Tvir=%3.2e\t",halo3.Tvir);
+    // char* pfile3 = "profile1e7.txt";
+    // profile(pfile3, Tg, R, z, Mh);
+
+// 2. 画Mg_max v.s. R
+    z = 20, Mh = 2.e6*Ms;
+    HALO halo(Mh,z);
+    fstream f;
+    char* fname = "cc25RM2e6.txt";
+    f.open(fname, ios::out | ios::trunc );
+    f<<" R n_0 M_g n_vir\n";
+    while (R<R1){
+        BOUNDARY(nvir,Mg,Tg,R,z,Mh);
+        f<<" "<<R<<" "<<R*halo.rho_c/(mu*m_H)<<" "<<Mg/Ms<<" "<<nvir<<endl;
+        R *= Rrat;
+    }
+    f.close();
+    cout<<endl;
+    return 0;
+}
+ */
+
+// 3. 算Tvir_crit v.s. redshift; Tg is input parameter.
 /* int main(){
     double R = 1.64;
     // *****************   calculate Tvir critical value **************
@@ -356,7 +420,8 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
  */
 
 //---------------------------------------------------------------------------------------------------------
-// file treatment...
+//                                  FILE treatment...
+//---------------------------------------------------------------------------------------------------------
 /* // detect if FILE exist 
     if (FILE *f = fopen(filename, "r")) fclose(f);
     else {

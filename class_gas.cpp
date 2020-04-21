@@ -479,7 +479,10 @@ void GAS:: freefall(){  //module of explicit integration over Dt
 // bsm velocity
     if (i_bsm) f_Ma = 1 + pow(4*v_bsm/cs,2); //Eq3 in Hirano+2018
     Ma = sqrt(v_tur2* reduction )/cs;
-
+    if (evol_stage==3) {
+        printf("Vc^2/ (cs^2 + v_tur^2 + v_bsm^2)=%3.2e\n",pow(halo1.Vc,2)/(pow(cs,2)+v_tur2+pow(v_bsm,2)));
+        printf("concentration c=%3.2e\n",halo1.Rs/halo1.Rvir);
+    }
     if (MerMod==0) f_Ma = 1; //for MerMod=0 case
 
     // update rho
