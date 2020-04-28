@@ -40,7 +40,7 @@ class GAS
         double n_iso, Mh_prev, t_prev, dt_iso;
         //label density evolve: MerMod==0直接freefall; MerMod==1, evol_stage=1 等熵,2 Eli saturated core,3 等温,4 freefall
         double Gamma_mer, Gamma_mer_th, Gamma_mer_k;
-        double cs, MJ, RJ, MJ_eff, Mgas, Mcore, M_BE;
+        double cs, MJ, RJ, MJ_eff, Mgas, Mcore, M_BE, Mg_intg;
         double M_major, M_minor, MJ0, Ma, f_Ma, v_tur2, reduction, ncore, nb200;
         double de_tot, dM_tot;
         double v_inf2, v_bsm;

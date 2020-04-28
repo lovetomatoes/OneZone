@@ -67,7 +67,8 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     Mgas = Mh*fb;
     Mcore = 4.*pi/3.*pow(0.1*halo.Rvir,3)* nH0;
     M_BE = 1.18*sqrt(fb)*pow(cs,4)/(sqrt(P0*pow(G,3)));
-    
+    Mg_intg = 0;
+
     not_adb = false;
     Ma_on = Ma_turn;
     de_tot = 0;
@@ -110,7 +111,6 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     k[22] *= J21; k[23] *= J21;
     //printf("CONSTRUCTOR: k_pdH2=%3.2e, k_pdHm=%3.2e, k_pdH2p=%3.2e\n",k[21],k[22],k[23]);
 
-    cs = sqrt( gamma_adb*k_B*T_K0/(mu*m_H) );
     RJ = cs*t_ff0;//RJ = sqrt( pi*k_B*T_K0/ (G*pow(mu*m_H,2)*nH0) );
     printf("cs_0 is %3.2e km/s; R_vir is %3.2e pc, RJ_0 is %3.2e pc \n",cs/1.e5,halo.Rvir/pc, RJ/pc);
     printf("sqrt(2)*cs_0 is %3.2e km/s; halo Vc is %3.2e km/s \n",cs/1.e5*sqrt(2), halo.Vc);
@@ -125,7 +125,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     evol_stage = (MerMod)?1:0;
     Gamma_mer = 0;
     iMer = 0;
-    file_ingas.open("data/mer_record.txt", ios::out | ios::trunc); //
+    file_ingas.open("mer_record.txt", ios::out | ios::trunc); //
     if (MerMod != 0) file_ingas<<"z t_halo t_act Mh Tvir Rvir dt t_dyn n_gas Mcore nc_DM M_BE MJ"<<endl;
 
     for (int i=0; i<N; i++){
@@ -414,7 +414,7 @@ void GAS:: timescales(){
 void GAS:: freefall(){  //module of explicit integration over Dt
     HALO halo1(Mh,z0);
     bool adjust_iso = false;
-    double nvir_max;
+    double nvir_max, nvir;
     switch(evol_stage){
         case 0:
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
@@ -433,15 +433,14 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             // 对4个trees, 下一行两个判断一样的结果: gas在同一个z算n_iso, 算出来都是3tree unstable.
             //if (not_adb && T_K0<8000){ //
             if (r_cH >= abs(r_h) && T_K0<8000){
-                cout<<"/////////////\t t_c<t_h/2 \t//////////////FIRST ENTER ISO STAGE\n";
+                cout<<"/////////////\t t_c<t_h & T_K<8000 \tFIRST ENTER ISO STAGE////////////////\n";
                 printf("z = %3.2f\t Tvir = %3.2eK\t Mh = %3.2eMs\t Mgas = %3.2e\t Tg=%3.2eK\n", z0, halo1.Tvir, Mh/Ms,fb*Mh/Ms, T_K0);
-                cout<<"ng_max= "<<R_EQ(T_K0,halo1.rho_c,halo1.Rs)*halo1.rho_c/(mu*m_H)<<"\t";
                 cout<<"ng_adb= "<<nH0<<endl;
-                cout<<"R_adb ="<< nH0*(mu*m_H)/halo1.rho_c;
                 evol_stage = 3;
                 //inside solving n_iso, n_vir comparing w/ cosmic mean determine if unstable
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
                 printf("//////////\tSOLVED FOR THE 1ST TIME\n");
+                printf("n_iso=%3.2e, f_Ma=%3.2e, v_bsm=%3.2e, Vc=%3.2e\n", n_iso,f_Ma,v_bsm,halo1.Vc);
                 if (!n_iso) evol_stage = 4; // unstable case Mg2ng return 0
                 else nH0 = n_iso;
                 Mh_prev = Mh; t_prev = t_act;
@@ -449,7 +448,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             break;
         case 3:
             adjust_iso = (Mh>2*Mh_prev);
-            adjust_iso = (t_act - t_prev >= t_freefall(nH0));
+            adjust_iso = (t_act - t_prev >= .5*t_freefall(nH0));
             //adjust_iso = false; 
             if (adjust_iso) {
                 printf("###\n");
@@ -458,10 +457,14 @@ void GAS:: freefall(){  //module of explicit integration over Dt
                 Mh_prev = Mh; t_prev = t_act;
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
                 if (!n_iso) evol_stage = 4; // unstable case Mg2ng return 0
-                else nH0 = n_iso;
+                else {
+                    nH0 = n_iso;
+                    BOUNDARY(nvir,Mg_intg,f_Ma*T_K0,nH0*(mu*m_H)/halo1.rho_c,z0,Mh);
+                }
             }
             break;
         case 4:
+            Mg_intg = 0;
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
             break;
     }
@@ -477,12 +480,14 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb :1; // corrected f_Ma, using P = rho_g v_tur^2
     f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb/3. :1; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
 // bsm velocity
-    if (i_bsm) f_Ma = 1 + pow(4*v_bsm/cs,2); //Eq3 in Hirano+2018
+    double alpha = 4.;
+    if (i_bsm) f_Ma += pow(alpha*v_bsm/cs,2); //Eq(3) in Hirano+2018. from Fialkov2012
     Ma = sqrt(v_tur2* reduction )/cs;
-    if (evol_stage==3) {
-        printf("Vc^2/ (cs^2 + v_tur^2 + v_bsm^2)=%3.2e\n",pow(halo1.Vc,2)/(pow(cs,2)+v_tur2+pow(v_bsm,2)));
-        printf("concentration c=%3.2e\n",halo1.Rs/halo1.Rvir);
-    }
+    // if (evol_stage==3) {
+    //     printf("f_Ma=%3.2e v_bsm=%3.2e, Vc=%3.2e\n",f_Ma, v_bsm/km, cs/km, halo1.Vc/km);
+    //     printf("Vc^2/ (cs^2 + v_tur^2 + v_bsm^2)=%3.2e\n",pow(halo1.Vc,2)/(pow(cs,2)+v_tur2+pow(v_bsm,2)));
+    //     printf("concentration c=%3.2e\n",halo1.Rs/halo1.Rvir);
+    // }
     if (MerMod==0) f_Ma = 1; //for MerMod=0 case
 
     // update rho

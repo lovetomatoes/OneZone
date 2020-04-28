@@ -28,14 +28,26 @@ int main(){
     char* ftree = "../code_tree/fort.217"; //不行！！！会
     char* fout = NULL;
     double Tb = 2.e4;
-    bool Ma_on = false, spec=false;
+    bool Ma_on = true, spec=false;
     int MerMod = 1;
     double J21 = 5000;
-    int i_bsm = 3;
+    int i_bsm;
 
-    fout = "217bsm3evolve_Vc.txt";
-    spec = false;
+    i_bsm = 0;
+    fout = "217bsm0evolve_Vc.txt";
     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+
+    // i_bsm = 1;
+    // fout = "217bsm1evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+
+    // i_bsm = 2;
+    // fout = "217bsm2evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+
+    // i_bsm = 3;
+    // fout = "217bsm3evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
     // fout = "Jcs_cpp.txt";
     // spec = false;

@@ -93,7 +93,8 @@ void check_conv(double err_crit, double* yout, double x, double& h, double *y, i
             for (i=0;i<n;i++) yout[i] = yout1[i];
         }
         else break;
-        if (i_iter==3) cout<<"ITERATION TIMES > 3! REFINE GRID!!!!!!!!!!!!!!!\n";
+        // if (i_iter==3) cout<<"ITERATION TIMES > 3! REFINE GRID!!!!!!!!!!!!!!!\n"; 
+        // wli: commented out. need to improve...
         i_iter ++;
     }
     delete [] yout1; delete [] yout2; delete [] delta_y; delete [] v;

@@ -16,8 +16,8 @@ HALO:: HALO(double Mh0, double z0){
     Mh = Mh0;
     z = z0;
     // concentration parameter c from Dekel & Birnboim 2006 Eq(22)
+    //  fit of Bullock et al. (2001)
     c = 18*pow(Mh0/(1.e11*Ms), -0.13)/(1+z);
-    //c=4; //wli: trying fixed concentration factor!!!!
     double d = Omega_mz(z) - 1;
     Delta_crit = 18.0*pi*pi + 82*d - 39*d*d;
 
@@ -116,8 +116,11 @@ double Mh_Vc(double Vc, double z){
 /* 
 // halo Vc, Rvir, n_crit at z...
 int main(){
-    double z = 17.2;
-    double Mh = 2.36e7*Ms;
+    double z = 20;
+    double Mh = Mh_Vc(3.7*km, z);
+    Mh = Mh_Tz(1.e4,z);
+    printf("Mh=%3.2e\n",Mh/Ms);
     HALO halo(Mh,z);
-    printf("n_crit:%6.4e, Rvir=%6.4e kpc, Vc=%6.4e km/s\n",halo.rho_crit/(mu*m_H), halo.Rvir/kpc, halo.Vc/km);
+    printf("Vc=%3.2e, ",halo.Vc/km);
+    printf("n_crit:%6.4e, Rvir=%6.4e kpc, Tvir=%6.4e K\n",halo.rho_crit/(mu*m_H), halo.Rvir/kpc, halo.Tvir);
 } */

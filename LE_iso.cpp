@@ -95,7 +95,7 @@ void profile(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
         file<<" "<<rho_g0*exp(-y[i][0])/(mu*m_H); // n_gas
         file<<" "<< 1./(R* alpha*x[i]* pow((1+alpha*x[i]),2) );// rhoDM_over_rhog0
         file<<" "<<halo1.rho_crit*halo1.delta0/( alpha*x[i] * pow((1+alpha*x[i]),2) )/(mu*m_H);// n_DM
-        file<<" "<<M_intg;
+        file<<" "<<M_intg/Ms; //M(r) in solar mass
         file<<" "<<4.*pi/3.*rho_g0*pow(a*x[i],3);
         file<<" "<<B*(1- log(1+alpha*x[i])/ (alpha*x[i]))<<endl;
     }
@@ -179,13 +179,18 @@ void Nvir2N0(double& n_sol, double& nvir_max, double ni, double Tg, double z, do
     }
     // R_max = R0; n0_max = R0*halo.rho_c/(mu*m_H);
     BOUNDARY(nvir_max, Mg_vir, Tg, R0, z, Mh);
-    printf("\nR_max=%3.2e, nvir_max=%3.2e\n",R0,nvir_max);
-    printf("z=%3.2e, Mh=%3.2e\n",z,Mh/Ms);
+    // printf("\nR_max=%3.2e, nvir_max=%3.2e\n",R0,nvir_max);
+    // printf("z=%3.2e, Mh=%3.2e\n",z,Mh/Ms);
 // unstable criterion: nvir_max < n_mean (cosmic mean density at z) 
     double n_mean = RHO_crit(z)/(mu*m_H);
-    //n_mean *=2;
-    printf("nmean=%3.2e, ni=%3.2e:\n",n_mean,ni);
-    if (n_mean>nvir_max) n_sol = 0; //unstable
+    n_mean *= 10;
+    double n_nfw = fb*halo.Rho_r(halo.Rvir)/(mu*m_H);
+    n_mean = n_nfw;
+    printf("nmean=%3.2e, n_nfw=%3.2e, nvir_max=%3.2e:\n",n_mean,n_nfw, nvir_max);
+    if (n_mean>nvir_max) {
+        printf("UNSTABLE!!!!!!!!!!!!!\n");
+        n_sol = 0; //unstable
+    }
     // if (true) {} // wli: 不解n0 只要nvir_max
     else{ // get solution of given outer boundary n_mean
         it = 0;
@@ -271,66 +276,148 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 ./le_iso.out
 */
 
+
+/* int main(){
+// *****************  Tvir critical value v.s. Tg @ different z **************
+    char* fname = "Tg_Tvcrit.txt";
+    fstream f;
+    f.open(fname, ios::out | ios::trunc );
+    f<<"Tg Tv_crit\n";
+    double Tg = 7.e3, Tg1 = 2.e4, Tv1,Tv0, Tv_sol;
+    double z = 25, Mh;
+    double n_sol = 0, ni = 1, n_mean, n_mid;
+    double N = 10;
+    double Tgrat = exp( log(Tg1/Tg)/N ); cout<<Tgrat<<endl;
+    double nvir_max, nvir_m1, nvir_m0;
+    for (int i=0; i<N; i++){
+        Tv1 = 3.e4,Tv0 = 5.e3;
+        Nvir2N0(n_sol, nvir_m0, ni, Tg, z, Mh_Tz(Tv0, z));
+        Nvir2N0(n_sol, nvir_m1, ni, Tg, z, Mh_Tz(Tv1, z));
+        n_mean = RHO_crit(z)/(mu*m_H);
+        n_mean *= 10;
+        if (nvir_m0<n_mean or nvir_m1>n_mean) {
+            printf("\n!!!!!initial value not correct\n");
+            break;
+        }
+        while (pow(Tv1/Tv0-1, 2)>epE2){
+            Nvir2N0(n_sol, n_mid, ni, Tg, z, Mh_Tz((Tv0+Tv1)/2., z));
+            if (n_mid>=n_mean) {
+                Tv0 = (Tv0+Tv1)/2.;
+                Nvir2N0(n_sol, nvir_m0, ni, Tg, z, Mh_Tz(Tv0, z));
+            }
+            else {
+                Tv1 = (Tv0+Tv1)/2.;
+                Nvir2N0(n_sol, nvir_m1, ni, Tg, z, Mh_Tz(Tv1, z));
+            }
+        }
+        Tv_sol = (Tv0+Tv1)/2.;
+        double cs2 = gamma_adb*k_B*8000/(mu*m_H);
+        f<<" "<<Tg<<" "<<Tv_sol<<endl;
+        Tg *= Tgrat;
+    }
+    f.close();
+
+    return 0;
+}
+ */
+
+
+
 // 检查Nvir2N0, Mg2N0是否给出正确的nvir_max, Mg_max 
-// int main(){
-//     double R = 1.e-2;
-//     double Tg = 1.5e4;
-//     double R1 = 1.e2, Rrat = exp(log(R1/R)/20.);
-//     double n0_sol_M, Mg_max, n0_sol_N, nvir_max;
-//     double ni = 1;
-//     double z = 25, Mh = 1.e7*Ms;
-//     HALO halo(Mh,z);
-//     double n_mean = RHO_crit(z)/(mu*m_H);
-//     double n_vir, Mg_vir;
+/* int main(){
+    double R = 1.e-2;
+    double Tg = 1.5e4;
+    double R1 = 1.e2, Rrat = exp(log(R1/R)/20.);
+    double n0_sol_M, Mg_max, n0_sol_N, nvir_max, n0_sol;
+    double ni = 1;
+    double z = 20, Mh = 2.e7*Ms;
+    HALO halo(Mh,z);
+    double n_mean = RHO_crit(z)/(mu*m_H);
+    double n_vir, Mg_vir;
 
-//     char* fname = "boundary.txt";
-//     fstream f;
-//     f.open(fname, ios::out | ios::trunc );
-//     f<<" R ng0 Mg nvir\n";    
-//     while (R<R1){
-//         BOUNDARY(n_vir, Mg_vir, Tg, R, z, Mh);
-//         f<<" "<<R<<" "<<R*halo.rho_c/(mu*m_H)<<" "<<Mg_vir/Ms<<" "<<n_vir<<endl;
-//         R *= Rrat;
-//     }
-//     f.close();
+// Tg v.s. n0(Mg) 没用
+    // Tg = 8.e3;
+    // double Tg1 = 2.e4, Tgrat = exp(log(Tg1/Tg)/20.);
+    // z = 20, Mh = 2.e7*Ms;
+    // char* fname = "MJ_Tg.txt";
+    // fstream f;
+    // f.open(fname, ios::out | ios:: trunc);
+    // f<<"Tg n0 Mg\n";
+    // Mh = 1.e5*Ms;
+    // double Mh1 = 5.e7*Ms, Mhrat = exp(log(Mh1/Mh)/20.);
+    // while (Tg<Tg1){
+    //     // Nvir2N0(n0_sol,nvir_max,ni,Tg,z,Mh);
+    //     Mg2N0(n0_sol, Mg_max, ni, Tg, z, Mh);
+    //     BOUNDARY(n_vir, Mg_vir,Tg,n0_sol*(mu*m_H)/halo.rho_c,z,Mh);
+    //     f<<Tg<<" "<<n0_sol<<" "<<Mg_vir/Ms<<endl;
+    //     Tg *= Tgrat;
+    // }
+    // f.close();
 
-// // 检查求解函数
-//     // Mg2N0(n0_sol_M, Mg_max, ni, Tg, z, Mh);
-//     //Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
-//     // BOUNDARY(n_vir, Mg_vir,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
-//     // printf("z=%3.2e, Mh=%3.2e\tn_mean = %3.2e, fb*Mh = %3.2e Ms\n",z,Mh/Ms,n_mean, fb*Mh/Ms);
-//     // printf("local max: from Mg:%3.2e Ms, from n@vir:%3.2e\n", Mg_max/Ms, nvir_max);
-//     // printf("N0 solution: from Mg:%3.2e, from n@vir:%3.2e\n", n0_sol_M, n0_sol_N);
-//     // printf("fb=%3.2e\n",Mg_vir/Mh);
+// marginally unstable case;
+    Tg = 1.5e4;
+    z = 20; Mh = 2.e7*Ms;
+    char* f_Nsol = "profile.txt";
+    Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
+    profile(f_Nsol,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
 
-// // 算由Nvir2N0得到的n0-->Mg -->fb
-//     char* fname = "fb_Mh.txt";
-//     fstream f;
-//     f.open(fname, ios::out | ios:: trunc);
-//     f<<" Mh fb\n";
-//     Mh = 1.e5*Ms;
-//     double Mh1 = 1.e7*Ms, Mhrat = exp(log(Mh1/Mh)/20.);
-//     while (Mh<Mh1){
-//         Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
-//         BOUNDARY(n_vir, Mg_vir,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
-//         f<<Mh/Ms<<" "<<Mg_vir/Mh<<endl;
-//         Mh *= Mhrat;
-//     }
-//     f.close();
+// R(n0) v.s. M/n_vir
+    // char* fname = "boundary.txt";
+    // fstream f;
+    // f.open(fname, ios::out | ios::trunc );
+    // f<<" R ng0 Mg nvir Pvir\n";    
+    // while (R<R1){
+    //     BOUNDARY(n_vir, Mg_vir, Tg, R, z, Mh);
+    //     f<<" "<<R<<" "<<R*halo.rho_c/(mu*m_H)<<" "<<Mg_vir/Ms<<" "<<n_vir<<" "<<n_vir*k_B*Tg<<endl;
+    //     R *= Rrat;
+    // }
+    // f.close();
 
+// 检查求解函数
+    // char* f_Nsol = "cc25profile_Nsol.txt";
+    // char* f_Msol = "cc25profile_Msol.txt";
+    // Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
+    // profile(f_Nsol,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
 
-//     // double z1 = 20; double Mh1 = 1.e5*Ms;
-//     // HALO halo(Mh1,z1);
-//     // printf("1.e5Ms: Rmax =%3.2e\n",R_EQ(Tg,halo.rho_c,halo.Rs));
-//     // Mh1 = 2.e6*Ms;
-//     // HALO halo1(Mh1,z1);
-//     // printf("2.e6Ms: Rmax =%3.2e\n",R_EQ(Tg,halo1.rho_c,halo1.Rs));
-//     // Mh1 = 1.e7*Ms;
-//     // HALO halo2(Mh1,z1);
-//     // printf("1.e7Ms: Rmax =%3.2e\n",R_EQ(Tg,halo2.rho_c,halo2.Rs));
+    // Mg2N0(n0_sol_M, Mg_max, ni, Tg, z, Mh);
+    // profile(f_Msol,Tg,n0_sol_M*(mu*m_H)/halo.rho_c,z,Mh);
 
-//     return 0;
-// }
+    // printf("Rfrom Nsol:%3.2e\n",n0_sol_N*(mu*m_H)/halo.rho_c);
+    // printf("Rfrom Msol:%3.2e\n",n0_sol_M*(mu*m_H)/halo.rho_c);
+    // printf("z=%3.2e, Mh=%3.2e\tn_mean = %3.2e, fb*Mh = %3.2e Ms, halo.c=%3.2e\n",z,Mh/Ms,n_mean, fb*Mh/Ms,halo.c);
+    // printf("local max: from Mg:%3.2e Ms, from n@vir:%3.2e\n", Mg_max/Ms, nvir_max);
+    // printf("N0 solution: from Mg:%3.2e, from n@vir:%3.2e\n", n0_sol_M, n0_sol_N);
+    // printf("fb=%3.2e\n",Mg_vir/Mh);
+
+// 算由Nvir2N0得到的n0-->Mg -->fb
+    // char* fname = "fb_Mh.txt";
+    // fstream f;
+    // f.open(fname, ios::out | ios:: trunc);
+    // f<<" Mh fb\n";
+    // Mh = 1.e5*Ms;
+    // double Mh1 = 5.e7*Ms, Mhrat = exp(log(Mh1/Mh)/20.);
+    // while (Mh<Mh1){
+    //     Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
+    //     BOUNDARY(n_vir, Mg_vir,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
+    //     f<<Mh/Ms<<" "<<Mg_vir/Mh<<endl;
+    //     Mh *= Mhrat;
+    // }
+    // f.close();
+
+//print halo properties
+    // double z1 = 20; double Mh1 = 1.e5*Ms;
+    // HALO halo(Mh1,z1);
+    // printf("1.e5Ms: Rmax =%3.2e\n",R_EQ(Tg,halo.rho_c,halo.Rs));
+    // Mh1 = 2.e6*Ms;
+    // HALO halo1(Mh1,z1);
+    // printf("2.e6Ms: Rmax =%3.2e\n",R_EQ(Tg,halo1.rho_c,halo1.Rs));
+    // Mh1 = 1.e7*Ms;
+    // HALO halo2(Mh1,z1);
+    // printf("1.e7Ms: Rmax =%3.2e\n",R_EQ(Tg,halo2.rho_c,halo2.Rs));
+
+    return 0;
+}
+ */
 
 // 1. density profile in 3 halos; 
 /* int main(){

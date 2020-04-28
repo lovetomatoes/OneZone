@@ -161,23 +161,23 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
             HALO halo(gas.Mh,gas.z);
             double d0 = 200./3.*pow(halo.c,3)/(log(1+halo.c)-halo.c/(1+halo.c));
             if (i==0){
-                if (py) file <<" nc_DM z_Mh t_Mh Mh Tvir q f_Ma Ma v_tur MJ_eff";
-                else file <<" nc_{DM} z_{Mh} t_{Mh} Mh T_{vir} q f_{Ma} v_{tur} MJ_{eff}";
+                if (py) file <<" nc_DM z_Mh t_Mh Mh Tvir f_Ma cs v_tur Vc q";
+                else file <<" nc_{DM} z_{Mh} t_{Mh} Mh T_{vir} f_{Ma} cs v_{tur} Vc q";
             } //rho_c = d0*RHO_DM(gas.z)/m_H checked right. 
             else{
-                file<<" "<<gas.rhoc_DM/m_H<<" "<<gas.MPs[gas.iMer].z;
+                file<<" "<<gas.rhoc_DM/(mu*m_H)<<" "<<gas.MPs[gas.iMer].z;
                 file<<" "<<gas.MPs[gas.iMer].t/gas.t_ff0<<" "<<gas.Mh/Ms<<" "<<gas.MPs[gas.iMer].Tvir;
-                file<<" "<<gas.MPs[gas.iMer].mratio<<" "<<gas.f_Ma<<" "<<gas.Ma<<" "<<sqrt(gas.v_tur2);
-                file<<" "<<gas.MJ_eff/Ms;
+                file<<" "<<gas.f_Ma<<" "<<gas.cs/km<<" "<<sqrt(gas.v_tur2)/km<<" "<<halo.Vc/km;
+                file<<" "<<gas.MPs[gas.iMer].mratio;
             }
         }
 
         if (haloinfo){
             if (i==0) {
-                if (py) file<<" iMer Mh Tvir dMh q";
-                else file<<" iMer Mh T_{vir} dMh q";
+                if (py) file<<" ievol M_BE M_J M_Jeff Mg_intg";
+                else file<<" ievol M_{BE} M_J M_{Jeff} Mg_{intg}";
             }
-            else file<<" "<<gas.iMer<<" "<<gas.Mh/Ms<<" "<<gas.MPs[gas.iMer].Tvir<<" "<<gas.MPs[gas.iMer].dm/Ms<<" "<<gas.MPs[gas.iMer].mratio;
+            else file<<" "<<gas.evol_stage<<" "<<gas.M_BE/Ms<<" "<<gas.MJ/Ms<<" "<<gas.MJ_eff/Ms<<" "<<gas.Mg_intg/Ms;
         }
 
 
