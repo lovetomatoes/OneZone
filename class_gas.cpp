@@ -475,7 +475,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
 
     reduction = 1;// WL ADDED //cout<<nH0<<"\t"<<ncore<<endl;
     v_tur2 += Dt * Gamma_mer_k*2; // 2 coz e=1/2v^2
-    f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * reduction :1; //wrong, didn't consider cs^2/gamma
+    // f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * reduction :1; //wrong, didn't consider cs^2/gamma; reduction no use
 
     f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb :1; // corrected f_Ma, using P = rho_g v_tur^2
     f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb/3. :1; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951

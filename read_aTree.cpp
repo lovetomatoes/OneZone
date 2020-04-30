@@ -28,7 +28,8 @@ void read_aTree (int& num, char* fname, MainProgenitor* MPs){
     //printf("++++++++++++++++++++\n");
     while (getline(infile,line)){
         stringstream ss(line);
-        ss>>MPs[i].j>>id_m>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>MPs[i].id_tree;
+        double a; ss>>MPs[i].j>>id_m>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>a>>MPs[i].id_tree; //current, for tree_Hirano/. file
+        // ss>>MPs[i].j>>id_m>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>MPs[i].id_tree; //old, for code_tree/. files
         MPs[i].t = t_from_z(MPs[i].z); //time from universe age of 0
         /* printf("MPs[%d].mhalo = %3.2e \n",i,MPs[i].mhalo);
         printf("MPs[%d].z = %3.2e \n",i,MPs[i].z);

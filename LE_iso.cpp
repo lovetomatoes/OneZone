@@ -149,7 +149,7 @@ void BOUNDARY(double& N_VIR, double& MG_VIR, double Tg, double R, double z=z1, d
     delete [] x; delete [] y; delete [] v; delete [] dydx0;
 
     // printf("in BOUNDARY: R=%3.2e, Tg=%3.2e, z=%3.2e, Mh=%3.2e, Tvir=%3.2e\n",R,Tg,z,Mh/Ms,halo1.Tvir);
-    printf("in BOUNDARY: N0=%3.2e, N_VIR=%3.2e, MG_VIR=%3.2E\n", halo1.rho_c*R, N_VIR, MG_VIR/Ms);
+    // printf("in BOUNDARY: N0=%3.2e, N_VIR=%3.2e, MG_VIR=%3.2E\n", halo1.rho_c*R, N_VIR, MG_VIR/Ms);
 }
 
 void Nvir2N0(double& n_sol, double& nvir_max, double ni, double Tg, double z, double Mh){

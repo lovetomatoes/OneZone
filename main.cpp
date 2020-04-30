@@ -33,22 +33,43 @@ int main(){
     double J21 = 5000;
     int i_bsm;
 
+    ftree = "../tree_Hirano/fort.20";
+    // i_bsm = 0;
+    // fout = "20bsm0evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 1;
+    // fout = "20bsm1evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 2;
+    // fout = "20bsm2evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 3;
+    // fout = "20bsm3evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    Ma_on = false;
     i_bsm = 0;
-    fout = "217bsm0evolve_Vc.txt";
+    fout = "20bsm0tur0evolve_Vc.txt";
     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
+// bsm; turbulence
+    // i_bsm = 0;
+    // fout = "217bsm0evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
     // i_bsm = 1;
     // fout = "217bsm1evolve_Vc.txt";
     // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-
     // i_bsm = 2;
     // fout = "217bsm2evolve_Vc.txt";
     // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-
     // i_bsm = 3;
     // fout = "217bsm3evolve_Vc.txt";
     // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // Ma_on = false;
+    // i_bsm = 0;
+    // fout = "217bsm0tur0evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
+// spec
     // fout = "Jcs_cpp.txt";
     // spec = false;
     // for (i=0;i<n;i++) evol_Jc(ftree, fout, Tbs[i], MerMod, spec, Ma_on);
