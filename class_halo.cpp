@@ -113,12 +113,11 @@ double Mh_Vc(double Vc, double z){
     return 1.e8*Ms*pow( Vc/alpha_Vc/sqrt((1+z)/11.), 3);
 }
 
-/* 
+
 // halo Vc, Rvir, n_crit at z...
-int main(){
+/* int main(){
     double z = 20;
     double Mh = Mh_Vc(3.7*km, z);
-    Mh = Mh_Tz(1.e4,z);
     printf("Mh=%3.2e\n",Mh/Ms);
     HALO halo(Mh,z);
     printf("Vc=%3.2e, ",halo.Vc/km);

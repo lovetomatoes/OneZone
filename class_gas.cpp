@@ -422,8 +422,13 @@ void GAS:: freefall(){  //module of explicit integration over Dt
         case 1: 
             nH0 = N_ADB(S0,T_K0);
             //printf("adb");
-            //compare with maximum core density by core entropy: Visbal et al. 2014a
+        // compare with maximum core density by core entropy: Visbal et al. 2014a
             if (N_ADB(S0,T_K0)>N_CORE(z0)) evol_stage = 2;
+        // 新加: H2 cooling dominant--> collapse
+            if (r_cH2 >= abs(r_h) ){
+                printf("!from 1 to 4!\nz = %3.2f, Tvir = %3.2eK, Mh = %3.2eMs\n nH0=%3.2e Tg=%3.2eK\n", z0, halo1.Tvir, Mh/Ms,fb*Mh/Ms, T_K0);
+                evol_stage = 4;
+            }
             break;
         case 2: 
             nH0 = N_CORE(z0); 
@@ -444,6 +449,11 @@ void GAS:: freefall(){  //module of explicit integration over Dt
                 if (!n_iso) evol_stage = 4; // unstable case Mg2ng return 0
                 else nH0 = n_iso;
                 Mh_prev = Mh; t_prev = t_act;
+            }
+        // 新加: H2 cooling dominant--> collapse
+            if (r_cH2 >= abs(r_h) ){
+                printf("!from 2 to 4!\nz = %3.2f, Tvir = %3.2eK, Mh = %3.2eMs\n nH0=%3.2e Tg=%3.2eK\n", z0, halo1.Tvir, Mh/Ms,fb*Mh/Ms, T_K0);
+                evol_stage = 4;
             }
             break;
         case 3:
@@ -477,10 +487,11 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     v_tur2 += Dt * Gamma_mer_k*2; // 2 coz e=1/2v^2
     // f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * reduction :1; //wrong, didn't consider cs^2/gamma; reduction no use
 
-    f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb :1; // corrected f_Ma, using P = rho_g v_tur^2
-    f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb/3. :1; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
+    double b = 1./3.; // [1/3, 0.5)
+    f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb*b :1; // corrected f_Ma, using P = rho_g v_tur^2
+    // f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb/3. :1; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
 // bsm velocity
-    double alpha = 4.;
+    double alpha = 4.7; // [4, 8)
     if (i_bsm) f_Ma += pow(alpha*v_bsm/cs,2); //Eq(3) in Hirano+2018. from Fialkov2012
     Ma = sqrt(v_tur2* reduction )/cs;
     // if (evol_stage==3) {
