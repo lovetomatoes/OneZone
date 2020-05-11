@@ -30,43 +30,39 @@ int main(){
     double Tb = 2.e4;
     bool Ma_on = true, spec=false;
     int MerMod = 1;
-    double J21 = 5000;
+    double J21 = 10;
     int i_bsm;
 
-    // Ma_on = false;
-    ftree = "../tree_Hirano/fort.825";
+    Ma_on = false;
+    ftree = "../tree_Hirano/fort.20";
 
     i_bsm = 0;
-    fout = "825bsm0evolve_Vc.txt";
+    fout = "20J1e1bsm0tur0evolve_Vc.txt";
     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
     i_bsm = 1;
-    fout = "825bsm1evolve_Vc.txt";
+    fout = "20J1e1bsm1tur0evolve_Vc.txt";
     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
     i_bsm = 2;
-    fout = "825bsm2evolve_Vc.txt";
+    fout = "20J1e1bsm2tur0evolve_Vc.txt";
     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
     i_bsm = 3;
-    fout = "825bsm3evolve_Vc.txt";
+    fout = "20J1e1bsm3tur0evolve_Vc.txt";
     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
 // bsm; turbulence
-    // i_bsm = 0;
-    // fout = "217bsm0evolve_Vc.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // i_bsm = 1;
-    // fout = "217bsm1evolve_Vc.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // i_bsm = 2;
-    // fout = "217bsm2evolve_Vc.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // i_bsm = 3;
-    // fout = "217bsm3evolve_Vc.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // Ma_on = false;
-    // i_bsm = 0;
-    // fout = "217bsm0tur0evolve_Vc.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-
+    Ma_on = true;
+    i_bsm = 0;
+    fout = "20J1e1bsm0evolve_Vc.txt";
+    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    i_bsm = 1;
+    fout = "20J1e1bsm1evolve_Vc.txt";
+    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    i_bsm = 2;
+    fout = "20J1e1bsm2evolve_Vc.txt";
+    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    i_bsm = 3;
+    fout = "20J1e1bsm3evolve_Vc.txt";
+    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 // spec
     // fout = "Jcs_cpp.txt";
     // spec = false;

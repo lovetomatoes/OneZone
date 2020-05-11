@@ -415,29 +415,33 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     HALO halo1(Mh,z0);
     bool adjust_iso = false;
     double nvir_max, nvir;
+    double Vc0 = 3.7*km;
+    double alpha = 4.7;
     switch(evol_stage){
-        case 0:
+        case 0: // not combined w/ mergers
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
             break;
-        case 1: 
+        case 1: // adiabatic heating, n ~ T^1.5, constant entropy
             nH0 = N_ADB(S0,T_K0);
-            //printf("adb");
         // compare with maximum core density by core entropy: Visbal et al. 2014a
             if (N_ADB(S0,T_K0)>N_CORE(z0)) evol_stage = 2;
         // 新加: H2 cooling dominant--> collapse
-            if (r_cH2 >= abs(r_h) ){
-                printf("!from 1 to 4!\nz = %3.2f, Tvir = %3.2eK, Mh = %3.2eMs\n nH0=%3.2e Tg=%3.2eK\n", z0, halo1.Tvir, Mh/Ms,fb*Mh/Ms, T_K0);
-                evol_stage = 4;
+            if (r_cH2 >= abs(r_h) ){ // not adiabatic
+                //if (pow(halo1.Vc,2) >= pow(Vc0,2) + pow(alpha*v_bsm,2)){
+                if (pow(halo1.Vc,2) >= pow(cs,2)*f_Ma + pow(alpha*v_bsm,2)){
+                    printf("!from 1 to 4!\nz = %3.2f, Tvir = %3.2eK, Mh = %3.2eMs\n nH0=%3.2e Tg=%3.2eK\n", z0, halo1.Tvir, Mh/Ms,fb*Mh/Ms, T_K0);
+                    evol_stage = 4; //wli:暂且用作H2 collapse
+                }
             }
             break;
-        case 2: 
+        case 2: // saturation following universe expansion; also adiabatic?
             nH0 = N_CORE(z0); 
             //printf("saturation");
 
-            if (r_cH >= abs(r_h)) not_adb = true;
-            // 对4个trees, 下一行两个判断一样的结果: gas在同一个z算n_iso, 算出来都是3tree unstable.
-            //if (not_adb && T_K0<8000){ //
-            if (r_cH >= abs(r_h) && T_K0<8000){
+            if (r_cH >= abs(r_h) or r_cH2>= abs(r_h)) not_adb = true;
+            // 别的判据? <8000K 曾经加上以免 density drop; but it drops anyway
+            if ( r_cH >= abs(r_h) and T_K0<8000){ //if Lya cooling dominated and just cool down < 8000K
+            // if ( max(r_cH,r_cH2) >= abs(r_h) and T_K0<8000){ //if Lya cooling dominated and just cool down < 8000K
                 cout<<"/////////////\t t_c<t_h & T_K<8000 \tFIRST ENTER ISO STAGE////////////////\n";
                 printf("z = %3.2f\t Tvir = %3.2eK\t Mh = %3.2eMs\t Mgas = %3.2e\t Tg=%3.2eK\n", z0, halo1.Tvir, Mh/Ms,fb*Mh/Ms, T_K0);
                 cout<<"ng_adb= "<<nH0<<endl;
@@ -452,11 +456,14 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             }
         // 新加: H2 cooling dominant--> collapse
             if (r_cH2 >= abs(r_h) ){
-                printf("!from 2 to 4!\nz = %3.2f, Tvir = %3.2eK, Mh = %3.2eMs\n nH0=%3.2e Tg=%3.2eK\n", z0, halo1.Tvir, Mh/Ms,fb*Mh/Ms, T_K0);
-                evol_stage = 4;
+                // if (pow(halo1.Vc,2) >= pow(Vc0,2) + pow(alpha*v_bsm,2)){
+                if (pow(halo1.Vc,2) >= pow(cs,2)*f_Ma + pow(alpha*v_bsm,2)){
+                    printf("!from 2 to 4!\nz = %3.2f, Tvir = %3.2eK, Mh = %3.2eMs\n nH0=%3.2e Tg=%3.2eK\n", z0, halo1.Tvir, Mh/Ms,fb*Mh/Ms, T_K0);
+                    evol_stage = 4; //wli:暂且用作H2 collapse
+                }
             }
             break;
-        case 3:
+        case 3: // iso T=8000K (H Lya cooling)
             adjust_iso = (Mh>2*Mh_prev);
             adjust_iso = (t_act - t_prev >= .5*t_freefall(nH0));
             //adjust_iso = false; 
@@ -491,7 +498,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb*b :1; // corrected f_Ma, using P = rho_g v_tur^2
     // f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb/3. :1; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
 // bsm velocity
-    double alpha = 4.7; // [4, 8)
+    // alpha = 4.7; // [4, 8)
     if (i_bsm) f_Ma += pow(alpha*v_bsm/cs,2); //Eq(3) in Hirano+2018. from Fialkov2012
     Ma = sqrt(v_tur2* reduction )/cs;
     // if (evol_stage==3) {

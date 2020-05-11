@@ -279,30 +279,42 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 
 /* int main(){
 // *****************  Tvir critical value v.s. z (Tg_eff changes w/ bsm&z as input parameter) **************
-    char* fname = "H2_1s_z_Tvcrit.txt";
+    char* fname = "H2_3s_z_Tvcrit.txt";
+    // fname = "threshold_3s.txt";
+    int n_sigma = 3;
     fstream f;
     f.open(fname, ios::out | ios::trunc );
-    f<<"z Tv_crit\n";
+    f<<"z Tv_crit Mh_crit\n";
+    // f<<" z Tv_min Mh_min Tv0_min Mh0_min\n";
     double Tv1,Tv0, Tv_sol;
     double z0 = 35, z1 = 25, Mh;
-    double v_bsm = 0.8*km;
-    // v_bsm = sigma1*(1+z)/(1+z_rcb); // "z in [35:25]: 1sigma v_bsm [0.99, 0.71] 
+    z0 = 25, z1 = 15;
+    double v_bsm;
+    // v_bsm = sigma1*(1+z0)/(1+z_rcb); // z in [35:25]: 1sigma v_bsm [0.99, 0.71]
+    // cout<<2*sigma1*(1+z1)/(1+z_rcb)/km<<endl;//1.7
     double n_sol = 0, ni = 1, n_mean, n_mid;
-    double alpha = 4;
-    double cs = sqrt(gamma_adb* k_B*2000./(mu*m_H) ); //sound speed of 2000K gas
-    double f_Ma = 1+pow(alpha*v_bsm/cs,2);
-    double Tg = 2.e3*f_Ma;
+    double alpha = 4.7;
+    double Tg, cs, f_Ma;
     double nvir_max, nvir_m1, nvir_m0;
-// calculate Tvir_crit
+// calculation
     double N = 5;
     double z_rat = exp( log(z1/z0)/N );
     for (int i=0; i<N; i++){
-        Tv0 = 0.5*(mu*m_H)*pow(5*km,2)/k_B;
-        Tv1 = 0.5*(mu*m_H)*pow(10*km,2)/k_B;
+        v_bsm = n_sigma*sigma1*(1+z0)/(1+z_rcb);
+        cs = sqrt(gamma_adb* k_B*2000./(mu*m_H) ); //sound speed of 2000K gas
+        f_Ma = 1+pow(alpha*v_bsm/cs,2);
+        Tg = 2000*f_Ma;
+        // Tv0 = 0.5*(mu*m_H)*pow(5*km,2)/k_B;
+        // Tv1 = 0.5*(mu*m_H)*pow(10*km,2)/k_B;
+        Tv0 = 5000; Tv1 = 20000;
+// 二分法求Tvir_crit; print
         Nvir2N0(n_sol, nvir_m0, ni, Tg, z0, Mh_Tz(Tv0, z0));
         Nvir2N0(n_sol, nvir_m1, ni, Tg, z0, Mh_Tz(Tv1, z0));
         n_mean = RHO_crit(z0)/(mu*m_H);
-        if (nvir_m0<n_mean or nvir_m1>n_mean) printf("\n!!!!!initial value not correct\n");
+        if (nvir_m0<n_mean or nvir_m1>n_mean) {
+            printf("\n!!!!!initial value not correct\n");
+            return 0;
+        }
         while (pow(Tv1/Tv0-1, 2)>epE2){
             Nvir2N0(n_sol, n_mid, ni, Tg, z0, Mh_Tz((Tv0+Tv1)/2., z0));
             if (n_mid>=n_mean) {
@@ -315,17 +327,20 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
             }
         }
         Tv_sol = (Tv0+Tv1)/2.;
-        double cs2 = gamma_adb*k_B*8000/(mu*m_H);
-        f<<" "<<z0<<" "<<Tv_sol<<endl;
+        f<<" "<<z0<<" "<<Tv_sol<<" "<<Mh_Tz(Tv_sol,z0)/Ms<<endl;
+// 算minumum cooling mass & Tvir; print
+        // double Vc0 = 3.7*km;
+        // double Vc_eff = sqrt( pow(Vc0,2)+pow(alpha*v_bsm,2) );
+        // f<<" "<<z0<<" "<<Tv_Vc(Vc0)<<" "<<Mh_Vc(Vc0,z0)/Ms<<" "<<Tv_Vc(Vc_eff)<<" "<<Mh_Vc(Vc_eff,z0)/Ms<<endl;
+// update z0
         z0 *= z_rat;
     }
     f.close();
 
-    cout<<"Tv0="<<0.5*(mu*m_H)*pow(5*km,2)/k_B<<"K Tv1="<< 0.5*(mu*m_H)*pow(10*km,2)/k_B<<endl;
     cout<<"f_Ma = "<<f_Ma<<endl;
     return 0;
-}
- */
+} */
+
 
 /* int main(){
 // *****************  Tvir critical value v.s. Tg (z as input parameter) **************

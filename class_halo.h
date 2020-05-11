@@ -32,3 +32,4 @@ class HALO
 
 double Mh_Tz(double Tvir, double z);
 double Mh_Vc(double Vc, double z);
+double Tv_Vc(double Vc);
