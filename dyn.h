@@ -4,6 +4,8 @@ double Hz(double z);
 double RHO_crit(double z);
 double N_CORE(double z);
 double N_ADB(double K, double T);
+double K_Tn(double Tg, double n);
+double K_ISM(double z);
 double n_ff(double z, double nH0, double rho_DM, double Dt);
 double t_freefall(double nH);
 double t_from_z(double z);

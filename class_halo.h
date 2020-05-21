@@ -22,7 +22,7 @@ class HALO
         double Mh;
         double c, delta0;
         double Delta_crit;
-        double rho_crit, rho_c, rho_vir, Tvir, Rvir, Vc, Rs;
+        double rho_crit, rho_c, rho_vir, Tvir, Rvir, Vc, Rs, Kvir;
         double n200;
         double gc;
         double t_dyn;

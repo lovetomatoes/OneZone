@@ -8,6 +8,8 @@
 # include <cmath>
 using namespace std;
 
+static int i;
+
 // Cp = sqrt( 32*G / (3*pi) );
 double n_ff(double z, double nH0, double rho_DM, double Dt){
 // explicit method
@@ -30,8 +32,21 @@ double N_CORE(double z)
 }
 
 double N_ADB(double S, double T){
-    // adiabatic, entropy K = k_B*T*n^(-2/3)
+    // adiabatic, entropy S = k_B*T*n^(-2/3)
     return pow(k_B*T / S, 1.5); // n \propto T^1.5
+}
+
+double K_Tn(double Tg, double n){
+    double P = n*k_B*Tg;
+    return P/pow(n*(mu*m_H), gamma_adb);
+}
+
+double K_ISM(double z){ // constant: 1.41e+26
+    // entropy K = P/rho^gamma
+    double rho_mean_b = fb* RHO_crit(z);
+    double n_mean_b = rho_mean_b/(mu*m_H);
+    double T_ism = 0.012*pow( 1+z, 2);
+    return n_mean_b *k_B*T_ism/pow(rho_mean_b,gamma_adb);
 }
 
 double Omega_mz(double z){

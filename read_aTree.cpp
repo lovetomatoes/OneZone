@@ -7,6 +7,8 @@
 
 #include "class_halo.h"
 #include "read_aTree.h"
+#include "LE_adb.h"
+#include "RK4.h"
 #include "PARA.h"
 #include "dyn.h"
 #include <cmath>
@@ -93,11 +95,28 @@ void aTree(int& nMer, MainProgenitor* MPs, char* filename){
 }
 
 
+/* // adiabatic solution of central gas density
+g++ read_aTree.cpp dyn.cpp PARA.cpp LE_adb.cpp RK4.o my_linalg.o class_halo.o  -o read.out && ./read.out
+ */
+
 /* int main(){
     MainProgenitor* MPs = NULL;
     MPs = new MainProgenitor [200];
     int nMer = 0;
-    aTree(nMer, MPs, "../code_tree/fort.211");
+    aTree(nMer, MPs, "../tree_Hirano/fort.20");
+    int i=0;
+    double n0_sol, ni=1;
+    while(i<nMer){
+        HALO halo(MPs[i].mhalo,MPs[i].z);
+        // printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e\n",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
+        if (halo.Tvir<1.e4){
+            Mg2N0_adb(n0_sol, ni, MPs[i].z, MPs[i].mhalo);
+            printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e,\t",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
+            printf("n0sol:%3.2e\n",n0_sol);
+        }
+        i++;      
+    }
+
     delete [] MPs;
 }
  */

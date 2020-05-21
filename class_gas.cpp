@@ -58,7 +58,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     e0 = k_B*T_K0/(gamma_adb-1)/(mu*m_H); // in erg/g
 
     P0 = nH0*k_B*T_K0;
-    S0 = k_B*T_K0/pow(nH0,2./3.);
+    S0 = k_B*T_K0/pow(nH0,2./3.); 
 
     t_ff = 1./(Cp * sqrt(rhoc_DM + (mu*m_H)*nH0));
     t_delay = t_ff; // ok for no merger

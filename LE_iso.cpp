@@ -81,9 +81,9 @@ void profile(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
 
     for (i=1;i<N;i++){
         dx = x1/N;
-        DyDx(x[i-1],y[i-1],dydx0,c,v);
-        rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx);
-        check_conv(err,y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx);
+        DyDx_iso(x[i-1],y[i-1],dydx0,c,v);
+        rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
+        check_conv(err,y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
         x[i]=x[i-1]+dx;
         //integrate within R_vir
         if (x[i]<=halo1.Rvir/a) M_intg += pow(a,3)* 4*pi*pow(x[i],2)*dx * rho_g0 *exp(-y[i][0]);
@@ -136,9 +136,9 @@ void BOUNDARY(double& N_VIR, double& MG_VIR, double Tg, double R, double z=z1, d
     x[i] = dx/1.e8; y[i][0] = 0; y[i][1] = 0; // isothermal case
     for (i=1;i<N;i++){
         dx = x1/N;
-        DyDx(x[i-1],y[i-1],dydx0,c,v);
-        rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx);
-        check_conv(epE2,y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx);
+        DyDx_iso(x[i-1],y[i-1],dydx0,c,v);
+        rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
+        check_conv(epE2,y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
         x[i]=x[i-1]+dx;
 
         //integrate within R_vir
@@ -183,10 +183,9 @@ void Nvir2N0(double& n_sol, double& nvir_max, double ni, double Tg, double z, do
     // printf("z=%3.2e, Mh=%3.2e\n",z,Mh/Ms);
 // unstable criterion: nvir_max < n_mean (cosmic mean density at z) 
     double n_mean = RHO_crit(z)/(mu*m_H);
-    n_mean *= 10;
     double n_nfw = fb*halo.Rho_r(halo.Rvir)/(mu*m_H);
-    n_mean = n_nfw;
     printf("nmean=%3.2e, n_nfw=%3.2e, nvir_max=%3.2e:\n",n_mean,n_nfw, nvir_max);
+    n_mean = n_nfw;
     if (n_mean>nvir_max) {
         printf("UNSTABLE!!!!!!!!!!!!!\n");
         n_sol = 0; //unstable
@@ -224,7 +223,7 @@ void Mg2N0(double& n_sol, double& Mg_max, double ni, double Tg, double z, double
     int it = 0;
     HALO halo(Mh,z);
     double nvir=0;
-// local maximum of Mg
+  // local maximum of Mg
     while ( pow(dR,2)>=epE2*pow(R0,2) && it<6){ //dR < 0.1 R0 or it=6, 结束计算
         delta_R = epE2*R0;
         // nvir_fw & nvir_bw
@@ -243,7 +242,7 @@ void Mg2N0(double& n_sol, double& Mg_max, double ni, double Tg, double z, double
     BOUNDARY(nvir, Mg_max, Tg, R0, z, Mh);
     printf("\nR_max=%3.2e, nvir_max=%3.2e\n",R0,Mg_max);
     printf("z=%3.2e, Mh=%3.2e\n",z,Mh/Ms);
-// unstable criterion: baryonic mass v.s. Mg_max
+  // unstable criterion: baryonic mass v.s. Mg_max
     if (fb*Mh>Mg_max) n_sol = 0; //unstable
     // if (true) {} // wli: 不解n0 只要Mg_max
     else{ // get solution of given Mg=fb*Mh
@@ -277,8 +276,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 */
 
 
-/* int main(){
-// *****************  Tvir critical value v.s. z (Tg_eff changes w/ bsm&z as input parameter) **************
+/* int main(){// *****************  Tvir critical value v.s. z (Tg_eff changes w/ bsm&z as input parameter) **************
     char* fname = "H2_3s_z_Tvcrit.txt";
     // fname = "threshold_3s.txt";
     int n_sigma = 3;
@@ -296,7 +294,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
     double alpha = 4.7;
     double Tg, cs, f_Ma;
     double nvir_max, nvir_m1, nvir_m0;
-// calculation
+  // calculation
     double N = 5;
     double z_rat = exp( log(z1/z0)/N );
     for (int i=0; i<N; i++){
@@ -307,7 +305,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
         // Tv0 = 0.5*(mu*m_H)*pow(5*km,2)/k_B;
         // Tv1 = 0.5*(mu*m_H)*pow(10*km,2)/k_B;
         Tv0 = 5000; Tv1 = 20000;
-// 二分法求Tvir_crit; print
+  // 二分法求Tvir_crit; print
         Nvir2N0(n_sol, nvir_m0, ni, Tg, z0, Mh_Tz(Tv0, z0));
         Nvir2N0(n_sol, nvir_m1, ni, Tg, z0, Mh_Tz(Tv1, z0));
         n_mean = RHO_crit(z0)/(mu*m_H);
@@ -328,11 +326,11 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
         }
         Tv_sol = (Tv0+Tv1)/2.;
         f<<" "<<z0<<" "<<Tv_sol<<" "<<Mh_Tz(Tv_sol,z0)/Ms<<endl;
-// 算minumum cooling mass & Tvir; print
+  // 算minumum cooling mass & Tvir; print
         // double Vc0 = 3.7*km;
         // double Vc_eff = sqrt( pow(Vc0,2)+pow(alpha*v_bsm,2) );
         // f<<" "<<z0<<" "<<Tv_Vc(Vc0)<<" "<<Mh_Vc(Vc0,z0)/Ms<<" "<<Tv_Vc(Vc_eff)<<" "<<Mh_Vc(Vc_eff,z0)/Ms<<endl;
-// update z0
+  // update z0
         z0 *= z_rat;
     }
     f.close();
@@ -341,9 +339,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
     return 0;
 } */
 
-
-/* int main(){
-// *****************  Tvir critical value v.s. Tg (z as input parameter) **************
+/* int main(){ // *****************  Tvir critical value v.s. Tg (z as input parameter) **************
     char* fname = "Tg_Tvcrit.txt";
     fstream f;
     f.open(fname, ios::out | ios::trunc );
@@ -386,8 +382,6 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 }
  */
 
-
-
 // 检查Nvir2N0, Mg2N0是否给出正确的nvir_max, Mg_max 
 /* int main(){
     double R = 1.e-2;
@@ -400,7 +394,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
     double n_mean = RHO_crit(z)/(mu*m_H);
     double n_vir, Mg_vir;
 
-// Tg v.s. n0(Mg) 没用
+  // Tg v.s. n0(Mg) 没用
     // Tg = 8.e3;
     // double Tg1 = 2.e4, Tgrat = exp(log(Tg1/Tg)/20.);
     // z = 20, Mh = 2.e7*Ms;
@@ -419,15 +413,17 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
     // }
     // f.close();
 
-// marginally unstable case;
-    Tg = 1.5e4;
-    z = 20; Mh = 2.e7*Ms;
-    char* f_Nsol = "profile.txt";
+  // marginally unstable case;
+    Tg = 2.3e4;
+    z = 20; Mh = 4.e7*Ms;
+    HALO halo1(Mh,z);
+    char* f_Nsol = "profile_Mh.txt";
     Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
     profile(f_Nsol,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
+    printf("Rvir = %3.2e pc, Tvir = %3.2e K\n",halo1.Rvir/pc, halo1.Tvir);
 
-// R(n0) v.s. M/n_vir
-    // char* fname = "boundary.txt";
+  // R(n0) v.s. M/n_vir
+    // char* fname = "boundary_iso.txt";
     // fstream f;
     // f.open(fname, ios::out | ios::trunc );
     // f<<" R ng0 Mg nvir Pvir\n";    
@@ -438,7 +434,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
     // }
     // f.close();
 
-// 检查求解函数
+  // 检查求解函数
     // char* f_Nsol = "cc25profile_Nsol.txt";
     // char* f_Msol = "cc25profile_Msol.txt";
     // Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
@@ -454,7 +450,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
     // printf("N0 solution: from Mg:%3.2e, from n@vir:%3.2e\n", n0_sol_M, n0_sol_N);
     // printf("fb=%3.2e\n",Mg_vir/Mh);
 
-// 算由Nvir2N0得到的n0-->Mg -->fb
+  // 算由Nvir2N0得到的n0-->Mg -->fb
     // char* fname = "fb_Mh.txt";
     // fstream f;
     // f.open(fname, ios::out | ios:: trunc);
@@ -469,7 +465,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
     // }
     // f.close();
 
-//print halo properties
+  //print halo properties
     // double z1 = 20; double Mh1 = 1.e5*Ms;
     // HALO halo(Mh1,z1);
     // printf("1.e5Ms: Rmax =%3.2e\n",R_EQ(Tg,halo.rho_c,halo.Rs));
@@ -482,6 +478,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 
     return 0;
 }
+
  */
 
 // 1. density profile in 3 halos; 
@@ -530,46 +527,47 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 // 3. 算Tvir_crit v.s. redshift; Tg is input parameter.
 /* int main(){
     double R = 1.64;
-    // *****************   calculate Tvir critical value **************
-    // char* fname = "z_nmax.txt";
-    // fstream f;
-    // f.open(fname, ios::out | ios::trunc );
-    // f<<" z Tv_crit\n";
-    // double Tg = 1.5e4, Tvir=7.e3, Tv1,Tv0, Tv_sol;
-    // double z0 = 35, z1 = 10, Mh;
-    // double n_sol = 0, ni = 1, n_mean, n_mid;
-    // double N = 5;
-    // double z_rat = exp( log(z1/z0)/N ); cout<<z_rat<<endl;
-    // double nvir_max, nvir_m1, nvir_m0;
-    // for (int i=0; i<N; i++){
-    //     Tv1 = 2.e4,Tv0 =5.e3;
-    //     Tv1 = 3.e4,Tv0 =1.5e4;
-    //     Tv1 = 3.e4,Tv0 =2.2e4;
-    //     Nvir2N0(n_sol, nvir_m0, ni, Tg, z0, Mh_Tz(Tv0, z0));
-    //     Nvir2N0(n_sol, nvir_m1, ni, Tg, z0, Mh_Tz(Tv1, z0));
-    //     n_mean = RHO_crit(z0)/(mu*m_H);
-    //     if (nvir_m0<n_mean or nvir_m1>n_mean) printf("\n!!!!!initial value not correct\n");
-    //     while (pow(Tv1/Tv0-1, 2)>epE2){
-    //         Nvir2N0(n_sol, n_mid, ni, Tg, z0, Mh_Tz((Tv0+Tv1)/2., z0));
-    //         if (n_mid>=n_mean) {
-    //             Tv0 = (Tv0+Tv1)/2.;
-    //             Nvir2N0(n_sol, nvir_m0, ni, Tg, z0, Mh_Tz(Tv0, z0));
-    //         }
-    //         else {
-    //             Tv1 = (Tv0+Tv1)/2.;
-    //             Nvir2N0(n_sol, nvir_m1, ni, Tg, z0, Mh_Tz(Tv1, z0));
-    //         }
-    //     }
-    //     Tv_sol = (Tv0+Tv1)/2.;
-    //     double cs2 = gamma_adb*k_B*8000/(mu*m_H);
-    //     f<<" "<<z0<<" "<<Tv_sol<<endl;
-    //     z0 *= z_rat;
-    // }
-    // f.close();
+    char* fname = "z_Tvcrit.txt";
+    fstream f;
+    f.open(fname, ios::out | ios::trunc );
+    f<<" z Tv_crit Mh_crit\n";
+    double Tg = 2.3e4, Tvir=7.e3, Tv1,Tv0, Tv_sol;
+    double z0 = 20, z1 = 10, Mh;
+    double n_sol = 0, ni = 1, n_mean, n_mid;
+    double N = 1;
+    // HALO halo(4.e7*Ms,z0);
+    // printf("4.e7halo Tvir:%3.2e\n",halo.Tvir);
+    double z_rat = exp( log(z1/z0)/N ); cout<<z_rat<<endl;
+    double nvir_max, nvir_m1, nvir_m0;
+    for (int i=0; i<N; i++){
+        Tv1 = 5.e4,Tv0 =1.e4;
+        // Tv1 = 3.e4,Tv0 =1.5e4;
+        // Tv1 = 3.e4,Tv0 =2.2e4;
+        Nvir2N0(n_sol, nvir_m0, ni, Tg, z0, Mh_Tz(Tv0, z0));
+        Nvir2N0(n_sol, nvir_m1, ni, Tg, z0, Mh_Tz(Tv1, z0));
+        n_mean = 10* RHO_crit(z0)/(mu*m_H);
+        if (nvir_m0<n_mean or nvir_m1>n_mean) printf("\n!!!!!initial value not correct\n");
+        while (pow(Tv1/Tv0-1, 2)>epE2){
+            Nvir2N0(n_sol, n_mid, ni, Tg, z0, Mh_Tz((Tv0+Tv1)/2., z0));
+            if (n_mid>=n_mean) {
+                Tv0 = (Tv0+Tv1)/2.;
+                Nvir2N0(n_sol, nvir_m0, ni, Tg, z0, Mh_Tz(Tv0, z0));
+            }
+            else {
+                Tv1 = (Tv0+Tv1)/2.;
+                Nvir2N0(n_sol, nvir_m1, ni, Tg, z0, Mh_Tz(Tv1, z0));
+            }
+        }
+        Tv_sol = (Tv0+Tv1)/2.;
+        double cs2 = gamma_adb*k_B*8000/(mu*m_H);
+        f<<" "<<z0<<" "<<Tv_sol<<" "<<Mh_Tz(Tv_sol,z0)/Ms<<endl;
+        z0 *= z_rat;
+    }
+    f.close();
 
     return 0;
-}
- */
+} */
+
 
 //---------------------------------------------------------------------------------------------------------
 //                                  FILE treatment...

@@ -6,6 +6,7 @@
 
 #include "my_linalg.h"
 #include "RK4.h"
+#include "PARA.h"
 using namespace std;
 
 // rk4 paras: x0, y(x0), dydx(x0), h = Delta_x, derivatives f(x,y,h)=dydx(x,y(x),h)
@@ -17,7 +18,7 @@ g++ RK4.o my_linalg.o -o RK4
 ./RK4
  */
 
-void DyDx(double x, double* y, double* dydx, int argc, double* argv){
+void DyDx_iso(double x, double* y, double* dydx, int argc, double* argv){
     double alpha = argv[0];
     double R = argv[1];
     dydx[0] = y[1]/(x*x);
@@ -25,6 +26,31 @@ void DyDx(double x, double* y, double* dydx, int argc, double* argv){
     dydx[1] = x*x/ (R * (alpha*x) * pow(1+alpha*x,2) ); //only dark matter density
     dydx[1] = x*x*exp(-y[0]) + x*x/ (R * (alpha*x) * pow(1+alpha*x,2) ); // DM + gas
     //printf("self grav=%3.2e\t, DM=%3.2e\n",x*x*exp(-y[0]),x*x/R/ (alpha*x) / pow(1+alpha*x,2));
+}
+
+void DyDx_adb_Kc(double x, double* y, double* dydx, int argc, double* argv){
+    double n_adb = argv[0];
+    double R = argv[1]; //printf("alpha=%3.2e, R=%3.2e\n", alpha, R);
+    double alpha = argv[2];
+    dydx[0] = -y[1]/(x*x);
+    dydx[1] = x*x * pow(y[0], n_adb); //only gas self-gravity
+    dydx[1] = x*x/ (R * (alpha*x) * pow(1+alpha*x,2) ); //only dark matter density
+    dydx[1] = x*x * pow(y[0], n_adb) + x*x/ (R * (alpha*x) * pow(1+alpha*x,2) ); // DM + gas
+}
+
+void DyDx_adb_fit(double x, double* y, double* dydx, int argc, double* argv){
+    double n_adb = argv[0];
+    double R = argv[1]; //printf("alpha=%3.2e, R=%3.2e\n", alpha, R);
+    double alpha = argv[2];
+    double beta = argv[3];
+    double gamma = 1. + 1./n_adb;
+    // dydx[0] = y[1]*pow(y[0],2.-gamma)/ pow(x,2) / gamma; // K = Kcore const (+gas only checked; w/ K const y0=theta)
+    // dydx[0] = ( y[1]*pow(y[0],2.-gamma)/pow(x,2) - y[0] )/ (x*gamma); // Kr; infinity; cannot check
+    dydx[0] = ( y[1]*pow(y[0],2.-gamma)/pow(x,2) - y[0] )/ ((1+x)*gamma); // Kfit; finally into use
+
+    dydx[1] = -beta * pow(x,2) * y[0]; //gas only 
+    dydx[1] = -beta* pow(x,2) / (R * (alpha*x) * pow(1+alpha*x,2) ); // DM only 
+    dydx[1] = -beta* pow(x,2)*( y[0] + 1./ (R * (alpha*x) * pow(1+alpha*x,2)) ) ; // gas+DM
 }
 
 void rk4(double* yout, double x, double h, double *y, int const n, double *dydx0,
@@ -82,11 +108,13 @@ void check_conv(double err_crit, double* yout, double x, double& h, double *y, i
             delta_y[i] = yout2[i] - yout[i];
             yout[i] = yout2[i];
         }
-        for (i=0;i<n;i++) if (!isfinite(yout[i])) cout<<"INFINITY condition! ";
-        //printf("INFINITY! REFINE GRID where call RK4!!!!!!!!!!!!!\n"); // 异常需处理...
+        for (i=0;i<n;i++) if (!isfinite(yout[i])) {
+            // throw "wrong";
+            cout<<"INFINITY condition! ";
+        }// 异常需处理...
 
         if ( len_v(n,delta_y)>err_crit*len_v(n,yout) ){
-            //cout<<"REFINING GRID in check_conv!!!!!!!!!!!!!\n"; // report iteration times! 
+            // cout<<"REFINING GRID in check_conv!!!!!!!!!!!!!\n"; // report iteration times! 
             i_fold += 1;
             h *= 0.5;
             hh = h/2.;
