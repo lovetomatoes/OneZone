@@ -10,7 +10,8 @@ struct MainProgenitor
     int id_tree;
     double mratio;
     bool major;
+    double ng_adb;
 };
 
-void read_aTree (int& num, char* fname);
-void aTree(int& nMer, MainProgenitor* MPs, char* filename);
+void read_aTree (int& num, char* fname, MainProgenitor* MPs);
+void aTree(int& nMer, char* filename, MainProgenitor* MPs);

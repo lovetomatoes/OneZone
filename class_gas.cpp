@@ -13,6 +13,7 @@
 #include "thermo.h"
 #include "dyn.h"
 #include "LE_iso.h"
+#include "LE_adb.h"
 
 #include "class_halo.h"
 #include "PARA.h"
@@ -28,10 +29,11 @@ g++ class_gas.o -o gas
 // constructor; initializes
 GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool spec, bool Ma_turn, int bsm){
     //N_sp = 5; N_react = 6; 
+    MerMod = MergerModel;
     nMer = 0;
     MPs = NULL;
     MPs = new MainProgenitor [100];
-    aTree(nMer,MPs,treefile);
+    aTree(nMer,treefile,MPs); printf("read tree done\n");
     z0 = MPs[0].z;
     z = z0;
     i_bsm = bsm;
@@ -45,6 +47,16 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     printf("halo center number density = %3.2f,\n", halo.rho_c/(mu*m_H));
     printf("halo virial velocity = %3.2f,\n", halo.Vc/km);
 
+    inMer = false;
+    inDelay = false;
+    evol_stage = (MerMod)?1:0;
+    Gamma_mer = 0;
+    iMer = 0;
+    file_ingas.open("mer_record.txt", ios::out | ios::trunc); //
+    if (MerMod != 0) file_ingas<<"z t_halo t_act Mh Tvir Rvir dt t_dyn n_gas Mcore nc_DM M_BE MJ"<<endl;
+    M_major = 0;
+    M_minor = 0;
+
     // initial density & T setting.
     nH0 = halo.rho_c*fb/(mu*m_H);
     T_K0 = halo.Tvir;
@@ -54,6 +66,9 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
         nH0 = 4.5e-3;
         T_K0 = 20;
     } */
+    evol_stage = 5;
+    nH0 = MPs[iMer].ng_adb;
+
     rho0 = (mu*m_H) * nH0;
     e0 = k_B*T_K0/(gamma_adb-1)/(mu*m_H); // in erg/g
 
@@ -114,19 +129,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     RJ = cs*t_ff0;//RJ = sqrt( pi*k_B*T_K0/ (G*pow(mu*m_H,2)*nH0) );
     printf("cs_0 is %3.2e km/s; R_vir is %3.2e pc, RJ_0 is %3.2e pc \n",cs/1.e5,halo.Rvir/pc, RJ/pc);
     printf("sqrt(2)*cs_0 is %3.2e km/s; halo Vc is %3.2e km/s \n",cs/1.e5*sqrt(2), halo.Vc);
-
     MJ0 = 4.*pi/3.*rho0*pow(RJ/2.,3);
-    M_major = 0;
-    M_minor = 0;
-
-    MerMod = MergerModel;
-    inMer = false;
-    inDelay = false;
-    evol_stage = (MerMod)?1:0;
-    Gamma_mer = 0;
-    iMer = 0;
-    file_ingas.open("mer_record.txt", ios::out | ios::trunc); //
-    if (MerMod != 0) file_ingas<<"z t_halo t_act Mh Tvir Rvir dt t_dyn n_gas Mcore nc_DM M_BE MJ"<<endl;
 
     for (int i=0; i<N; i++){
         if (i==0){
@@ -138,7 +141,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     }
     react_coef(k,nH0,y0[1],y0[2],T_K0,J21,Tb);
     react_rat(rf, y0, k, nH0, T_K0);
-    printf("J_LW=%3.2e, Tb=%3.2e\n",J_LW,Tb);
+    printf("J_LW=%3.2e, Tb=%3.2e\n ****INITIALIZE DONE****\n\n",J_LW,Tb);
 }
 
 
@@ -354,10 +357,10 @@ void GAS:: timescales(){
 //// Merger heating -> turbulent & thermal
     Gamma_mer_th = fraction * Gamma_mer;
     Gamma_mer_k = (1-fraction) * Gamma_mer;
-
-    if (evol_stage < 4) r_h = Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0;
-    else r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0;
-
+// merger case (evol_stage=4 is freefall)
+    if (evol_stage ==4) r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0;
+    else r_h = Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0; //no compressional
+    
     //printf("f_Ma=%3.2e, cs=%3.2e, t_ff=%3.2e, compr=%3.2e mer=%3.2e mer_th=%3.2e\n", f_Ma, cs, t_ff, Gamma_compr(cs,f_Ma,t_ff),Gamma_mer,Gamma_mer_th);
 
     t_c = e0/r_c;
@@ -483,6 +486,13 @@ void GAS:: freefall(){  //module of explicit integration over Dt
         case 4:
             Mg_intg = 0;
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
+            break;
+        case 5:
+            nH0 = MPs[iMer].ng_adb;
+            if (r_cH2>2*abs(r_h) or r_cH>abs(r_h) and t_act!=0) { //factor 2 coz H2 cooling somehow high initially
+                printf(" in CASE5: adb not hold, go to 3\n");
+                evol_stage = 3;
+            }
             break;
     }
 

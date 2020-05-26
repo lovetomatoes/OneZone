@@ -18,8 +18,9 @@ g++ LE_adb.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_adb.out
 ./le_adb.out
 */
 
-double Tvir = 1.6e4;
-double z1 = 20; double Mh1 = 1.e5*Ms;
+static double Tvir = 1.6e4;
+static double z1 = 20; 
+static double Mh1 = 1.e5*Ms;
 //double z = 30; double Mh = Mh_Tz(Tvir,z);
 static int const N=100000;
 static int const n=2;
@@ -290,7 +291,7 @@ void Mg2N0_adb(double& n_sol, double ni, double z, double Mh){
         it++;
     }
     n_sol = R0*halo.rho_c/(mu*m_H);
-    printf("Mg2N0: solution: of n0: %3.2e, corresponding Mg:%3.2e, fbMh=%3.2e\n",n_sol, Mg_0/Ms, fb*Mh/Ms );
+    // printf("Mg2N0: solution: of n0: %3.2e, corresponding Mg:%3.2e, fbMh=%3.2e\n",n_sol, Mg_0/Ms, fb*Mh/Ms );
 }
 
 /* void Nvir2N0_adb(double& n_sol, double ni, double z, double Mh){
@@ -340,19 +341,20 @@ g++ LE_adb.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_adb.out
 */
 
 // 检查 Mg2N0
-int main(){
+/* int main(){
     double R, n_adb = 1.5;
     double n_sol, ni = 1, r_out, Tg_ave, n_vir, Mg_vir;
-    double z = 20, Mh = 1.e6*Ms;
+    double z = 20, Mh = 1.e6*Ms; //z20 M6 --> Kfit
     HALO halo(Mh,z);
     double n_nfw = fb*halo.Rho_r(halo.Rvir)/(mu*m_H);
     char* f_Nsol; 
     
   // tests --especially Tg profile
-    printf("0.1*halo1.Kvir=%3.2e, K_ISM=%3.2e, Tvir=%3.2e\n",0.1*halo.Kvir,K_ISM(z),halo.Tvir );
-    Mg2N0_adb(n_sol, ni, z, Mh);
-    //profile_adb_Kfit("Kfitz20Mh6.txt",n_vir,Mg_vir, n_sol*(mu*m_H)/halo.rho_c, n_adb, z, Mh);
-    printf("soluiton of R:%3.2e, n_sol=%3.2e, n_nfw=%3.2e\n",n_sol*(mu*m_H)/halo.rho_c,n_sol,n_nfw);
+    // printf("0.1*halo1.Kvir=%3.2e, K_ISM=%3.2e, Tvir=%3.2e\n",0.1*halo.Kvir,K_ISM(z),halo.Tvir );
+    // // Mg2N0_adb(n_sol, ni, z, Mh);
+    // R=1000;
+    // profile_adb_Kfit("R1e3_z20M6.txt",n_vir,Mg_vir, R, n_adb, z, Mh);
+    // printf("soluiton of R:%3.2e, n_sol=%3.2e, n_nfw=%3.2e\n",n_sol*(mu*m_H)/halo.rho_c,n_sol,n_nfw);
 
     // R = .01;
     // profile_adb_Kc("R1e-2KcMh6.txt",R,n_adb,z,Mh);
@@ -362,19 +364,19 @@ int main(){
     // printf("halo Tvir=%3.2e, Tg_ave=%3.2e\n",halo.Tvir,Tg_ave);
 
   // // R(n0) v.s. n_vir
-  //   R = 1.e-2;
-  //   int N = 100;
-  //   double R1 = 2.e1, Rrat = exp(log(R1/R)/double(N));
-  //   char* fname = "Mh1e6boundary.txt";
-  //   fstream f;
-  //   f.open(fname, ios::out | ios::trunc );
-  //   f<<" R ng0 Mg nvir Tg_ave Rout\n";    
-  //   while (R<R1){
-  //       BOUNDARY_adb(n_vir, Mg_vir, r_out,Tg_ave, R, z, Mh);
-  //       f<<" "<<R<<" "<<R*halo.rho_c/(mu*m_H)<<" "<<Mg_vir/Ms<<" "<<n_vir<<" "<<Tg_ave<<" "<<r_out<<endl;
-  //       R *= Rrat;
-  //   }
-  //   f.close();
+    // R = 1.e-2;
+    // int N = 100;
+    // double R1 = 1.e3, Rrat = exp(log(R1/R)/double(N));
+    // char* fname = "Mh1e6boundary.txt";
+    // fstream f;
+    // f.open(fname, ios::out | ios::trunc );
+    // f<<" R ng0 Mg nvir Tg_ave Rout\n";    
+    // while (R<R1){
+    //     BOUNDARY_adb(n_vir, Mg_vir, r_out,Tg_ave, R, z, Mh);
+    //     f<<" "<<R<<" "<<R*halo.rho_c/(mu*m_H)<<" "<<Mg_vir/Ms<<" "<<n_vir<<" "<<Tg_ave<<" "<<r_out<<endl;
+    //     R *= Rrat;
+    // }
+    // f.close();
 
   // 算由Mg2N0得到的n0-->n_vir? v.s. n_nfw
   // 1. Tvir v.s. n_sol
@@ -422,7 +424,7 @@ int main(){
     return 0;
 }
 
-
+ */
 
 /* void profile_adb_Kc_gammaeff(char* filename, double R, double n_adb, double z=z1, double Mh=Mh1){
     HALO halo1(Mh,z);

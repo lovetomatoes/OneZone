@@ -3,6 +3,8 @@
 #include <string.h>
 #include <cmath>
 #include <iostream>
+#include <iomanip>
+
 #include <fstream>
 #include <algorithm>
 
@@ -48,7 +50,7 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
     printf("################################################################################\n");
     printf("################################################################################\n");
     int i =0;
-    
+
     GAS gas(frac0,MerMod,J21,Tbb,treename,spec,Ma_on,i_bsm);
     double t_ff0 = 1./C/sqrt(gas.nH0);
     double t1 = 1.9999*t_ff0;
@@ -63,13 +65,15 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
     //merger tree information in GAS::gas
     ofstream f1;
     f1.open("../data/atree.txt", ios::out | ios::trunc );
+    f1<<setiosflags(ios::scientific)<<setprecision(5);
+
     for (i=0;i<gas.nMer;i++){
         HALO halo(gas.MPs[i].mhalo,gas.MPs[i].z);
         if (i==0) f1<<"\tj\tz\tt(Myr)\tdt(Myr)\tt_dyn(Myr)\tM8\tdM8\tq\tRvir\tRs\tc\tTvir\trho_c\trho_crit\td0\n";
-        f1<<" "<<gas.MPs[i].j<<" "<<gas.MPs[i].z<<" "<<gas.MPs[i].t/Myr<<" "<<gas.MPs[i].dt/Myr<<" "<<halo.t_dyn/Myr;
-        f1<<" "<<gas.MPs[i].mhalo/(1.e8*Ms)<<" "<<gas.MPs[i].dm/(1.e8*Ms)<<" "<<gas.MPs[i].mratio;
-        f1<<" "<<halo.Rvir<<" "<<halo.Rs<<" "<<halo.c<<" "<<halo.Tvir;
-        f1<<" "<<halo.rho_c<<" "<<halo.rho_crit<<" "<<halo.delta0<<endl;
+        f1<<setw(12)<<gas.MPs[i].j<<setw(12)<<gas.MPs[i].z<<setw(12)<<gas.MPs[i].t/Myr<<setw(12)<<gas.MPs[i].dt/Myr<<setw(12)<<halo.t_dyn/Myr;
+        f1<<setw(12)<<gas.MPs[i].mhalo/(1.e8*Ms)<<setw(12)<<gas.MPs[i].dm/(1.e8*Ms)<<setw(12)<<gas.MPs[i].mratio;
+        f1<<setw(12)<<halo.Rvir<<setw(12)<<halo.Rs<<setw(12)<<halo.c<<setw(12)<<halo.Tvir;
+        f1<<setw(12)<<halo.rho_c<<setw(12)<<halo.rho_crit<<setw(12)<<halo.delta0<<endl;
     }
     f1.close();
 
@@ -85,7 +89,7 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
     bool react = false;
     bool tscales = true;
     bool haloinfo = true;
-    bool heatingcooling = false;
+    bool heatingcooling = true;
     bool mer = false;
     double kform, rform, yequi, ycool;
     int itime=0;
@@ -97,7 +101,7 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
             if (py) file <<" t Dt z nH T";
             else file <<" t Dt z nH T";
         }
-        else file<<" "<<gas.t_act/t_ff0<<" "<<gas.Dt<<" "<<gas.z<<" "<<gas.nH0<<" "<<gas.T_K0;
+        else file<<setw(12)<<gas.t_act/t_ff0<<setw(12)<<gas.Dt/t_ff0<<setw(12)<<gas.z<<setw(12)<<gas.nH0<<setw(12)<<gas.T_K0;
             
         //printf("nH=%3.2e, T_K=%3.2e\t k[15,+]=%3.2e, k[7,-]=%3.2e, y_H2=%3.2e\n",gas.nH0, gas.T_K0,gas.k[15],gas.k[7],gas.y0[2]);
 
@@ -109,19 +113,19 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
                 else file<<" t_{ff} t_{c} t_h t_{rcb} t_{chem} t_{ion} tc_{H2} tc_H 0 0";
             }
             else {
-                file<<" "<<gas.t_ff/t_ff0;
-                file<<" "<<gas.t_c/t_ff0;
-                file<<" "<<gas.t_h/t_ff0;
-                file<<" "<<gas.t_rcb/t_ff0;
-                file<<" "<<gas.t_chem/t_ff0;
+                file<<setw(12)<<gas.t_ff/t_ff0;
+                file<<setw(12)<<gas.t_c/t_ff0;
+                file<<setw(12)<<gas.t_h/t_ff0;
+                file<<setw(12)<<gas.t_rcb/t_ff0;
+                file<<setw(12)<<gas.t_chem/t_ff0;
 
-                file<<" "<<gas.t_ion/t_ff0;
-                file<<" "<<gas.e0/gas.r_cH2 /t_ff0;
-                file<<" "<<gas.e0/gas.r_cH / t_ff0;
-                file<<" "<<0<<" "<<0;
+                file<<setw(12)<<gas.t_ion/t_ff0;
+                file<<setw(12)<<gas.e0/gas.r_cH2 /t_ff0;
+                file<<setw(12)<<gas.e0/gas.r_cH / t_ff0;
+                file<<setw(12)<<0<<setw(12)<<0;
                 /* 
-                file<<" "<<gas.e0*gas.rho0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0); //t_cH2
-                file<<" "<<gas.e0*gas.rho0/Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3],gas.k[1]); //t_cH
+                file<<setw(12)<<gas.e0*gas.rho0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0); //t_cH2
+                file<<setw(12)<<gas.e0*gas.rho0/Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3],gas.k[1]); //t_cH
                  */
             }
         }
@@ -132,18 +136,18 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
                 else    file<<" y_H y_{H2} y_e y_{H+} y_{H2+} y_{H-} y_{He} y_{y_He+} y_{He++} 0";
             }
             else {
-                for (int i=1; i<N_sp+1; i++) file<<" "<<gas.y0[i];
+                for (int i=1; i<N_sp+1; i++) file<<setw(12)<<gas.y0[i];
 
                 kform = gas.k[2]*gas.k[3]/(gas.k[3]+gas.k[7]/gas.nH0);
                 rform = max(kform*gas.nH0*gas.y0[1]*gas.y0[3], gas.k[5]*pow(gas.nH0,2)*pow(gas.y0[1],3));
                             //H-, n小                              3b,  n>~10^9/cm^3
                 yequi = min(rform/gas.k[6], rform/(gas.k[4]*gas.y0[1]*gas.nH0) );
                                 // pd,  n<~100/cm^3      cd n大 
-                //file<<" "<<yequi;
-                //file<<" "<<gas.Dt*gas.rf[2]+gas.y0[2]; prediciton of yH2
+                //file<<setw(12)<<yequi;
+                //file<<setw(12)<<gas.Dt*gas.rf[2]+gas.y0[2]; prediciton of yH2
                 //ycool = 3.*k_B*gas.T_K0*gas.y0[2]/(2.*gas.t_ff*Lambda_H2(gas.nH0,gas.T_K0,gas.y0[2])*(mu*m_H));
-                //file<<" "<<ycool;
-                file<<" "<<0;
+                //file<<setw(12)<<ycool;
+                file<<setw(12)<<0;
 
             }
         }
@@ -167,10 +171,10 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
                 else file <<" nc_{DM} z_{Mh} t_{Mh} Mh T_{vir} f_{Ma} cs v_{tur} Vc v_{bsm}";
             } //rho_c = d0*RHO_DM(gas.z)/m_H checked right. 
             else{
-                file<<" "<<gas.rhoc_DM/(mu*m_H)<<" "<<gas.MPs[gas.iMer].z;
-                file<<" "<<gas.MPs[gas.iMer].t/gas.t_ff0<<" "<<gas.Mh/Ms<<" "<<gas.MPs[gas.iMer].Tvir;
-                file<<" "<<gas.f_Ma<<" "<<gas.cs/km<<" "<<sqrt(gas.v_tur2)/km<<" "<<halo.Vc/km;
-                file<<" "<<gas.v_bsm/km;
+                file<<setw(12)<<gas.rhoc_DM/(mu*m_H)<<setw(12)<<gas.MPs[gas.iMer].z;
+                file<<setw(12)<<gas.MPs[gas.iMer].t/gas.t_ff0<<setw(12)<<gas.Mh/Ms<<setw(12)<<gas.MPs[gas.iMer].Tvir;
+                file<<setw(12)<<gas.f_Ma<<setw(12)<<gas.cs/km<<setw(12)<<sqrt(gas.v_tur2)/km<<setw(12)<<halo.Vc/km;
+                file<<setw(12)<<gas.v_bsm/km;
             }
         }
 
@@ -179,7 +183,7 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
                 if (py) file<<" ievol M_J M_Jeff Mg_intg q";
                 else file<<" ievol M_J M_{Jeff} Mg_{intg} q";
             }
-            else file<<" "<<gas.evol_stage<<" "<<gas.MJ/Ms<<" "<<gas.MJ_eff/Ms<<" "<<gas.Mg_intg/Ms<<" "<<gas.MPs[gas.iMer].mratio;
+            else file<<setw(12)<<gas.evol_stage<<setw(12)<<gas.MJ/Ms<<setw(12)<<gas.MJ_eff/Ms<<setw(12)<<gas.Mg_intg/Ms<<setw(12)<<gas.MPs[gas.iMer].mratio;
         }
 
 
@@ -201,11 +205,11 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
 
             }
             else{
-                file<<" "<<gas.r_c;
-                file<<" "<<gas.r_cH2;
-                file<<" "<<gas.r_cH;
-                file<<" "<<Gamma_compr(gas.cs,gas.f_Ma,gas.t_ff);
-                file<<" "<<gas.Gamma_mer_th; //merger heating; kinetic energy input: *1/3
+                file<<setw(12)<<gas.r_c;
+                file<<setw(12)<<gas.r_cH2;
+                file<<setw(12)<<gas.r_cH;
+                file<<setw(12)<<Gamma_compr(gas.cs,gas.f_Ma,gas.t_ff);
+                file<<setw(12)<<gas.Gamma_mer_th; //merger heating; kinetic energy input: *1/3
             }
         }
 
@@ -215,7 +219,7 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
                 if (py) file<<" dMdt Gamma_mer Gamma_mer_th Gamma_mer_k";
                 else file<<" dMdt Gamma_{mer} Gamma_{mer,th} Gamma_{mer,k}";
             }
-            else file<<" "<<gas.dMdt<<" "<<gas.Gamma_mer<<" "<<gas.Gamma_mer_th<<" "<<gas.Gamma_mer_k;
+            else file<<setw(12)<<gas.dMdt<<setw(12)<<gas.Gamma_mer<<setw(12)<<gas.Gamma_mer_th<<setw(12)<<gas.Gamma_mer_k;
         }
         file<<endl;
         i++;
@@ -287,7 +291,7 @@ void evol_Jc(char* treename, char* fout, double Tb, int MerMod, bool spec, bool 
         }   
     }
     printf("J0=%4.3f\tT0=%3.2e\tJ1=%4.3f\tT1=%3.2e\n --> Jc_sol=%3.2e\n",J0,T0,J1,T1, (J0+J1)/2.);
-    file<<" "<<Tb<<" "<<(J0+J1)/2.<<endl;
+    file<<setw(12)<<Tb<<setw(12)<<(J0+J1)/2.<<endl;
     file.close();
     
 }

@@ -1,23 +1,28 @@
-main: main.cpp evol.o class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
-	g++ main.cpp -L/usr/local/lib evol.o class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o main
+main: main.cpp evol.o class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
+	g++ main.cpp -L/usr/local/lib evol.o class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o main
 
 # 用 make evol 生成cc.so以供evol.py 
-evol.o: evol.cpp class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
-	g++ evol.cpp -L/usr/local/lib class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o cc.so -shared -fPIC
+evol.o: evol.cpp class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
+	g++ evol.cpp -L/usr/local/lib class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o cc.so -shared -fPIC
 	g++ evol.cpp -L/usr/local/lib -Wall -I/usr/local/include -c class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -shared -fPIC
 
 LE_iso.o: LE_iso.cpp RK4.o class_halo.o dyn.o PARA.o
 	g++ -c LE_iso.cpp -o LE_iso.o -shared -fPIC 
 	#g++ -c LE_iso.cpp RK4.o class_halo.o -o LE_iso.o -shared -fPIC
 
+
 class_gas.o: class_gas.cpp class_halo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o thermo.o dyn.o PARA.o read_aTree.o RK4.o
 	g++ -c class_gas.cpp read_aTree.o -shared -fPIC
+
+read_aTree.o: read_aTree.cpp PARA.o dyn.o LE_adb.o
+	g++ -c read_aTree.cpp dyn.o LE_adb.o -shared -fPIC
+
+LE_adb.o: LE_adb.cpp RK4.o class_halo.o dyn.o PARA.o
+	g++ -c LE_adb.cpp -o LE_adb.o -shared -fPIC 
 
 RK4.o: RK4.cpp my_linalg.o
 	g++ -c RK4.cpp my_linalg.o -shared -fPIC
 
-read_aTree.o: read_aTree.cpp PARA.o dyn.o
-	g++ -c read_aTree.cpp dyn.o -shared -fPIC
 
 class_halo.o: class_halo.cpp PARA.o
 	g++ -c class_halo.cpp -shared -fPIC

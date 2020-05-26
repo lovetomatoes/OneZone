@@ -1,5 +1,6 @@
 // parent halo properties;
 #include <iostream>
+#include <iomanip>
 #include <stdio.h>
 #include "PARA.h"
 #include "dyn.h"
@@ -31,7 +32,7 @@ HALO:: HALO(double Mh0, double z0){
     Vc = sqrt(G*Mh/Rvir);
     t_dyn = Rvir/Vc;
     Tvir = G*Mh*(mu*m_H)/(2.*k_B*Rvir);
-    Kvir = k_B*Tvir/(mu*m_H)/pow(fb*Delta_crit*rho_crit,2./3.);
+    Kvir = k_B*Tvir/(mu*m_H)/pow(fb*Delta_crit*rho_crit,2./3.); // wli: K normalization not precise, see Voit 05 fig1, Visbal 14
     gc = 2*c/(log(1+c) - c/(1+c));
     alpha = Tvir/pow(Mh , 2./3);
 
@@ -126,10 +127,7 @@ g++ class_halo.cpp PARA.cpp dyn.cpp -o halo.out && ./halo.out
 // halo Vc, Rvir, n_crit at z...
 /* int main(){
     double z = 20;
-    double Mh = Mh_Vc(4*km, z);
-    Mh = Mh_Tz(1000,z);
-    printf("Mh=%3.2e\n",Mh/Ms);
-    Mh = Mh_Tz(1600,z);
+    double Mh = Mh_Vc(4*km, z); Mh = Mh_Tz(1000,z);
     printf("Mh=%3.2e\n",Mh/Ms);
     HALO halo(Mh,z);
     printf("Vc=%3.2e, ",halo.Vc/km);
@@ -140,8 +138,15 @@ g++ class_halo.cpp PARA.cpp dyn.cpp -o halo.out && ./halo.out
     double Mh1 = 1.e8*Ms, Mhrat = exp(log(Mh1/Mh)/20.);
     while (Mh<=Mh1){
         HALO halo1(Mh,z);
-        printf("Mh=%3.2e, 0.1Kvir=%3.2e\n",Mh/Ms, .1*halo1.Kvir);
+        //printf("Mh=%3.2e, 0.1Kvir=%3.2e\n",Mh/Ms, .1*halo1.Kvir);
+        // cout<<Mh/Ms<<" "<<halo1.Kvir<<endl;
         Mh *= Mhrat;
     } 
-    printf("K_ISM=%3.2e\n",K_ISM(z));
-} */
+    ofstream f1;
+    f1.open("a.txt", ios::out | ios::trunc );
+    f1<<setiosflags(ios::scientific)<<setprecision(5);
+    f1<<setw(12);
+    f1<<Mh<<setw(12)<<1.<<setw(12)<<1<<endl;
+    f1.close();
+}
+ */

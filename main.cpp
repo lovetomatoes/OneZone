@@ -35,34 +35,39 @@ int main(){
 
     Ma_on = false;
     ftree = "../tree_Hirano/fort.20";
-
+    
     i_bsm = 0;
-    fout = "20J1e1bsm0tur0evolve_Vc.txt";
+    fout = "J15e2.txt";
     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    i_bsm = 1;
-    fout = "20J1e1bsm1tur0evolve_Vc.txt";
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    i_bsm = 2;
-    fout = "20J1e1bsm2tur0evolve_Vc.txt";
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    i_bsm = 3;
-    fout = "20J1e1bsm3tur0evolve_Vc.txt";
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+
+    // i_bsm = 0;
+    // fout = "20J1e1bsm0tur0evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 1;
+    // fout = "20J1e1bsm1tur0evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 2;
+    // fout = "20J1e1bsm2tur0evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 3;
+    // fout = "20J1e1bsm3tur0evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
 // bsm; turbulence
-    Ma_on = true;
-    i_bsm = 0;
-    fout = "20J1e1bsm0evolve_Vc.txt";
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    i_bsm = 1;
-    fout = "20J1e1bsm1evolve_Vc.txt";
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    i_bsm = 2;
-    fout = "20J1e1bsm2evolve_Vc.txt";
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    i_bsm = 3;
-    fout = "20J1e1bsm3evolve_Vc.txt";
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // Ma_on = true;
+    // i_bsm = 0;
+    // fout = "20J1e1bsm0evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 1;
+    // fout = "20J1e1bsm1evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 2;
+    // fout = "20J1e1bsm2evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 3;
+    // fout = "20J1e1bsm3evolve_Vc.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+
 // spec
     // fout = "Jcs_cpp.txt";
     // spec = false;

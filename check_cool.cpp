@@ -1,7 +1,9 @@
 //compare reaction coefficients original v.s. Glover & Abel 2008
 // also check n_cr=Lambda_LTE/Lambda_0 with in reaction.cpp
 
-// g++ check_cool.cpp PARA.cpp thermo.cpp -o check_cool && ./check_cool
+/* 
+g++ check_cool.cpp PARA.cpp thermo.cpp -o check_cool.out && ./check_cool.out
+ */
 
 # include <iostream>
 # include <stdio.h>
@@ -205,6 +207,25 @@ double LambdaY_H2(double nH, double T_K, double* y){
     return L_H2*ftau *(y_H2*nH)*nH; //in erg /cm^3 / s
 }
 //**************************************************************************************
+int main(){    
+    int N = 10000, i;
+    double y_H2 = 1.e-5;
+    double y_e = 1.e-4;
+    double tiny = 1.0e-20, yHe = 8.33333e-2, y_H2p = 1.0e-12, y_Hm = 1.0e-12;
+    double y_Hp = 1.0e-4, y_H = 1.0 - 2.*y_H2 - 2.*y_H2p - y_Hm - y_Hp;
+    double y_He = yHe - 2.*tiny, y_Hep = tiny, y_Hepp = tiny;
+    double ys[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
+
+    double nH = 6.9; double T_K = 1100;
+    double rho = nH*(mu*m_H);
+    double L1, L2;
+//Λ 
+    L1= Lambda_H2(nH,T_K,ys)/rho;
+    nH = 21; rho = nH*(mu*m_H);
+    L2 = Lambda_H2(nH,T_K,ys)/rho;
+    printf("L1=%3.2e, L2=%3.2e\n",L1,L2);
+    return 0;
+}
 int main(){    
     int N = 10000, i;
     double y_H2 = 1.e-2;

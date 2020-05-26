@@ -44,7 +44,7 @@ void read_aTree (int& num, char* fname, MainProgenitor* MPs){
 }
 
 
-void aTree(int& nMer, MainProgenitor* MPs, char* filename){
+void aTree(int& nMer, char* filename, MainProgenitor* MPs){
     int num = 0, i = 0, j;
     /* char fname[100]; 
     sprintf(fname, "../code_tree/fort.217");  */
@@ -88,8 +88,37 @@ void aTree(int& nMer, MainProgenitor* MPs, char* filename){
         MPs[i].major = (MPs[i].mratio >= 0.25)?true:false;
         //if (MPs[i].major) cout<<"ratio = "<<MPs[i].mratio<<endl;
         //printf("generation = %d, mratio = %3.2e, dm = %3.2e, dt = %3.2e, mhalo = %3.2e\n",MPs[i].j,MPs[i].mratio,MPs[i].dm/Ms,MPs[i].dt,MPs[i].mhalo/Ms);
+        double ni=1;
+        // if (i<2) 
+        Mg2N0_adb(MPs[i].ng_adb,ni,MPs[i].z,MPs[i].mhalo); //i<2 wli temporary
     }
-    
+
+/* // detect if FILE exist 
+    // if (FILE *f = fopen(filename, "r")) {
+    //     fclose(f);
+    // name = "./H2p/sigma_"+to_string(T[i])+"K"; //cout<<name<<endl;
+    string line, name;
+    ifstream inFile("20MPs.txt"); if (!inFile) cout<<"read error\n";
+    j = 0;
+    while (getline(inFile, line)){
+        istringstream isolated(line);
+        isolated>>nu_str>>sigma_str;
+        if (i==0) nua[j] = stod(nu_str);
+        sigmaa[i][j] = stod(sigma_str);
+        // cout<<j<<"\t"<<sigmaa[i][j]<<"\n";
+        j++;
+    }
+    if (j!=nnu_H2p) printf("line count error\n");
+    inFile.close();
+    }
+    else {
+        file.open(filename, ios::out | ios::trunc);
+        file<<"R ng_0 M_intg ng_vir\n";
+        file.close();
+    }
+    file.open(filename, ios::out | ios::app);
+ */
+// 
     cout<<"\nnum = "<<num<<endl;
     nMer = num;
 }
@@ -103,17 +132,16 @@ g++ read_aTree.cpp dyn.cpp PARA.cpp LE_adb.cpp RK4.o my_linalg.o class_halo.o  -
     MainProgenitor* MPs = NULL;
     MPs = new MainProgenitor [200];
     int nMer = 0;
-    aTree(nMer, MPs, "../tree_Hirano/fort.20");
+    aTree(nMer, "../tree_Hirano/fort.20", MPs);
     int i=0;
     double n0_sol, ni=1;
     while(i<nMer){
         HALO halo(MPs[i].mhalo,MPs[i].z);
         // printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e\n",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
-        if (halo.Tvir<1.e4){
-            Mg2N0_adb(n0_sol, ni, MPs[i].z, MPs[i].mhalo);
-            printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e,\t",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
-            printf("n0sol:%3.2e\n",n0_sol);
-        }
+        // if (halo.Tvir<1.e4){
+        //     printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e,\t",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
+        //     printf("ng_adb:%3.2e\n",MPs[i].ng_adb);
+        // }
         i++;      
     }
 
