@@ -27,7 +27,7 @@ g++ class_gas.o -o gas
 */
 
 // constructor; initializes
-GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool spec, bool Ma_turn, int bsm){
+GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefile, bool spec, bool Ma_turn, int bsm){
     //N_sp = 5; N_react = 6; 
     MerMod = MergerModel;
     nMer = 0;
@@ -36,6 +36,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     aTree(nMer,treefile,MPs); printf("read tree done\n");
     z0 = MPs[0].z;
     z = z0;
+    z_col = -1.;
     i_bsm = bsm;
     v_bsm = i_bsm*sigma1*(1+z)/(1+z_rcb);
     Mh = MPs[0].mhalo;
@@ -49,11 +50,11 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
 
     inMer = false;
     inDelay = false;
-    evol_stage = (MerMod)?1:0;
+    evol_stage = (MerMod)?5:0;
     Gamma_mer = 0;
     iMer = 0;
-    file_ingas.open("mer_record.txt", ios::out | ios::trunc); //
-    if (MerMod != 0) file_ingas<<"z t_halo t_act Mh Tvir Rvir dt t_dyn n_gas Mcore nc_DM M_BE MJ"<<endl;
+    // file_ingas.open("mer_record.txt", ios::out | ios::trunc); //
+    // if (MerMod != 0) file_ingas<<"z t_halo t_act Mh Tvir Rvir dt t_dyn n_gas Mcore nc_DM M_BE MJ"<<endl;
     M_major = 0;
     M_minor = 0;
 
@@ -66,8 +67,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
         nH0 = 4.5e-3;
         T_K0 = 20;
     } */
-    evol_stage = 5;
-    nH0 = MPs[iMer].ng_adb;
+    if (MerMod) nH0 = MPs[iMer].ng_adb;
 
     rho0 = (mu*m_H) * nH0;
     e0 = k_B*T_K0/(gamma_adb-1)/(mu*m_H); // in erg/g
@@ -100,6 +100,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     Nt = 5;
     t0 = 0;
     t_act = 0;
+    Dt = 0;
 
     rho0 = (mu*m_H) * nH0;
     e0 = k_B*T_K0/(gamma_adb-1)/(mu*m_H); // in erg/g
@@ -141,7 +142,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile
     }
     react_coef(k,nH0,y0[1],y0[2],T_K0,J21,Tb);
     react_rat(rf, y0, k, nH0, T_K0);
-    printf("J_LW=%3.2e, Tb=%3.2e\n ****INITIALIZE DONE****\n\n",J_LW,Tb);
+    printf("J_LW=%5.2f, Tb=%3.2e\n ****INITIALIZE DONE****\n\n",J_LW,Tb);
 }
 
 
@@ -262,9 +263,9 @@ void GAS:: react_sol(bool write){
 
 void GAS:: setMerger(){
     //printf("iMer = %d, nMer = %d", iMer, nMer);
-    ofstream fMer;
-    fMer.open("data/mergers.txt", ios::out | ios::app); // append mode, to use it, mc then mk
-    if (iMer == 0) fMer<<"j t t_act mhalo/Ms dm major Tvir"<<endl;
+    // ofstream fMer; 用来判断两条timeline & z是否重合 dt正确与否等
+    // fMer.open("data/mergers.txt", ios::out | ios::app); // append mode, to use it, mc then mk
+    // if (iMer == 0) fMer<<"j t t_act mhalo/Ms dm major Tvir"<<endl;
 
     if (MerMod !=  0){
         if (iMer< nMer-1){ // final merger not included, since nMer halos only nMer-1 intervals, //WLI
@@ -308,9 +309,9 @@ void GAS:: setMerger(){
                 if (MPs[iMer].major) M_major += MPs[iMer].dm;
 
                 //printf("in Ms: Mgas = %3.2e \tMJ = %3.2e \tMJ_eff = %3.2e\n", Mgas/Ms, MJ/Ms, MJ_eff/Ms);
-                fMer<<MPs[iMer].j<<" "<<MPs[iMer].t<<" "<<t_act<<" "<<MPs[iMer].mhalo/Ms<<" "<<MPs[iMer].dm/Ms<<" "<<MPs[iMer].major<<" "<<MPs[iMer].Tvir<<endl;
+                // fMer<<MPs[iMer].j<<" "<<MPs[iMer].t<<" "<<t_act<<" "<<MPs[iMer].mhalo/Ms<<" "<<MPs[iMer].dm/Ms<<" "<<MPs[iMer].major<<" "<<MPs[iMer].Tvir<<endl;
                 //if (iMer == 0) file_ingas<<"z t_halo t_act Mh Tvir Rvir dt t_dyn n_gas Mcore nc_DM M_BE MJ"<<endl; //halo2.rho_c/(mu*m_H)RHO_crit(z0)
-                file_ingas<<z<<" "<<MPs[iMer].t<<" "<<t_act<<" "<<Mh<<" "<<MPs[iMer].Tvir<<" "<<halo2.Rvir<<" "<<MPs[iMer].dt<<" "<<halo2.t_dyn<<" "<<nH0<<" "<<Mcore<<" "<<halo2.rho_crit/(mu*m_H)<<" "<<M_BE<<" "<<MJ<<endl;
+                // file_ingas<<z<<" "<<MPs[iMer].t<<" "<<t_act<<" "<<Mh<<" "<<MPs[iMer].Tvir<<" "<<halo2.Rvir<<" "<<MPs[iMer].dt<<" "<<halo2.t_dyn<<" "<<nH0<<" "<<Mcore<<" "<<halo2.rho_crit/(mu*m_H)<<" "<<M_BE<<" "<<MJ<<endl;
                 // dilution(destruction/reduction/destroyment) of H2 fraction
                 // 1) by 1/2
                 /* for (int i=2; i<N; i++) y0[i]/=2.;
@@ -324,7 +325,7 @@ void GAS:: setMerger(){
         }
         else {inMer = false; Gamma_mer = 0;}
     }
-    fMer.close();
+    // fMer.close();
 }
 
 void GAS:: timescales(){
@@ -398,8 +399,6 @@ void GAS:: timescales(){
         r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_chem(nH0, T_K0, y0, k)/rho0;
         t_c = e0/r_c;
         t_h = abs(e0/r_h); //可能为负 potential well dilution
-        Dt = 0.1* min( min(t_c,t_h), t_ff ); //sufficiently same with Dt = 0.01*... 
-                                             //WRONG for y_e<1.e-5, could use 0.01, 计算耗时多于带着t_chem判断
         //不需要t_rcb //如果加细Dt 用0.001仍然converge而且似乎更smooth但是慢得多 //不能放宽了 0.1明显不行
         Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h));
 
@@ -471,8 +470,8 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             adjust_iso = (t_act - t_prev >= .5*t_freefall(nH0));
             //adjust_iso = false; 
             if (adjust_iso) {
-                printf("###\n");
-                printf("IN STAGE 3 f_Ma=%3.2e\n",f_Ma);
+                // printf("###\n");
+                // printf("IN STAGE 3 f_Ma=%3.2e\n",f_Ma);
                 dt_iso = t_act - t_prev;
                 Mh_prev = Mh; t_prev = t_act;
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
@@ -484,14 +483,21 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             }
             break;
         case 4:
-            Mg_intg = 0;
+            Mg_intg = 0; // gas mass within Rvir
+            if (z_col<0.) z_col = z0; // mark collapse redshift
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
             break;
         case 5:
             nH0 = MPs[iMer].ng_adb;
             if (r_cH2>2*abs(r_h) or r_cH>abs(r_h) and t_act!=0) { //factor 2 coz H2 cooling somehow high initially
-                printf(" in CASE5: adb not hold, go to 3\n");
+                printf(" in CASE5: adb not hold, go to 3\t");
                 evol_stage = 3;
+                Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
+                printf("SOLVED FOR THE 1ST TIME\n");
+                // printf("n_iso=%3.2e, f_Ma=%3.2e, v_bsm=%3.2e, Vc=%3.2e\n", n_iso,f_Ma,v_bsm,halo1.Vc);
+                if (!n_iso) evol_stage = 4; // unstable case Mg2ng return 0
+                else nH0 = n_iso;
+                Mh_prev = Mh; t_prev = t_act;
             }
             break;
     }
@@ -545,5 +551,6 @@ GAS:: ~GAS(void){
     delete [] k; delete [] rf;
     delete [] Ta; delete [] ka;
     delete [] MPs;
-    file_ingas.close();
+    // file_ingas.close();
+    cout<<"releasing gas\n";
 }

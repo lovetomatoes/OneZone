@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
+#include <iomanip>
 
 #include "class_halo.h"
 #include "read_aTree.h"
@@ -17,125 +18,117 @@ using namespace std;
 g++ read_aTree.cpp dyn.cpp PARA.cpp class_halo.o -o read.out && ./read.out
  */
 
-void read_aTree (int& num, char* fname, MainProgenitor* MPs){
 
-    //MainProgenitor MPs[200];
+static int i, num;
+static double a;
 
-    ifstream infile;
-    infile.open(fname);
-    string line;
-    int i = 0;
-    int id_m = 0;
-//    int id_tree;
-    //printf("++++++++++++++++++++\n");
-    while (getline(infile,line)){
-        stringstream ss(line);
-        double a; ss>>MPs[i].j>>id_m>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>a>>MPs[i].id_tree; //current, for tree_Hirano/. file
-        // ss>>MPs[i].j>>id_m>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>MPs[i].id_tree; //old, for code_tree/. files
-        MPs[i].t = t_from_z(MPs[i].z); //time from universe age of 0
-        /* printf("MPs[%d].mhalo = %3.2e \n",i,MPs[i].mhalo);
-        printf("MPs[%d].z = %3.2e \n",i,MPs[i].z);
-        printf("MPs[%d].id_tree = %3.2e \n\n",i,MPs[i].id_tree); */
-        i++;
+void aTree(int& nMP, string treename, MainProgenitor* MPs){
+    string filename = treename + "mer";
+    string line, temp_str;
+    ifstream readmer, readtree;
+    readmer.open(filename.c_str());
+    i = 0;
+
+    if (readmer.good()){
+        cout<<filename<<"TREEmer exist\n";
+        getline(readmer,temp_str);
+        i = 0;
+        while (getline(readmer,line)){
+            stringstream ss(line);
+            ss>>MPs[i].id_tree>>MPs[i].j>>MPs[i].mhalo>>MPs[i].z>>MPs[i].t>>MPs[i].c>>MPs[i].Tvir>>MPs[i].ng_adb;
+            MPs[i].t *= Myr; //time from universe age of 0
+            MPs[i].mhalo *= Ms; // mhalo unit -> g
+            // printf("IN READMER:\n MPs[%d].j=%d,mhalo=%3.2e,z=%3.2f,Tvir=%3.2e,c=%3.2e,n_adb=%3.2e\n",i,MPs[i].j,MPs[i].mhalo/(1.e11*Ms),MPs[i].z,MPs[i].Tvir,MPs[i].c,MPs[i].ng_adb );
+            i++;
+        }
+        readmer.close();
+        nMP = i;
+        // printf("READMER:%d\n",nMP);
     }
-    num = i-2; //减1是因为i最后有一次++, 再减1是因为analysis_trees.f 输出给fort.11的最后一行带\n
+// no mer file; calculate n_adb; write
+    else{
+        cout<<" no mer file\n";
+        readtree.open(treename);
+        int id_m;
+        getline(readtree,temp_str);
+        i = 0;
+        while (getline(readtree,line)){
+            // cout<<line;
+            stringstream ss(line);
+            ss>>MPs[i].j>>id_m>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>MPs[i].c>>MPs[i].id_tree; //current, for tree_Hirano/. file
+            // ss>>MPs[i].j>>id_m>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>MPs[i].id_tree; //old, for code_tree/. files
 
-    infile.close();
+            MPs[i].t = t_from_z(MPs[i].z); //time from universe age of 0
+            MPs[i].mhalo *= (1.e11*Ms); // mhalo unit -> g
+            // printf("IN READTREE:\n MPs[%d].j=%d,mhalo=%3.2e,z=%3.2f,Tvir=%3.2e,c=%3.2e,id_tree=%d \n",i,MPs[i].j,MPs[i].mhalo/(1.e11*Ms),MPs[i].z,MPs[i].Tvir,MPs[i].c,MPs[i].id_tree );
+            i++;
+        }
+        readtree.close();
+        nMP = i-1; //减1是因为analysis_trees.f 输出给fort.11的最后一行带\n
+        // cout<<"tree: nMP= "<<nMP<<endl;
+
+        // fort.211, fort.212得用mac来跑, haha上面报错segmentation fault
+
+    // 调换位置 以num/2为轴 MPs[num]<->MPs[0]
+        num = nMP - 1;
+        double temp_dbl;
+        // 原本到MPs[0]无效, 因为fort.11中第一行header: # j id_m mhalo_m/1.e11Ms z_m T_{vir,m} 赋给了MPs[0]
+        for (i=0;i<num/2;i++){
+            temp_dbl = MPs[num-i].z; MPs[num-i].z = MPs[i].z; MPs[i].z = temp_dbl;
+            temp_dbl = MPs[num-i].t; MPs[num-i].t = MPs[i].t; MPs[i].t = temp_dbl;
+            temp_dbl = MPs[num-i].mhalo; MPs[num-i].mhalo = MPs[i].mhalo; MPs[i].mhalo = temp_dbl;
+            temp_dbl = MPs[num-i].c; MPs[num-i].c = MPs[i].c; MPs[i].c = temp_dbl;
+            temp_dbl = MPs[num-i].Tvir; MPs[num-i].Tvir = MPs[i].Tvir; MPs[i].Tvir = temp_dbl;
+            }
+    // reset t starting point to the 1st progenitor; n_adb
+        temp_dbl = MPs[0].t;
+        for (i=0;i<nMP;i++){ 
+            MPs[i].t -= temp_dbl; 
+            HALO halo(MPs[i].mhalo,MPs[i].z);
+            double ni=1; MPs[i].ng_adb = 1;
+            Mg2N0_adb(MPs[i].ng_adb,ni,MPs[i].z,MPs[i].mhalo);
+        }
+
+        ofstream f;
+        f.open(filename, ios::out | ios::trunc);
+        f<<setw(17)<<"id_tree"<<setw(17)<<"j"<<setw(17)<<"Mh_Ms"<<setw(17)<<"z";
+        f<<setw(17)<<"t_Myr"<<setw(17)<<"c"<<setw(17)<<"Tvir"<<setw(17)<<"n_adb"<<endl;
+        f<<setiosflags(ios::scientific)<<setprecision(8);
+        for (i=0;i<nMP;i++){
+            f<<setw(17)<<MPs[i].id_tree<<setw(17)<<MPs[i].j<<setw(17)<<MPs[i].mhalo/Ms<<setw(17)<<MPs[i].z;
+            f<<setw(17)<<MPs[i].t/Myr<<setw(17)<<MPs[i].c<<setw(17)<<MPs[i].Tvir<<setw(17)<<MPs[i].ng_adb<<endl;
+        }
+        f.close();
+    }
+// other attributes
+    for (i=0;i<nMP;i++){
+            HALO halo(MPs[i].mhalo,MPs[i].z);
+
+            MPs[i].Tvir = halo.Tvir;
+            MPs[i].c = halo.c;
+
+            MPs[i].dt = (i==nMP-1)? 0: MPs[i+1].t - MPs[i].t;
+            MPs[i].dm = (i==nMP-1)? 0: MPs[i+1].mhalo - MPs[i].mhalo;
+            MPs[i].mratio = (i==nMP-1)? 0:MPs[i].dm/MPs[i].mhalo;
+            MPs[i].major = (MPs[i].mratio >= 0.25)?true:false;
+            // printf("generation = %d, mratio = %3.2e, dm = %3.2e, dt = %3.2e, mhalo = %3.2e\n",MPs[i].j,MPs[i].mratio,MPs[i].dm/Ms,MPs[i].dt,MPs[i].mhalo/Ms);
+        }
 }
 
 
-void aTree(int& nMer, char* filename, MainProgenitor* MPs){
-    int num = 0, i = 0, j;
-    /* char fname[100]; 
-    sprintf(fname, "../code_tree/fort.217");  */
-    // fort.211, fort.212得用mac来跑, haha上面报错segmentation fault
-    //MainProgenitor* p = NULL;
-    //read_aTree(num, fname, p);
-    double temp_dbl;
-    int temp_int;
-    //read_aTree(num,fname,MPs);
-    read_aTree(num,filename,MPs);
-    // 调换位置，MPs[num]->MPs[1] 倒序赋值到MPs[0]->MPs[num-1]里去;
-    // 原本到MPs[0]无效, 因为fort.11中第一行header: # j id_m mhalo_m/1.e11Ms z_m T_{vir,m} 赋给了MPs[0]
-    for (i=0;i<(num+1)/2;i++){
-        temp_dbl = MPs[num-i].z; MPs[num-i].z = MPs[i].z; MPs[i].z = temp_dbl;
-        temp_dbl = MPs[num-i].t; MPs[num-i].t = MPs[i].t; MPs[i].t = temp_dbl;
-        temp_dbl = MPs[num-i].mhalo; MPs[num-i].mhalo = MPs[i].mhalo; MPs[i].mhalo = temp_dbl;
-        temp_dbl = MPs[num-i].Tvir; MPs[num-i].Tvir = MPs[i].Tvir; MPs[i].Tvir = temp_dbl;
-        temp_int = MPs[num-i].j; MPs[num-i].j = MPs[i].j; MPs[i].j = temp_int;
-
-        //MPs[i].t = t_from_z(MPs[i].z);
-        /* in array MPs[num]: MPs[i].j generation, 
-                           MPs[i].z redshift, 
-                           MPs[i].t time,
-                           MPs[i].mhalo halo mass grow from high redshift
-                           MPs[i].Tvir virial temperature */
-    }
-
-    temp_dbl = MPs[0].t;
-    for (i=0;i<num;i++){
-        MPs[i].t -= temp_dbl; // reset t starting point to the 1st progenitor 
-        MPs[i].mhalo *= (1.e11*Ms); // mhalo unit -> g
-        //cout<<"j="<<MPs[i].j<<endl;
-    }
-    for (i=0;i<num;i++){
-        HALO halo(MPs[i].mhalo,MPs[i].z);
-        MPs[i].Tvir = halo.Tvir;
-
-        MPs[i].dt = (i==num-1)? 0: MPs[i+1].t - MPs[i].t;
-        MPs[i].dm = (i==num-1)? 0: MPs[i+1].mhalo - MPs[i].mhalo;
-        MPs[i].mratio = (i==num-1)? 0:MPs[i].dm/MPs[i].mhalo;
-        MPs[i].major = (MPs[i].mratio >= 0.25)?true:false;
-        //if (MPs[i].major) cout<<"ratio = "<<MPs[i].mratio<<endl;
-        //printf("generation = %d, mratio = %3.2e, dm = %3.2e, dt = %3.2e, mhalo = %3.2e\n",MPs[i].j,MPs[i].mratio,MPs[i].dm/Ms,MPs[i].dt,MPs[i].mhalo/Ms);
-        double ni=1;
-        // if (i<2) 
-        Mg2N0_adb(MPs[i].ng_adb,ni,MPs[i].z,MPs[i].mhalo); //i<2 wli temporary
-    }
-
-/* // detect if FILE exist 
-    // if (FILE *f = fopen(filename, "r")) {
-    //     fclose(f);
-    // name = "./H2p/sigma_"+to_string(T[i])+"K"; //cout<<name<<endl;
-    string line, name;
-    ifstream inFile("20MPs.txt"); if (!inFile) cout<<"read error\n";
-    j = 0;
-    while (getline(inFile, line)){
-        istringstream isolated(line);
-        isolated>>nu_str>>sigma_str;
-        if (i==0) nua[j] = stod(nu_str);
-        sigmaa[i][j] = stod(sigma_str);
-        // cout<<j<<"\t"<<sigmaa[i][j]<<"\n";
-        j++;
-    }
-    if (j!=nnu_H2p) printf("line count error\n");
-    inFile.close();
-    }
-    else {
-        file.open(filename, ios::out | ios::trunc);
-        file<<"R ng_0 M_intg ng_vir\n";
-        file.close();
-    }
-    file.open(filename, ios::out | ios::app);
- */
-// 
-    cout<<"\nnum = "<<num<<endl;
-    nMer = num;
-}
-
-
-/* // adiabatic solution of central gas density
+/*
+rm ../tree_Hirano/fort.*mer
 g++ read_aTree.cpp dyn.cpp PARA.cpp LE_adb.cpp RK4.o my_linalg.o class_halo.o  -o read.out && ./read.out
  */
 
 /* int main(){
     MainProgenitor* MPs = NULL;
     MPs = new MainProgenitor [200];
-    int nMer = 0;
-    aTree(nMer, "../tree_Hirano/fort.20", MPs);
+    int nMP = 0;
+    aTree(nMP, "../tree_Hirano/fort.20", MPs);
     int i=0;
     double n0_sol, ni=1;
-    while(i<nMer){
+    while(i<nMP){
         HALO halo(MPs[i].mhalo,MPs[i].z);
         // printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e\n",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
         // if (halo.Tvir<1.e4){

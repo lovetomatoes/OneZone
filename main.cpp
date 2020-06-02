@@ -25,20 +25,59 @@ int main(){
     int n = 8;
     double Tbs[] = {8.e3, 1.e4, 1.5e4, 2.e4, 3.e4, 5.e4, 1.e5, 2.e5};
 
-    char* ftree = "../code_tree/fort.217"; //不行！！！会
-    char* fout = NULL;
+    string ftree = "../code_tree/fort.217"; //不行！！！会
     double Tb = 2.e4;
     bool Ma_on = true, spec=false;
     int MerMod = 1;
-    double J21 = 10;
+    double J21 = 0;
     int i_bsm;
-
-    Ma_on = false;
+    string fout;
+    Ma_on = true;
     ftree = "../tree_Hirano/fort.20";
+
+    i_bsm = 0; Ma_on = false;
+
+//     double T0,z_col;
+//     J21 = 1328;
+//     T0 = getT(z_col,MerMod, J21, Tb, ftree, spec, Ma_on, i_bsm, 1.e4);
+//   //double getT(double& zcol, int MerMod, double J, double Tb, std::string treename, bool spec, bool Ma_on, int i_bsm, double nH_tell);
+//     printf("--\n--\n--\n--\n--\n--\n");
+//     fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+//     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+//     printf("--\n--\n--\n--\n--\n--\n");
+//     J21 = 1335;
+//     T0 = getT(z_col,MerMod, J21, Tb, ftree, spec, Ma_on, i_bsm, 1.e4);
+//     printf("--\n--\n--\n--\n--\n--\n");
+//     fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+//     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+
+    fout = "Jc_bsm" + to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+//   //void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
+
+    // Ma_on = true;
+    // for (i_bsm=0; i_bsm<2; i_bsm++){
+    //     string fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    //     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // }
     
-    i_bsm = 0;
-    fout = "J15e2.txt";
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // J21 = 1000;
+    // for (i_bsm=0; i_bsm<4; i_bsm++){
+    //     string fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    //     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // }
+
+
+
+    // double T0,z_col;
+    // J21 = 1228;
+    // T0 = getT(z_col,MerMod, J21, Tb, ftree, spec, Ma_on, i_bsm, 1.e4);
+
+    // J21 = 1235;
+    // fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    
+
 
     // i_bsm = 0;
     // fout = "20J1e1bsm0tur0evolve_Vc.txt";

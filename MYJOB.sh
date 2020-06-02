@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -o job.%j.out
 #SBATCH --partition=C032M0128G
-#SBATCH --qos=high
+#SBATCH --qos=low
 #SBATCH -A hpc1806187118
 #SBATCH -J PYevol_wli
 #SBATCH --get-user-env
@@ -11,4 +11,5 @@
 
 module load gsl/2.4 anaconda/3.7.1
 
-python evol.py 
+#python evol.py 
+make && m

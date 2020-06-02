@@ -123,6 +123,7 @@ void check_conv(double err_crit, double* yout, double x, double& h, double *y, i
         else break;
         // if (i_iter==3) cout<<"ITERATION TIMES > 3! REFINE GRID!!!!!!!!!!!!!!!\n"; 
         // wli: commented out. need to improve...
+        // 输出了 大约6次 次数远远比N(iso using 1000)小就认为converge了
         i_iter ++;
     }
     delete [] yout1; delete [] yout2; delete [] delta_y; delete [] v;

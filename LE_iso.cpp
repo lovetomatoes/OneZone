@@ -23,6 +23,9 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 //input para
 //output: a profile of density distributions, Phi(x), x=r/a, Phi = log(rho/rho_g0)
 
+static int const N = 1000;
+static int const n = 2;
+
 double Tvir = 1.6e4;
 //double z = 20; double Mh = 1.e7*Ms;
 double z1 = 20; double Mh1 = 1.e5*Ms;
@@ -38,8 +41,6 @@ double A_TR(double Tg, double rhoc, double R){
 }
 void profile(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
     HALO halo1(Mh,z);
-    int const N = 1000000;
-    int const n = 2;
     int i;
     double rho_g0 = halo1.rho_c * R;
     double M_intg = 0;
@@ -108,8 +109,6 @@ void profile(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
 void BOUNDARY(double& N_VIR, double& MG_VIR, double Tg, double R, double z=z1, double Mh=Mh1){
     MG_VIR = 0;
     HALO halo1(Mh,z);
-    int const N = 100000;
-    int const n = 2;
     int i;
     double rho_g0 = halo1.rho_c * R;
     double a = sqrt(k_B*Tg/(4*pi*G*mu*m_H*rho_g0));
@@ -138,7 +137,7 @@ void BOUNDARY(double& N_VIR, double& MG_VIR, double Tg, double R, double z=z1, d
         dx = x1/N;
         DyDx_iso(x[i-1],y[i-1],dydx0,c,v);
         rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
-        check_conv(epE2,y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
+        // check_conv(epE2,y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
         x[i]=x[i-1]+dx;
 
         //integrate within R_vir
@@ -181,10 +180,10 @@ void Nvir2N0(double& n_sol, double& nvir_max, double ni, double Tg, double z, do
     BOUNDARY(nvir_max, Mg_vir, Tg, R0, z, Mh);
     // printf("\nR_max=%3.2e, nvir_max=%3.2e\n",R0,nvir_max);
     // printf("z=%3.2e, Mh=%3.2e\n",z,Mh/Ms);
-// unstable criterion: nvir_max < n_mean (cosmic mean density at z) 
+// unstable criterion: nvir_max < n_nfw (cosmic mean density at z) 
     double n_mean = RHO_crit(z)/(mu*m_H);
     double n_nfw = fb*halo.Rho_r(halo.Rvir)/(mu*m_H);
-    printf("nmean=%3.2e, n_nfw=%3.2e, nvir_max=%3.2e:\n",n_mean,n_nfw, nvir_max);
+    // printf("nmean=%3.2e, n_nfw=%3.2e, nvir_max=%3.2e:\n",n_mean,n_nfw, nvir_max);
     n_mean = n_nfw;
     if (n_mean>nvir_max) {
         printf("UNSTABLE!!!!!!!!!!!!!\n");
@@ -277,7 +276,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 
 
 /* int main(){// *****************  Tvir critical value v.s. z (Tg_eff changes w/ bsm&z as input parameter) **************
-    char* fname = "H2_3s_z_Tvcrit.txt";
+    char* fname = "Tg8000_z_Tvcrit_.txt";
     // fname = "threshold_3s.txt";
     int n_sigma = 3;
     fstream f;
@@ -295,20 +294,22 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
     double Tg, cs, f_Ma;
     double nvir_max, nvir_m1, nvir_m0;
   // calculation
-    double N = 5;
-    double z_rat = exp( log(z1/z0)/N );
-    for (int i=0; i<N; i++){
-        v_bsm = n_sigma*sigma1*(1+z0)/(1+z_rcb);
-        cs = sqrt(gamma_adb* k_B*2000./(mu*m_H) ); //sound speed of 2000K gas
-        f_Ma = 1+pow(alpha*v_bsm/cs,2);
-        Tg = 2000*f_Ma;
+    double Nspan = 5;
+    double z_rat = exp( log(z1/z0)/Nspan );
+    Tg = 8000;
+    while (z0>z1){
+        // v_bsm = n_sigma*sigma1*(1+z0)/(1+z_rcb);
+        // cs = sqrt(gamma_adb* k_B*2000./(mu*m_H) ); //sound speed of 2000K gas
+        // f_Ma = 1+pow(alpha*v_bsm/cs,2);
+        // Tg = 2000*f_Ma;
+        
         // Tv0 = 0.5*(mu*m_H)*pow(5*km,2)/k_B;
         // Tv1 = 0.5*(mu*m_H)*pow(10*km,2)/k_B;
         Tv0 = 5000; Tv1 = 20000;
-  // 二分法求Tvir_crit; print
+  // 二分法 算nvir_max 缩小范围至10n_mean (因为n_nfw会变) 求Tvir_crit; print
         Nvir2N0(n_sol, nvir_m0, ni, Tg, z0, Mh_Tz(Tv0, z0));
         Nvir2N0(n_sol, nvir_m1, ni, Tg, z0, Mh_Tz(Tv1, z0));
-        n_mean = RHO_crit(z0)/(mu*m_H);
+        n_mean = 10*RHO_crit(z0)/(mu*m_H); //暂且用它来试
         if (nvir_m0<n_mean or nvir_m1>n_mean) {
             printf("\n!!!!!initial value not correct\n");
             return 0;
@@ -337,21 +338,22 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 
     cout<<"f_Ma = "<<f_Ma<<endl;
     return 0;
-} */
+}
+ */
 
 /* int main(){ // *****************  Tvir critical value v.s. Tg (z as input parameter) **************
-    char* fname = "Tg_Tvcrit.txt";
+    char* fname = "Tg_Tvcrit_.txt";
     fstream f;
     f.open(fname, ios::out | ios::trunc );
     f<<"Tg Tv_crit\n";
     double Tg = 7.e3, Tg1 = 2.e4, Tv1,Tv0, Tv_sol;
     double z = 25, Mh;
     double n_sol = 0, ni = 1, n_mean, n_mid;
-    double N = 10;
-    double Tgrat = exp( log(Tg1/Tg)/N ); cout<<Tgrat<<endl;
+    double Nspan = 10;
+    double Tgrat = exp( log(Tg1/Tg)/Nspan ); cout<<Tgrat<<endl;
     double nvir_max, nvir_m1, nvir_m0;
     for (int i=0; i<N; i++){
-        Tv1 = 3.e4,Tv0 = 5.e3;
+        Tv1 = 5.e4,Tv0 = 5.e3;
         Nvir2N0(n_sol, nvir_m0, ni, Tg, z, Mh_Tz(Tv0, z));
         Nvir2N0(n_sol, nvir_m1, ni, Tg, z, Mh_Tz(Tv1, z));
         n_mean = RHO_crit(z)/(mu*m_H);
@@ -534,10 +536,10 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
     double Tg = 2.3e4, Tvir=7.e3, Tv1,Tv0, Tv_sol;
     double z0 = 20, z1 = 10, Mh;
     double n_sol = 0, ni = 1, n_mean, n_mid;
-    double N = 1;
+    double Nspan = 1;
     // HALO halo(4.e7*Ms,z0);
     // printf("4.e7halo Tvir:%3.2e\n",halo.Tvir);
-    double z_rat = exp( log(z1/z0)/N ); cout<<z_rat<<endl;
+    double z_rat = exp( log(z1/z0)/Nspan ); cout<<z_rat<<endl;
     double nvir_max, nvir_m1, nvir_m0;
     for (int i=0; i<N; i++){
         Tv1 = 5.e4,Tv0 =1.e4;
@@ -573,7 +575,8 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 //                                  FILE treatment...
 //---------------------------------------------------------------------------------------------------------
 /* // detect if FILE exist 
-    if (FILE *f = fopen(filename, "r")) fclose(f);
+    ifstream checkf_exist(fout.c_str());
+    if (checkf_exist.good()) cout<<"exist\n";
     else {
         file.open(filename, ios::out | ios::trunc);
         file<<"R ng_0 M_intg ng_vir\n";

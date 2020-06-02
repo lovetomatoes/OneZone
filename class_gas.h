@@ -20,13 +20,13 @@ class GAS
 
 
         // member function definition -- constructor
-        GAS(double *frac0, int MergerModel, double J21, double Tbb, char* treefile, bool spec, bool Ma_turn, int bsm);
+        GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefile, bool spec, bool Ma_turn, int bsm);
         ~GAS();
     //private:
         int N, Nt;
         int i_m; int MerMod;
         int nMer, iMer;
-        double z0,z;
+        double z0, z, z_col;
         double t0, t1, Dt, t_act, t_ff0, t_delay;
         double dMdt, dEdt;
 
@@ -56,9 +56,3 @@ class GAS
 };
 
 const double fraction = 0.75; // fraction of merger heating turned into thermal energy
-
-/* extern "C" double Mg_max(double Tg, double z, double Mh);
-double R_EQ(double Tg, double rhoc, double rs);
-double A_TR(double Tg, double rhoc, double R);
-extern "C" double Mg(char* filename, double Tg, double R, double z, double Mh);
-extern "C" double Mg2ng(double Mg, double ni, double Tg, double z, double Mh); */

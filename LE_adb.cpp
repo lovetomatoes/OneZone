@@ -22,7 +22,7 @@ static double Tvir = 1.6e4;
 static double z1 = 20; 
 static double Mh1 = 1.e5*Ms;
 //double z = 30; double Mh = Mh_Tz(Tvir,z);
-static int const N=100000;
+static int const N=1000;
 static int const n=2;
 static int i;
 // static double rho_g0, a, ng0, gamma;
@@ -345,13 +345,16 @@ g++ LE_adb.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_adb.out
     double R, n_adb = 1.5;
     double n_sol, ni = 1, r_out, Tg_ave, n_vir, Mg_vir;
     double z = 20, Mh = 1.e6*Ms; //z20 M6 --> Kfit
+    z = 17.29, Mh = 6.28000000e7*Ms; //Mh = 1.7537278099999999E-006   34.821212799999998
     HALO halo(Mh,z);
     double n_nfw = fb*halo.Rho_r(halo.Rvir)/(mu*m_H);
     char* f_Nsol; 
-    
+
   // tests --especially Tg profile
-    // printf("0.1*halo1.Kvir=%3.2e, K_ISM=%3.2e, Tvir=%3.2e\n",0.1*halo.Kvir,K_ISM(z),halo.Tvir );
-    // // Mg2N0_adb(n_sol, ni, z, Mh);
+    printf("0.1*halo1.Kvir=%3.2e, K_ISM=%3.2e, Tvir=%3.2e\n",0.1*halo.Kvir,K_ISM(z),halo.Tvir );
+    Mg2N0_adb(n_sol, ni, z, Mh);
+    printf("n_sol=%3.2e\n",n_sol);
+
     // R=1000;
     // profile_adb_Kfit("R1e3_z20M6.txt",n_vir,Mg_vir, R, n_adb, z, Mh);
     // printf("soluiton of R:%3.2e, n_sol=%3.2e, n_nfw=%3.2e\n",n_sol*(mu*m_H)/halo.rho_c,n_sol,n_nfw);
@@ -422,74 +425,4 @@ g++ LE_adb.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_adb.out
 
 
     return 0;
-}
-
- */
-
-/* void profile_adb_Kc_gammaeff(char* filename, double R, double n_adb, double z=z1, double Mh=Mh1){
-    HALO halo1(Mh,z);
-    double rho_vir_nfw = fb*halo1.Rho_r(halo1.Rvir);
-    int const N = 1000000;
-    int const n = 2; //length of vector y
-    int i;
-    double rho_g0 = halo1.rho_c * R, nH0, a;
-    double ng0 = rho_g0/(mu*m_H);
-    double M_intg = 0;
-    double T_K0 = halo1.Tvir;
-    // a = sqrt( (n_adb+1)*Kc *pow(rho_g0,gamma_adb-2.)/(4*pi*G) ); // adiabatic n_adb
-
-  // adiabatic, entropy K = k_B*T*n^(-2/3), n=pow(k_B*T / S, 1.5); // n \propto T^1.5
-    // using ISM entropy ( Visbal 2014 Eq(2) same )
-    // double Kc = K_ISM(z); //1.41e+26 constant
-
-  // gamma_eff = 1.2 case
-    double gammap_adb = gamma_adb - 0.5; // 7/6 for K~r
-    double np_adb = 1./(gammap_adb -1.); // np_adb=6     printf("np_adb=%3.3f\t",np_adb);
-    double C = halo1.Kvir*sqrt(rho_vir_nfw);
-    a = sqrt( (np_adb+1)*C*pow(rho_g0, gammap_adb-2.)/(4*pi*G) ); printf("a=%3.2e\n",a);
-
-    double alpha = a/halo1.Rs;
-    // set x1, largest xi
-    double x1 = 100.*halo1.Rvir/a;
-    printf("in PROFILE:nH0=%3.2e, R=%3.2e, a=%3.2e, alpha=%3.2e, x1=%3.2e\n", nH0, R, a, alpha, x1);
-    printf("halo: delta_rhoc=%3.2e, Rs=%3.2e cm Rvir=%3.2e\n", halo1.rho_c,halo1.Rs,halo1.Rvir);
-    double* x = new double [N];
-    double** y = new double* [N];
-    for (i=0;i<N;i++) y[i] = new double [n];
-    int c = 3;
-    double* v = new double [c];
-    v[0] = np_adb;
-    v[1] = R;
-    v[2] = alpha;
-
-    M_intg = 0;
-    double* dydx0 = new double [n];
-    fstream file;
-    file.open(filename, ios::out | ios::trunc );
-
-    file<<"xi r y0 y1 theta_n n_g\n";
-    // dx
-    double dx;
-    double err=.01;
-    // boundary conditions
-    i = 0;
-    dx = x1/N;
-    // boundary x[0]=0, but 0 causes sigularity, using x[0]=dx/1000<<dx
-    x[i] = dx/1.e8; y[i][0] = 1; y[i][1] = 0; // adiabatic case
-    printf("center boundary: r0=%3.2e (Rvir)\t dr=%3.2e (Rvir)\n",a*x[0]/halo1.Rvir,a*dx/halo1.Rvir);
-
-    for (i=1;i<N;i++){
-        dx = x1/N;
-        DyDx_adb_Kc(x[i-1],y[i-1],dydx0,c,v);
-        rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_adb_Kc);
-        // check_conv(err,y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_adb);
-        x[i]=x[i-1]+dx;
-        if (y[i][0]<=0.) break;
-        file<<x[i]<<" "<<a*x[i]/halo1.Rvir;
-        file<<" "<<y[i][0]<<" "<<y[i][1];
-        file<<" "<<pow(y[i][0],np_adb)<<" "<<ng0*pow(y[i][0],np_adb)<<endl;
-    }
-    delete [] x; delete [] y; delete [] v; delete [] dydx0;
-    file.close();
-}
- */
+} */

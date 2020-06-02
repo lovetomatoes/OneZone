@@ -45,38 +45,32 @@ double evol_y_e = evol_y_Hp + evol_y_H2p - evol_y_Hm + evol_y_Hep + 2.*evol_y_He
 
 double frac0[] = {0., evol_y_H, evol_y_H2, evol_y_e, evol_y_Hp, evol_y_H2p, evol_y_Hm, evol_y_He, evol_y_Hep, evol_y_Hepp};
 
-void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool spec, bool Ma_on, int i_bsm){
+void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool spec, bool Ma_on, int i_bsm){
     printf("################################################################################\n");
     printf("################################################################################\n");
     printf("################################################################################\n");
     int i =0;
 
     GAS gas(frac0,MerMod,J21,Tbb,treename,spec,Ma_on,i_bsm);
-    double t_ff0 = 1./C/sqrt(gas.nH0);
-    double t1 = 1.9999*t_ff0;
     printf("z0 = %3.2f, initial nH = %3.2e /cc & T = %3.2e K\n",gas.z0,gas.nH0,gas.T_K0);
-    printf("t_ff,0 = %e Myr\n",t_ff0/Myr);
-    printf("t1 in main is :  %f t_ff0\n", t1/t_ff0);
-    printf("t_delay in main is :  %f t_ff0\n", gas.t_delay/t_ff0);
+    printf("t_ff,0 = %e Myr\n",gas.t_ff0/Myr);
     printf("t_mergers in main is :  %3.2e Myr\n", (gas.MPs[gas.nMer-1].t - gas.MPs[0].t)/Myr );
     printf("M_J is %3.2e Ms for n = %3.2e and T = %3.e K\n",gas.MJ0/Ms,gas.nH0,gas.T_K0);
-    printf("at z=10, n_mean = %3.2e cm^-3\n",RHO_crit(10)/m_H);
+    printf("at z=10, cosmic n_crit = %3.2e cm^-3\n",RHO_crit(10)/(mu*m_H));
 
-    //merger tree information in GAS::gas
-    ofstream f1;
-    f1.open("../data/atree.txt", ios::out | ios::trunc );
-    f1<<setiosflags(ios::scientific)<<setprecision(5);
-
-    for (i=0;i<gas.nMer;i++){
-        HALO halo(gas.MPs[i].mhalo,gas.MPs[i].z);
-        if (i==0) f1<<"\tj\tz\tt(Myr)\tdt(Myr)\tt_dyn(Myr)\tM8\tdM8\tq\tRvir\tRs\tc\tTvir\trho_c\trho_crit\td0\n";
-        f1<<setw(12)<<gas.MPs[i].j<<setw(12)<<gas.MPs[i].z<<setw(12)<<gas.MPs[i].t/Myr<<setw(12)<<gas.MPs[i].dt/Myr<<setw(12)<<halo.t_dyn/Myr;
-        f1<<setw(12)<<gas.MPs[i].mhalo/(1.e8*Ms)<<setw(12)<<gas.MPs[i].dm/(1.e8*Ms)<<setw(12)<<gas.MPs[i].mratio;
-        f1<<setw(12)<<halo.Rvir<<setw(12)<<halo.Rs<<setw(12)<<halo.c<<setw(12)<<halo.Tvir;
-        f1<<setw(12)<<halo.rho_c<<setw(12)<<halo.rho_crit<<setw(12)<<halo.delta0<<endl;
-    }
-    f1.close();
-
+//merger tree information in GAS::gas
+    // ofstream f1;
+    // f1.open("../data/atree.txt", ios::out | ios::trunc );
+    // f1<<setiosflags(ios::scientific)<<setprecision(5);
+    // for (i=0;i<gas.nMer;i++){
+    //     HALO halo(gas.MPs[i].mhalo,gas.MPs[i].z);
+    //     if (i==0) f1<<"\tj\tz\tt(Myr)\tdt(Myr)\tt_dyn(Myr)\tM8\tdM8\tq\tRvir\tRs\tc\tTvir\trho_c\trho_crit\td0\n";
+    //     f1<<setw(12)<<gas.MPs[i].j<<setw(12)<<gas.MPs[i].z<<setw(12)<<gas.MPs[i].t/Myr<<setw(12)<<gas.MPs[i].dt/Myr<<setw(12)<<halo.t_dyn/Myr;
+    //     f1<<setw(12)<<gas.MPs[i].mhalo/(1.e8*Ms)<<setw(12)<<gas.MPs[i].dm/(1.e8*Ms)<<setw(12)<<gas.MPs[i].mratio;
+    //     f1<<setw(12)<<halo.Rvir<<setw(12)<<halo.Rs<<setw(12)<<halo.c<<setw(12)<<halo.Tvir;
+    //     f1<<setw(12)<<halo.rho_c<<setw(12)<<halo.rho_crit<<setw(12)<<halo.delta0<<endl;
+    // }
+    // f1.close();
     /* for (i=1; i<gas.nMer-1; i++){
         printf("time = %6.3e,\tdt = %6.3e\n", gas.MPs[i].t/Myr, (gas.MPs[i].t-gas.MPs[i-1].t)/Myr);
     } */
@@ -101,7 +95,7 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
             if (py) file <<" t Dt z nH T";
             else file <<" t Dt z nH T";
         }
-        else file<<setw(12)<<gas.t_act/t_ff0<<setw(12)<<gas.Dt/t_ff0<<setw(12)<<gas.z<<setw(12)<<gas.nH0<<setw(12)<<gas.T_K0;
+        else file<<setw(12)<<gas.t_act/gas.t_ff0<<setw(12)<<gas.Dt/gas.t_ff0<<setw(12)<<gas.z<<setw(12)<<gas.nH0<<setw(12)<<gas.T_K0;
             
         //printf("nH=%3.2e, T_K=%3.2e\t k[15,+]=%3.2e, k[7,-]=%3.2e, y_H2=%3.2e\n",gas.nH0, gas.T_K0,gas.k[15],gas.k[7],gas.y0[2]);
 
@@ -113,15 +107,15 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
                 else file<<" t_{ff} t_{c} t_h t_{rcb} t_{chem} t_{ion} tc_{H2} tc_H 0 0";
             }
             else {
-                file<<setw(12)<<gas.t_ff/t_ff0;
-                file<<setw(12)<<gas.t_c/t_ff0;
-                file<<setw(12)<<gas.t_h/t_ff0;
-                file<<setw(12)<<gas.t_rcb/t_ff0;
-                file<<setw(12)<<gas.t_chem/t_ff0;
+                file<<setw(12)<<gas.t_ff/gas.t_ff0;
+                file<<setw(12)<<gas.t_c/gas.t_ff0;
+                file<<setw(12)<<gas.t_h/gas.t_ff0;
+                file<<setw(12)<<gas.t_rcb/gas.t_ff0;
+                file<<setw(12)<<gas.t_chem/gas.t_ff0;
 
-                file<<setw(12)<<gas.t_ion/t_ff0;
-                file<<setw(12)<<gas.e0/gas.r_cH2 /t_ff0;
-                file<<setw(12)<<gas.e0/gas.r_cH / t_ff0;
+                file<<setw(12)<<gas.t_ion/gas.t_ff0;
+                file<<setw(12)<<gas.e0/gas.r_cH2 /gas.t_ff0;
+                file<<setw(12)<<gas.e0/gas.r_cH / gas.t_ff0;
                 file<<setw(12)<<0<<setw(12)<<0;
                 /* 
                 file<<setw(12)<<gas.e0*gas.rho0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0); //t_cH2
@@ -213,7 +207,6 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
             }
         }
 
-
         if (mer) {
             if (i==0) {
                 if (py) file<<" dMdt Gamma_mer Gamma_mer_th Gamma_mer_k";
@@ -228,24 +221,32 @@ void evol(char* treename, char* fout, int MerMod, double Tbb, double J21, bool s
     }
     file.close();
 
-    cout<<"\n\nff timescale nH=1.0 is : "<<t_freefall(1.)/Myr<<" Myr"<<endl;
-    printf("R_J is %3.2e pc for n = %3.2e and T = %3.e K\n",gas.RJ/pc,gas.nH0,gas.T_K0);
-    printf("evolve time is %3.2e Myr\n",gas.t_act/Myr);
-    printf("final Ma in main is :  %f \n", gas.Ma);
-    printf("v_tur in main is :  %f km/s\n", sqrt(gas.v_tur2/1.e10));
-    printf("final de_tot by merger in main is :  %f erg\n", gas.de_tot);
-    printf("final dT_tot by merger in main is :  %f K\n", gas.de_tot*(gamma_adb-1)*(mu*m_H)/k_B);
-    printf("final dM_tot by merger in main is :  %5.3e Ms\n", gas.dM_tot/Ms);
-    HALO halo (gas.Mh,gas.z);
-    printf(" z from 35 to 10 %f Myr\n", (t_from_z(10) - t_from_z(35))/Myr );
-    printf(" freefall timescale %f Myr\n", gas.t_ff0/Myr );
-    printf("1.93/2.2*dTvir = %f K\n",1.89/2.2*(gas.MPs[gas.iMer].Tvir - gas.MPs[0].Tvir));
-    printf("J21= %5.2f\n",J21);
+// cout<<"\n\nff timescale nH=1.0 is : "<<t_freefall(1.)/Myr<<" Myr"<<endl;
+    // printf("R_J is %3.2e pc for n = %3.2e and T = %3.e K\n",gas.RJ/pc,gas.nH0,gas.T_K0);
+    // printf("evolve time is %3.2e Myr\n",gas.t_act/Myr);
+    // printf("final Ma in main is :  %f \n", gas.Ma);
+    // printf("v_tur in main is :  %f km/s\n", sqrt(gas.v_tur2/1.e10));
+    // printf("final de_tot by merger in main is :  %f erg\n", gas.de_tot);
+    // printf("final dT_tot by merger in main is :  %f K\n", gas.de_tot*(gamma_adb-1)*(mu*m_H)/k_B);
+    // printf("final dM_tot by merger in main is :  %5.3e Ms\n", gas.dM_tot/Ms);
+    // HALO halo (gas.Mh,gas.z);
+    // printf(" z from 35 to 10 %f Myr\n", (t_from_z(10) - t_from_z(35))/Myr );
+    // printf(" freefall timescale %f Myr\n", gas.t_ff0/Myr );
+    // printf("1.93/2.2*dTvir = %f K\n",1.89/2.2*(gas.MPs[gas.iMer].Tvir - gas.MPs[0].Tvir));
+    printf("J21= %5.2f, z_col=%3.2f\n\n\n\n",J21,gas.z_col);
 }
 
 // resembling main_Jc1.cpp
-double getT(int MerMod, double J, double Tb, char* treename, bool spec, bool Ma_on, int i_bsm, double nH_tell = 1.e4){
+double getT(double& zcol, int MerMod, double J, double Tb, string treename, bool spec, bool Ma_on, int i_bsm, double nH_tell){
+    printf("\n**************************\nSTART in getT:\n");
     GAS gas(frac0,MerMod,J,Tb,treename,spec,Ma_on,i_bsm);
+
+    int i=0;
+    string fout = "getT_J"+to_string(int(J))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    fstream f1;
+    f1.open(fout, ios::out | ios::trunc );
+    f1<<setiosflags(ios::scientific)<<setprecision(5);
+
     while (gas.nH0<nH_tell){
         gas.setMerger();
         gas.timescales(); 
@@ -253,45 +254,70 @@ double getT(int MerMod, double J, double Tb, char* treename, bool spec, bool Ma_
         gas.react_sol(1); 
         gas.T_sol();
         gas.get_para();
+        i++;
+       // if( fmod(i,1000)==0 ) printf("%3.2f\n",gas.z_col);
+        if (i==0)   f1 <<" t Dt z nH T evol_stage\n";
+        else f1<<setw(12)<<gas.t_act/gas.t_ff0<<setw(12)<<gas.Dt/gas.t_ff0<<setw(12)<<gas.z<<setw(12)<<gas.nH0<<setw(12)<<gas.T_K0<<setw(12)<<gas.evol_stage<<endl;
     }
+    f1.close();
+
+    zcol = gas.z_col;
+    printf("*******IN GET_T***********\n");
+    cout<<"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0);
+    printf("\tJ=%3.2f, z_col=%3.2f, nH_tell=%3.2e, T=%3.2e\n\n\n",J,zcol,nH_tell, gas.T_K0);
     return gas.T_K0;
 }
 
-void evol_Jc(char* treename, char* fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
-    printf("################################################################################\n");
-    printf("f_Ma is %d\n",(Ma_on)?1:0);
-    double T_tell = 4000;
-    // boundary of bisection J21
-    double J0 = epE6, J1 = 1.e4;
+void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
+    printf("############################\t JC_SOL\t ########################\n");
+    double T_tell = 4000, nH_tell=1.e4;
+    // boundary of bisection J21 
+    double J0 = epE2, J1 = 1.e4; //包括所有的Tb所需range 没必要
+    J0 = 1000, J1 = 1.5e3;
     double T0, T1, T;
-    char fout_malloc[100];
-    sprintf(fout_malloc,fout); 
+    double z0_col,z1_col,z_col;
+
     ofstream file;
-    if (FILE *f = fopen(fout_malloc, "r")) fclose(f);
+    ifstream checkf_exist(fout.c_str());
+    if (checkf_exist.good()) printf("adding to %s \n",fout); //cout<<fout.c_str()<<" exist\n";
     else {
-        file.open(fout_malloc, ios::out | ios::trunc);
-        file<<" Tb Jc"<<endl;
+        file.open(fout, ios::out | ios::trunc);
+        file<<"tree Tb i_bsm tur z_col Jc"<<endl;
         file.close();
     }
-    file.open(fout_malloc, ios::out | ios::app);
+    file.open(fout, ios::out | ios::app);
 
-
-    T0 = getT(MerMod, J0, Tb, treename, spec, Ma_on, i_bsm); T1 = getT(MerMod, J1, Tb, treename, spec, Ma_on, i_bsm);
+    T0 = getT(z0_col,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell); T1 = getT(z1_col,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
     cout<<"***********log**************\n";
-    printf("T0 and T1: %3.2e\t%3.2e\n",T0-T_tell,T1-T_tell);
-    if ( T0-T_tell>0 or T1-T_tell<0 ) cout<<"wrong INITIAL boundaries"<<endl;
-
-    else{
-        while (J1-J0 > 0.05*J0){
-            T = getT(MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm);
-            /* printf("#######\t########\t########\t#########");
-            printf("J=%4.3f\tT=%3.2e\n",(J0+J1)/2.,T); */
-            if (T-T_tell>=0) {J1 = (J0+J1)/2.; T1 = getT(MerMod, J1, Tb, treename, spec, Ma_on, i_bsm);}
-            else {J0 = (J0+J1)/2.; T0 = getT(MerMod, J0, Tb, treename, spec, Ma_on, i_bsm);}
-        }   
+    if ( T0-T_tell>0 ) {
+        while(T0-T_tell>0){
+            printf("J0=%3.2f,T0=%3.2e,T_tell=%3.2e, wrong INITIAL LEFT boundary\n",J0,T0,T_tell);
+            J1 = J0; T1 = T0; z1_col = z0_col;
+            J0 *= 0.9;
+            T0 = getT(z0_col,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+        }
     }
-    printf("J0=%4.3f\tT0=%3.2e\tJ1=%4.3f\tT1=%3.2e\n --> Jc_sol=%3.2e\n",J0,T0,J1,T1, (J0+J1)/2.);
-    file<<setw(12)<<Tb<<setw(12)<<(J0+J1)/2.<<endl;
+    else if (T1-T_tell<0) {
+        while (T1-T_tell<0){
+            printf("J1=%3.2f,T1=%3.2e,T_tell=%3.2e, wrong INITIAL RIGHT boundary\n",J1,T1,T_tell);
+            J0 = J1; T0 = T1; z0_col = z1_col;
+            J1 *= 1.1;
+            T1 = getT(z1_col,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
+        }
+    }
+    else{
+        while (J1-J0 > 0.01*J0){
+            T = getT(z_col,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+            printf("#######\t########\t########\t#########");
+            printf("J0=%3.2f, T0=%3.2f,J1=%3.2f,T1=%3.2f, Jmid=%4.3f\tTmid=%3.2e\n",J0,T0,J1,T1,(J0+J1)/2.,T);
+            if (T-T_tell>=0) { J1 = (J0+J1)/2.; T1 = T; z1_col = z_col; }
+            else { J0 = (J0+J1)/2.; T0 = T; z0_col = z_col; }
+        }
+    }
+    printf("J0=%3.2f\tT0=%3.2e\tJ1=%3.2f\tT1=%3.2e\n --> Jc_sol=%3.2f z_col=%3.2f\n",J0,T0,J1,T1, J1, z1_col);
+    int index=treename.find("fort.");
+    string tree = treename.substr(index+5); // tree_id 输出
+    file<<setw(12)<<stoi(tree)<<setw(12)<<Tb<<setw(12)<<i_bsm<<setw(12)<< ((Ma_on)?1:0) <<setw(12)<<z1_col<<setw(12)<<J1<<endl;
     file.close();
     
 }
