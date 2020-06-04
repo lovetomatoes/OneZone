@@ -35,7 +35,7 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
         i = 0;
         while (getline(readmer,line)){
             stringstream ss(line);
-            ss>>MPs[i].id_tree>>MPs[i].j>>MPs[i].mhalo>>MPs[i].z>>MPs[i].t>>MPs[i].c>>MPs[i].Tvir>>MPs[i].ng_adb;
+            ss>>MPs[i].id_tree>>MPs[i].j>>MPs[i].mhalo>>MPs[i].z>>MPs[i].t>>MPs[i].c>>MPs[i].Tvir>>MPs[i].ng_adb>>MPs[i].mratio;
             MPs[i].t *= Myr; //time from universe age of 0
             MPs[i].mhalo *= Ms; // mhalo unit -> g
             // printf("IN READMER:\n MPs[%d].j=%d,mhalo=%3.2e,z=%3.2f,Tvir=%3.2e,c=%3.2e,n_adb=%3.2e\n",i,MPs[i].j,MPs[i].mhalo/(1.e11*Ms),MPs[i].z,MPs[i].Tvir,MPs[i].c,MPs[i].ng_adb );
@@ -87,16 +87,20 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
             HALO halo(MPs[i].mhalo,MPs[i].z);
             double ni=1; MPs[i].ng_adb = 1;
             Mg2N0_adb(MPs[i].ng_adb,ni,MPs[i].z,MPs[i].mhalo);
+            MPs[i].dm = (i==nMP-1)? 0: MPs[i+1].mhalo - MPs[i].mhalo;
+            MPs[i].mratio = (i==nMP-1)? 0:MPs[i].dm/MPs[i].mhalo;
         }
 
         ofstream f;
         f.open(filename, ios::out | ios::trunc);
-        f<<setw(17)<<"id_tree"<<setw(17)<<"j"<<setw(17)<<"Mh_Ms"<<setw(17)<<"z";
-        f<<setw(17)<<"t_Myr"<<setw(17)<<"c"<<setw(17)<<"Tvir"<<setw(17)<<"n_adb"<<endl;
+        f<<setw(17)<<"id_tree"<<setw(17)<<"j"<<setw(17)<<"Mh_Ms";
+        f<<setw(17)<<"z"<<setw(17)<<"t_Myr"<<setw(17)<<"c";
+        f<<setw(17)<<"Tvir"<<setw(17)<<"n_adb"<<setw(17)<<"q"<<endl;
         f<<setiosflags(ios::scientific)<<setprecision(8);
         for (i=0;i<nMP;i++){
-            f<<setw(17)<<MPs[i].id_tree<<setw(17)<<MPs[i].j<<setw(17)<<MPs[i].mhalo/Ms<<setw(17)<<MPs[i].z;
-            f<<setw(17)<<MPs[i].t/Myr<<setw(17)<<MPs[i].c<<setw(17)<<MPs[i].Tvir<<setw(17)<<MPs[i].ng_adb<<endl;
+            f<<setw(17)<<MPs[i].id_tree<<setw(17)<<MPs[i].j<<setw(17)<<MPs[i].mhalo/Ms;
+            f<<setw(17)<<MPs[i].z<<setw(17)<<MPs[i].t/Myr<<setw(17)<<MPs[i].c;
+            f<<setw(17)<<MPs[i].Tvir<<setw(17)<<MPs[i].ng_adb<<setw(17)<<MPs[i].mratio<<endl;
         }
         f.close();
     }

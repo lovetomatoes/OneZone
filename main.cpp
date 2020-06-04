@@ -37,46 +37,67 @@ int main(){
 
     i_bsm = 0; Ma_on = false;
 
-//     double T0,z_col;
-//     J21 = 1328;
-//     T0 = getT(z_col,MerMod, J21, Tb, ftree, spec, Ma_on, i_bsm, 1.e4);
-//   //double getT(double& zcol, int MerMod, double J, double Tb, std::string treename, bool spec, bool Ma_on, int i_bsm, double nH_tell);
-//     printf("--\n--\n--\n--\n--\n--\n");
-//     fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
-//     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-//     printf("--\n--\n--\n--\n--\n--\n");
-//     J21 = 1335;
-//     T0 = getT(z_col,MerMod, J21, Tb, ftree, spec, Ma_on, i_bsm, 1.e4);
-//     printf("--\n--\n--\n--\n--\n--\n");
-//     fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
-//     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-
-    fout = "Jc_bsm" + to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
-    evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
-//   //void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
-
-    // Ma_on = true;
-    // for (i_bsm=0; i_bsm<2; i_bsm++){
-    //     string fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
-    //     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // }
-    
-    // J21 = 1000;
-    // for (i_bsm=0; i_bsm<4; i_bsm++){
-    //     string fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
-    //     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // }
-
-
-
     // double T0,z_col;
-    // J21 = 1228;
-    // T0 = getT(z_col,MerMod, J21, Tb, ftree, spec, Ma_on, i_bsm, 1.e4);
-
-    // J21 = 1235;
+    // J21 = 1304;
     // fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
     // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    
+    // printf("--\n--\n--\n--\n--\n--\n");
+    // J21 = 1312;
+    // fout = "J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+
+    // fout = "Jc_bsm" + to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    // evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+//   //void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
+
+    Ma_on = false;
+    J21 = 0;
+    for (i_bsm=0; i_bsm<4; i_bsm++){
+        string fout = "./evols/mer2J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+        evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    }
+    J21 = 10;
+    for (i_bsm=0; i_bsm<4; i_bsm++){
+        string fout = "./evols/mer2J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+        evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    }
+
+    Ma_on = true;
+    J21 = 0;
+    for (i_bsm=0; i_bsm<4; i_bsm++){
+        string fout = "./evols/mer2J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+        evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    }
+    J21 = 10;
+    for (i_bsm=0; i_bsm<4; i_bsm++){
+        string fout = "./evols/mer2J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+        evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    }
+
+    // double T0,z_col,nH_tell=1.e4;
+    // Ma_on = false;
+    // J21 = 0;
+    // for (i_bsm=0; i_bsm<4; i_bsm++){
+    //     string fout = "./evols/mer10J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    //     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // }
+    // J21 = 10;
+    // for (i_bsm=0; i_bsm<4; i_bsm++){
+    //     string fout = "./evols/mer10J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    //     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // }
+    // Ma_on = true;
+    // J21 = 0;
+    // for (i_bsm=0; i_bsm<4; i_bsm++){
+    //     string fout = "./evols/mer10J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    //     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // }
+    // J21 = 10;
+    // for (i_bsm=0; i_bsm<4; i_bsm++){
+    //     string fout = "./evols/mer10J"+to_string(int(J21))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    //     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // }
+
 
 
     // i_bsm = 0;
