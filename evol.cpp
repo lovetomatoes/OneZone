@@ -303,7 +303,7 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
     if (checkf_exist.good()) cout<<fout.c_str()<<" exist\n";
     else {
         file.open(fout, ios::out | ios::trunc);
-        file<<"tree Tb i_bsm tur z_col Jc"<<endl;
+        file<<setw(16)<<"tree"<<setw(16)<<"Tb"<<setw(16)<<"i_bsm"<<setw(16)<<"tur"<<setw(16)<<"z_col"<<setw(16)<<"Jc"<<endl;
         file.close();
     }
     file.open(fout, ios::out | ios::app);
@@ -326,15 +326,16 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
             T1 = getT(z1_col,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
         }
     }
-    else{
-        while (J1-J0 > 0.01*J0){
-            T = getT(z_col,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
-            printf("#######\t########\t########\t#########");
-            printf("J0=%3.2f, T0=%3.2f,J1=%3.2f,T1=%3.2f, Jmid=%4.3f\tTmid=%3.2e\n",J0,T0,J1,T1,(J0+J1)/2.,T);
-            if (T-T_tell>=0) { J1 = (J0+J1)/2.; T1 = T; z1_col = z_col; }
-            else { J0 = (J0+J1)/2.; T0 = T; z0_col = z_col; }
-        }
+
+    while (J1-J0 > 0.01*J0){
+        T = getT(z_col,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+        printf("#######\t########\t########\t#########");
+        printf("J0=%3.2f, T0=%3.2f,J1=%3.2f,T1=%3.2f, Jmid=%4.3f\tTmid=%3.2e\n",J0,T0,J1,T1,(J0+J1)/2.,T);
+        if (T-T_tell>=0) { J1 = (J0+J1)/2.; T1 = T; z1_col = z_col; }
+        else { J0 = (J0+J1)/2.; T0 = T; z0_col = z_col; }
+        
     }
+
     printf("J0=%3.2f\tT0=%3.2e\tJ1=%3.2f\tT1=%3.2e\n --> Jc_sol=%3.2f z_col=%3.2f\n",J0,T0,J1,T1, J1, z1_col);
     int index=treename.find("fort.");
     string tree = treename.substr(index+5); // tree_id 输出

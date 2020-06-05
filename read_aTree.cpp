@@ -113,7 +113,6 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
 
             MPs[i].dt = (i==nMP-1)? 0: MPs[i+1].t - MPs[i].t;
             MPs[i].dm = (i==nMP-1)? 0: MPs[i+1].mhalo - MPs[i].mhalo;
-            MPs[i].mratio = (i==nMP-1)? 0:MPs[i].dm/MPs[i].mhalo;
             MPs[i].major = (MPs[i].mratio >= 0.25)?true:false;
             // printf("generation = %d, mratio = %3.2e, dm = %3.2e, dt = %3.2e, mhalo = %3.2e\n",MPs[i].j,MPs[i].mratio,MPs[i].dm/Ms,MPs[i].dt,MPs[i].mhalo/Ms);
         }
@@ -143,5 +142,4 @@ g++ read_aTree.cpp dyn.cpp PARA.cpp LE_adb.cpp RK4.o my_linalg.o class_halo.o  -
     }
 
     delete [] MPs;
-}
- */
+} */
