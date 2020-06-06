@@ -467,7 +467,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             break;
         case 3: // iso T=8000K (H Lya cooling)
             adjust_iso = (Mh>2*Mh_prev);
-            adjust_iso = (t_act - t_prev >= .5*t_freefall(nH0));
+            adjust_iso = (t_act - t_prev >= t_freefall(nH0));
             //adjust_iso = false; 
             if (adjust_iso) {
                 // printf("###\n");
@@ -511,11 +511,12 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     // f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * reduction :1; //wrong, didn't consider cs^2/gamma; reduction no use
 
     double b = 1./3.; // [1/3, 0.5)
-    f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb*b :1; // corrected f_Ma, using P = rho_g v_tur^2
-    // f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * gamma_adb/3. :1; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
-// bsm velocity
-    // alpha = 4.7; // [4, 8)
+    f_Ma = 1;
+    // turbulence
+    if (Ma_on) f_Ma += v_tur2/pow(cs,2) * gamma_adb*b; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
+    // bsm velocity: alpha = 4.7; // [4, 8)
     if (i_bsm) f_Ma += pow(alpha*v_bsm/cs,2); //Eq(3) in Hirano+2018. from Fialkov2012
+
     Ma = sqrt(v_tur2* reduction )/cs;
     // if (evol_stage==3) {
     //     printf("f_Ma=%3.2e v_bsm=%3.2e, Vc=%3.2e\n",f_Ma, v_bsm/km, cs/km, halo1.Vc/km);

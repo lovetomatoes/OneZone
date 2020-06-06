@@ -246,12 +246,15 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
 }
 
 // resembling main_Jc1.cpp
-double getT(double& zcol, int MerMod, double J, double Tb, string treename, bool spec, bool Ma_on, int i_bsm, double nH_tell){
+double getT(double& zcol, bool write,int MerMod, double J, double Tb, string treename, bool spec, bool Ma_on, int i_bsm, double nH_tell){
     printf("\n**************************\nSTART in getT:\n");
     GAS gas(frac0,MerMod,J,Tb,treename,spec,Ma_on,i_bsm);
 
+    int index=treename.find("fort.");
+    string tree = treename.substr(index+5); // tree_id 输出
+
     int i=0;
-    string fout = "getT_J"+to_string(int(J))+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
+    string fout = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J))+".txt";
     fstream f1;
     f1.open(fout, ios::out | ios::trunc );
     f1<<setiosflags(ios::scientific)<<setprecision(5);
@@ -264,18 +267,23 @@ double getT(double& zcol, int MerMod, double J, double Tb, string treename, bool
         gas.T_sol();
         gas.get_para();
        // if( fmod(i,1000)==0 ) printf("%3.2f\n",gas.z_col);
-        if (i==0) {
-            f1<<setw(16)<<"t"<<setw(16)<<"ievol"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T";
-            f1<<setw(16)<<"cs"<<setw(16)<<"v_bsm"<<setw(16)<<"v_tur"<<setw(16)<<"Vc"<<setw(16)<<"f_Ma";
-            f1<<setw(16)<<"Mh"<<setw(16)<<"Tv"<<endl;
-        }
-        else {
-            HALO halo(gas.Mh,gas.z0);
-            f1<<setw(16)<<gas.t_act/gas.t_ff0<<setw(16)<<gas.evol_stage<<setw(16)<<gas.z;
-            f1<<setw(16)<<gas.nH0<<setw(16)<<gas.T_K0<<setw(16)<<gas.cs/km<<setw(16)<<gas.v_bsm/km;
-            f1<<setw(16)<<sqrt(gas.v_tur2)/km<<setw(16)<<halo.Vc/km<<setw(16)<<gas.f_Ma;
-            f1<<setw(16)<<gas.Mh/Ms<<setw(16)<<halo.Tvir<<endl;
-        }
+       if (write){
+           if (i==0) {
+                cout<<"getT: writing file \" "<<fout<<"\"\n";
+                f1<<setw(16)<<"t"<<setw(16)<<"ievol"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T";
+                f1<<setw(16)<<"cs"<<setw(16)<<"v_bsm"<<setw(16)<<"v_tur"<<setw(16)<<"Vc"<<setw(16)<<"f_Ma";
+                f1<<setw(16)<<"Mh"<<setw(16)<<"Tv"<<endl;
+                f1<<setw(16)<<"y_H2"<<setw(16)<<"y_e"<<endl;
+            }
+            else if(fmod(i,100)==0) {
+                HALO halo(gas.Mh,gas.z0);
+                f1<<setw(16)<<gas.t_act/gas.t_ff0<<setw(16)<<gas.evol_stage<<setw(16)<<gas.z;
+                f1<<setw(16)<<gas.nH0<<setw(16)<<gas.T_K0<<setw(16)<<gas.cs/km<<setw(16)<<gas.v_bsm/km;
+                f1<<setw(16)<<sqrt(gas.v_tur2)/km<<setw(16)<<halo.Vc/km<<setw(16)<<gas.f_Ma;
+                f1<<setw(16)<<gas.Mh/Ms<<setw(16)<<halo.Tvir;
+                f1<<setw(16)<<gas.y1[2]<<setw(16)<<gas.y1[3]<<endl;
+            }
+       }
 
         i++;
     }
@@ -294,7 +302,7 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
     double T_tell = 4000, nH_tell=1.e4;
     // boundary of bisection J21 
     double J0 = epE2, J1 = 1.e4; //包括所有的Tb所需range 没必要
-    J0 = 1000, J1 = 1.5e3;
+    J0 = 500, J1 = 1.5e3;
     double T0, T1, T;
     double z0_col,z1_col,z_col;
 
@@ -308,14 +316,14 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
     }
     file.open(fout, ios::out | ios::app);
 
-    T0 = getT(z0_col,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell); T1 = getT(z1_col,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+    T0 = getT(z0_col,false,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell); T1 = getT(z1_col,false,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
     cout<<"***********log**************\n";
     if ( T0-T_tell>0 ) {
         while(T0-T_tell>0){
             printf("J0=%3.2f,T0=%3.2e,T_tell=%3.2e, wrong INITIAL LEFT boundary\n",J0,T0,T_tell);
             J1 = J0; T1 = T0; z1_col = z0_col;
             J0 *= 0.9;
-            T0 = getT(z0_col,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+            T0 = getT(z0_col,false,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
         }
     }
     else if (T1-T_tell<0) {
@@ -323,17 +331,18 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
             printf("J1=%3.2f,T1=%3.2e,T_tell=%3.2e, wrong INITIAL RIGHT boundary\n",J1,T1,T_tell);
             J0 = J1; T0 = T1; z0_col = z1_col;
             J1 *= 1.1;
-            T1 = getT(z1_col,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
+            T1 = getT(z1_col,false,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
         }
     }
 
     while (J1-J0 > 0.01*J0){
-        T = getT(z_col,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+        bool write = false;
+        // if (J1-J0 > 0.05*J0) write = true;
+        T = getT(z_col,write,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
         printf("#######\t########\t########\t#########");
         printf("J0=%3.2f, T0=%3.2f,J1=%3.2f,T1=%3.2f, Jmid=%4.3f\tTmid=%3.2e\n",J0,T0,J1,T1,(J0+J1)/2.,T);
         if (T-T_tell>=0) { J1 = (J0+J1)/2.; T1 = T; z1_col = z_col; }
         else { J0 = (J0+J1)/2.; T0 = T; z0_col = z_col; }
-        
     }
 
     printf("J0=%3.2f\tT0=%3.2e\tJ1=%3.2f\tT1=%3.2e\n --> Jc_sol=%3.2f z_col=%3.2f\n",J0,T0,J1,T1, J1, z1_col);
