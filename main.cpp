@@ -18,9 +18,9 @@ using namespace std;
 
 int main(){
     printf("################################################################################\n");
-    /* 
-    char fout[100]; 
-    sprintf(fout,"data/temp"); */
+    cout<<"dt from z: "<<(t_from_z(20.) - t_from_z(20.2))/Myr<<endl;
+    cout<<"t_ff (n=300/cc): "<<t_freefall(300)/Myr<<endl;
+
     int i =0;
     int n = 8;
     double Tbs[] = {8.e3, 1.e4, 1.5e4, 2.e4, 3.e4, 5.e4, 1.e5, 2.e5};
@@ -35,21 +35,29 @@ int main(){
     Ma_on = true;
     ftree = "../tree_Hirano/fort.1";
 
-    i_bsm = 0; Ma_on = true;
+    // i_bsm = 0; Ma_on = true;
+    // J21 = 828.;
+    // fout = "evolvetr20bsm0tur1_iso1tff_react6J828.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
-    int index=ftree.find("fort.");
-    string tree = ftree.substr(index+5); // tree_id 输出
-    fout = "tr"+tree+"Jcs.txt";
+    J21 = 835.;
+    fout = "evolvetr20bsm0tur1_J835_finer.txt";
+    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
-    Ma_on = false;
-    for (i_bsm=0; i_bsm<1; i_bsm++){
-        evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
-    }
-    Ma_on = true;
-    for (i_bsm=0; i_bsm<4; i_bsm++){
-        //fout = "mer2Jc_bsm" + to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+".txt";
-        evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
-    }
+    // int index=ftree.find("fort.");
+    // string tree = ftree.substr(index+5); // tree_id 输出
+    // fout = "tr"+tree+"Jcs.txt";
+    // // i_bsm=1; Ma_on = true;
+    // // evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+
+    // Ma_on = false;
+    // for (i_bsm=0; i_bsm<1; i_bsm++){
+    //     evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+    // }
+    // Ma_on = true;
+    // for (i_bsm=0; i_bsm<4; i_bsm++){
+    //     evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+    // }
 
     // double z_col, T, nH_tell=1.e4;
     // Ma_on = true;

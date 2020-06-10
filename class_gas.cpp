@@ -76,7 +76,6 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     S0 = k_B*T_K0/pow(nH0,2./3.); 
 
     t_ff = 1./(Cp * sqrt(rhoc_DM + (mu*m_H)*nH0));
-    t_delay = t_ff; // ok for no merger
 
     cs = sqrt( gamma_adb*k_B*T_K0/(mu*m_H) );
     Mgas = Mh*fb;
@@ -86,15 +85,13 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
 
     not_adb = false;
     Ma_on = Ma_turn;
-    de_tot = 0;
-    dM_tot = 0;
     f_Ma = 1.;
-    printf("Mh0 = %3.2e Ms, z0 = %2.2f, \n", Mh/Ms, z0);
-    printf("nH0 = %3.2e, T_K0 = %2.2f, \n", nH0, T_K0);
+    
     t_ff0 = 1./C/sqrt(nH0); // roughly, not including DM density
-
     t1 = 1.9999*t_ff0; //maximum time of evolution
     // t1 = 1.999999*t_ff0; //to n = 1.e10/cm^3 (when n > 1.e9 /cm^3, 3body starts to act prominently
+    printf("Mh0 = %3.2e Ms, z0 = %2.2f, \n", Mh/Ms, z0);
+    printf("nH0 = %3.2e, T_K0 = %2.2f, t_ff0 = %3.2eMyr \n", nH0, T_K0, t_ff0/Myr);
 
     i_m = 0;
     Nt = 5;
@@ -169,7 +166,7 @@ void GAS:: a_react_sol(bool write){
         //while ( len_v(N, dy) > epE8*len_v(N, y_i1) ){ //original, 对于initial y_H+<=1.e-5 可能太精细 循环出不来
         //for(int i=1;i<3;i++){ //会有较大的起伏偏差
         // y_i1[0]=1;
-        while ( len_v(N, dy) > epE5*len_v(N, y_i1) ){
+        while ( len_v(N, dy) > epE5*len_v(N, y_i1) ){ //epE6check过convergence
             SOL_IMPLICIT(dy, y_i0, y_i1, ts[i+1]-ts[i], nH0, T_K0, k,rf, J_LW, Tb); // y_i0 passed but UNCHANGED.
             iter0++;
             //printf("LOOP TIME %d IN REACT_SOL\n",iter0);
@@ -203,7 +200,7 @@ void GAS:: react_sol(bool write){
             delta_y[i] = y1[i] - y1_prev[i];
             y1_prev[i] = y1[i];
         }
-    }while ( len_v(N, delta_y) > epE5*len_v(N, y1_prev) );
+    }while ( len_v(N, delta_y) > epE5*len_v(N, y1_prev) ); //epE6check过convergence
 
 //charge neutrality & H neuclei conservation
     double y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp;
@@ -263,69 +260,34 @@ void GAS:: react_sol(bool write){
 
 void GAS:: setMerger(){
     //printf("iMer = %d, nMer = %d", iMer, nMer);
-    // ofstream fMer; 用来判断两条timeline & z是否重合 dt正确与否等
-    // fMer.open("data/mergers.txt", ios::out | ios::app); // append mode, to use it, mc then mk
-    // if (iMer == 0) fMer<<"j t t_act mhalo/Ms dm major Tvir"<<endl;
-
     if (MerMod !=  0){
-        if (iMer< nMer-1){ // final merger not included, since nMer halos only nMer-1 intervals, //WLI
+        if (iMer< nMer-2){ // final merger not included, since nMer halos only nMer-1 intervals, //WLI
         // from iMer=0 to nMer-2, MPs[iMer] has dt, dm, mratio, etc.
             inMer = true;
-            //printf("MPs[iMer].t = %3.2e\nt_act = %3.2e\nMPs[iMer+1].t = %3.2e\n",MPs[iMer].t,t_act,MPs[iMer+1].t);     
-            HALO halo(Mh, z); //更真实的Mh 和 z
-            // in a merger
-            if (MPs[iMer].t <= t_act && t_act < MPs[iMer+1].t){
-                dMdt = MPs[iMer].dm / MPs[iMer].dt;
-                Mh = MPs[iMer].mhalo + dM_tot; //和merger tree 的Mh v.s. z check过, interpolation btw mergers
-                Mgas = Mh*fb;
-                Mcore = 4.*pi/3.*pow(0.1*halo.Rvir,3)* nH0*(mu*m_H);
-
-                //dEdt = pow(halo.Vc,2) * (dMdt*fb); // estimated by Vc
-                dEdt = k_B*halo.Tvir /(mu*m_H) * (dMdt*fb); // estimated by Tvir
-
-            // from Virial theorm, thermal energy change according to Phi change
-                /* -> thermal from Virial theorm*/ // ( 3/4 of Gamma_mer to thermal get Tg~Tvir)
-                Gamma_mer =  -1./2.*halo.Phi(halo.Rvir) * (2./3.* dMdt/Mh - Hz(z0) ); 
-
-                v_inf2 = halo.V_inf2(2*halo.Rvir, halo.Rvir/3);
-                v_inf2 = (MPs[iMer].major)?halo.V_inf2(2*halo.Rvir, halo.Rs):halo.V_inf2(2*halo.Rvir,halo.Rvir);
-                //v_inf2 = (MPs[iMer].major)? -2*halo.Phi(halo.Rvir/2):-2*halo.Phi(halo.Rvir);
-
-                double alpha = v_inf2/pow(halo.Vc,2);double beta = T_K0/halo.Tvir;
-                //printf("3/8*alpha^2 = %3.2f, beta=%3.2f, 3/8*alpha^2 - beta = %3.2f\n",3./8.*alpha, beta, 3./8.*alpha - beta);
-                if (Gamma_mer<0) cout<<"##COOLING##"<<2./3.* dMdt/Mh - Hz(z0)<<endl;
-                //printf("Tg/Tvir = %3.2f\n",T_K0/halo.Tvir);
-            }
-            // time evolve to next merger, update iMer, Mh, Mgas
             if ( t_act >= MPs[iMer+1].t){
-
-                //cout<<"i_Mer = "<<iMer<<"\t f_Ma = "<<f_Ma<<"\t Mh = "<<Mh<<endl;
                 iMer ++;
-                de_tot = 0;
-                dM_tot = 0;
-
-                Mh = MPs[iMer].mhalo;
-                HALO halo2(Mh,z0);
+                // Mh = MPs[iMer].mhalo;
                 if (MPs[iMer].major) M_major += MPs[iMer].dm;
-
-                //printf("in Ms: Mgas = %3.2e \tMJ = %3.2e \tMJ_eff = %3.2e\n", Mgas/Ms, MJ/Ms, MJ_eff/Ms);
-                // fMer<<MPs[iMer].j<<" "<<MPs[iMer].t<<" "<<t_act<<" "<<MPs[iMer].mhalo/Ms<<" "<<MPs[iMer].dm/Ms<<" "<<MPs[iMer].major<<" "<<MPs[iMer].Tvir<<endl;
-                //if (iMer == 0) file_ingas<<"z t_halo t_act Mh Tvir Rvir dt t_dyn n_gas Mcore nc_DM M_BE MJ"<<endl; //halo2.rho_c/(mu*m_H)RHO_crit(z0)
-                // file_ingas<<z<<" "<<MPs[iMer].t<<" "<<t_act<<" "<<Mh<<" "<<MPs[iMer].Tvir<<" "<<halo2.Rvir<<" "<<MPs[iMer].dt<<" "<<halo2.t_dyn<<" "<<nH0<<" "<<Mcore<<" "<<halo2.rho_crit/(mu*m_H)<<" "<<M_BE<<" "<<MJ<<endl;
-                // dilution(destruction/reduction/destroyment) of H2 fraction
-                // 1) by 1/2
-                /* for (int i=2; i<N; i++) y0[i]/=2.;
-                y0[1] = 1 - 2*y0[2] - y0[4] - y0[5];
-                 */
-                // 2) all destructed
-                /* y0[1] += 2*y0[2]; 
-                y0[2] = 0; */
-
             }
+            if (MPs[iMer].t <= t_act and t_act < MPs[iMer+1].t){ 
+                // interpolation btw mergers
+                Mh = (MPs[iMer].mhalo*(MPs[iMer+1].t-t_act) + MPs[iMer+1].mhalo*(t_act-MPs[iMer].t)) / MPs[iMer].dt; 
+            }
+            else cout<<"\n!\n!\n!\n! wrong in setMer\n";
+            dMdt = MPs[iMer].dm / MPs[iMer].dt;
+            Mgas = Mh*fb;
+            
+            HALO halo(Mh, z); //更真实的Mh 和 z
+            dEdt = k_B*halo.Tvir /(mu*m_H) * (dMdt*fb); // estimated by Tvir
+            // from Virial theorm, thermal energy change according to Phi change
+            /* -> thermal from Virial theorm */ // ( 3/4 of Gamma_mer to thermal get Tg~Tvir)
+            Gamma_mer =  -1./2.*halo.Phi(halo.Rvir) * (2./3.* dMdt/Mh - Hz(z0) ); 
+            if (Gamma_mer<0) cout<<"##COOLING##"<<2./3.* dMdt/Mh - Hz(z0)<<endl;
+            //printf("Tg/Tvir = %3.2f\n",T_K0/halo.Tvir);
+            
         }
         else {inMer = false; Gamma_mer = 0;}
     }
-    // fMer.close();
 }
 
 void GAS:: timescales(){
@@ -370,30 +332,13 @@ void GAS:: timescales(){
     rhoc_DM = halo.rho_c;
     t_ff = 1./(Cp * sqrt(rhoc_DM + (mu*m_H)*nH0));
 
-    t_delay = t_ff; //delay of evolving time after merger NOT INCLUDED NOW.
-    t_delay = 0;
     // Dt firstly by cooling/heating/free-fall timescales; also all for NO merger case
-    Dt = 0.1* min( min(t_c,t_h), t_ff ); 
+    Dt = 0.1* min( min(t_c,t_h), t_ff ); //不行不够细
     Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h));
 
-// merger case
-    if (MerMod !=0){
-        inDelay = false;
-        if (iMer<nMer-1){
-            // Dt << merger intervals dt
-            Dt = min( Dt, .001*MPs[iMer].dt ); // wli : check 能否放宽
-            // during delay, no compressional heating, only for MAJOR MERGERS...
-            //if ( MPs[iMer].t<=t_act && t_act<MPs[iMer].t+t_delay ){
-            if ( MPs[iMer].major && MPs[iMer].t<=t_act && t_act<MPs[iMer].t+t_delay ){
-                inDelay = true;
-            }
-            // after delay time (after a MAJOR MERGER...), gas evolve time t0+=Dt 
-            //if ( t_act>MPs[iMer].t+t_delay && t_act<MPs[iMer+1].t){
-            if ( MPs[iMer].major && t_act>MPs[iMer].t+t_delay && t_act<MPs[iMer+1].t){
-                t0 += Dt;
-            }
-        }
-    }
+// merger case: Dt << merger intervals dt
+    if (inMer and evol_stage !=4) Dt = min( Dt, .1*MPs[iMer].dt ); // wli : check 能否放宽
+    
 // no merger case, just free fall; one-zone case of former work
     if (MerMod==0) { 
         r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_chem(nH0, T_K0, y0, k)/rho0;
@@ -408,7 +353,7 @@ void GAS:: timescales(){
     t_act += Dt;
     z0 = z;
     z = z_ana(z,Dt); //推进 redshift
-    v_bsm = i_bsm*sigma1*(1+z)/(1+z_rcb);
+    v_bsm = i_bsm*sigma1*(1.+z)/(1.+z_rcb);
 }
 
 // cloud evolution: freefall() -> react_sol() -> T_sol
@@ -466,12 +411,8 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             }
             break;
         case 3: // iso T=8000K (H Lya cooling)
-            adjust_iso = (Mh>2*Mh_prev);
-            adjust_iso = (t_act - t_prev >= t_freefall(nH0));
-            //adjust_iso = false; 
+            adjust_iso = (t_act - t_prev >= min( 0.1*MPs[iMer].dt, t_ff) );
             if (adjust_iso) {
-                // printf("###\n");
-                // printf("IN STAGE 3 f_Ma=%3.2e\n",f_Ma);
                 dt_iso = t_act - t_prev;
                 Mh_prev = Mh; t_prev = t_act;
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
@@ -501,10 +442,6 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             }
             break;
     }
-
-    /* updating e and Mh */
-    de_tot += Gamma_mer*Dt;
-    dM_tot += dMdt * Dt;
 
     reduction = 1;// WL ADDED //cout<<nH0<<"\t"<<ncore<<endl;
     v_tur2 += Dt * Gamma_mer_k*2; // 2 coz e=1/2v^2
@@ -553,5 +490,5 @@ GAS:: ~GAS(void){
     delete [] Ta; delete [] ka;
     delete [] MPs;
     // file_ingas.close();
-    cout<<"releasing gas\n";
+    // cout<<"releasing gas\n";
 }

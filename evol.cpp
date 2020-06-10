@@ -105,9 +105,9 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
             if (i==0) {
                 if (py){
                     file<<setw(16)<<"t_ff"<<setw(16)<<"t_c"<<setw(16)<<"t_h"<<setw(16)<<"t_rcb"<<setw(16)<<"t_chem";
-                    file<<setw(16)<<"t_ion"<<setw(16)<<"tc_H2"<<setw(16)<<"tc_H"<<setw(16)<<"i1"<<setw(16)<<"i2";
+                    file<<setw(16)<<"t_ion"<<setw(16)<<"tc_H2"<<setw(16)<<"tc_H"<<setw(16)<<"MPs_dt"<<setw(16)<<"i2";
                 }
-                else file<<" t_{ff} t_{c} t_h t_{rcb} t_{chem} t_{ion} tc_{H2} tc_H 0 0";
+                else file<<" t_{ff} t_{c} t_h t_{rcb} t_{chem} t_{ion} tc_{H2} tc_H MPs_dt 0";
             }
             else {
                 file<<setw(16)<<gas.t_ff/gas.t_ff0;
@@ -119,7 +119,8 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
                 file<<setw(16)<<gas.t_ion/gas.t_ff0;
                 file<<setw(16)<<gas.e0/gas.r_cH2 /gas.t_ff0;
                 file<<setw(16)<<gas.e0/gas.r_cH / gas.t_ff0;
-                file<<setw(16)<<0<<setw(16)<<0;
+                file<<setw(16)<<gas.MPs[gas.iMer].dt/gas.t_ff0;
+                file<<setw(16)<<0;
                 /* 
                 file<<setw(16)<<gas.e0*gas.rho0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0); //t_cH2
                 file<<setw(16)<<gas.e0*gas.rho0/Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3],gas.k[1]); //t_cH
@@ -247,7 +248,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
 
 // resembling main_Jc1.cpp
 double getT(double& zcol, bool write,int MerMod, double J, double Tb, string treename, bool spec, bool Ma_on, int i_bsm, double nH_tell){
-    printf("\n**************************\nSTART in getT:\n");
+    // printf("\n**************************\nSTART in getT:\n");
     GAS gas(frac0,MerMod,J,Tb,treename,spec,Ma_on,i_bsm);
 
     int index=treename.find("fort.");
@@ -269,7 +270,7 @@ double getT(double& zcol, bool write,int MerMod, double J, double Tb, string tre
        // if( fmod(i,1000)==0 ) printf("%3.2f\n",gas.z_col);
        if (write){
            if (i==0) {
-                cout<<"getT: writing file \" "<<fout<<"\"\n";
+                // cout<<"getT: writing file \" "<<fout<<"\"\n";
                 f1<<setw(16)<<"t"<<setw(16)<<"ievol"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T";
                 f1<<setw(16)<<"cs"<<setw(16)<<"v_bsm"<<setw(16)<<"v_tur"<<setw(16)<<"Vc"<<setw(16)<<"f_Ma";
                 f1<<setw(16)<<"Mh"<<setw(16)<<"Tv"<<endl;

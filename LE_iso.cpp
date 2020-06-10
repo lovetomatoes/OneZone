@@ -207,7 +207,7 @@ void Nvir2N0(double& n_sol, double& nvir_max, double ni, double Tg, double z, do
             // printf("\nin LOOP: it=%d, dR/R0 = %3.2e\n",it,dR/R0);
         }
         n_sol = R0*halo.rho_c/(mu*m_H);
-        printf("Nvir2N0: solution: of n0: %3.2e\n",n_sol);
+        // printf("Nvir2N0: solution: of n0: %3.2e\n",n_sol);
     }
 }
 
