@@ -30,7 +30,7 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
     i = 0;
 
     if (readmer.good()){
-        cout<<filename<<"TREEmer exist\n";
+        // cout<<filename<<"TREEmer exist\n";
         getline(readmer,temp_str);
         i = 0;
         while (getline(readmer,line)){

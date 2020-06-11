@@ -84,7 +84,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
     bool tscales = true;
     bool haloinfo = true;
     bool heatingcooling = true;
-    bool mer = false;
+    bool mer = true;
     double kform, rform, yequi, ycool;
     int itime=0;
 
@@ -169,16 +169,22 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
             double d0 = 200./3.*pow(halo.c,3)/(log(1+halo.c)-halo.c/(1+halo.c));
             if (i==0){
                 if (py){
-                    file<<setw(16)<<"nc_DM"<<setw(16)<<"z_Mh"<<setw(16)<<"t_Mh"<<setw(16)<<"Mh"<<setw(16)<<"Tvir";
-                    file<<setw(16)<<"f_Ma"<<setw(16)<<"cs"<<setw(16)<<"v_tur"<<setw(16)<<"Vc"<<setw(16)<<"v_bsm";
+                    file<<setw(16)<<"z_Mh"<<setw(16)<<"t_Mh"<<setw(16)<<"Mh"<<setw(16)<<"Tvir"<<setw(16)<<"Vc";
+                    file<<setw(16)<<"cs"<<setw(16)<<"v_tur"<<setw(16)<<"v_bsm"<<setw(16)<<"f_Ma"<<setw(16)<<"g_Ma";
                 }
-                else file <<" nc_{DM} z_{Mh} t_{Mh} Mh T_{vir} f_{Ma} cs v_{tur} Vc v_{bsm}";
+                else file <<" z_{Mh} t_{Mh} Mh T_{vir} Vc cs v_{tur} v_{bsm} f_{Ma} g_{Ma}";
             } //rho_c = d0*RHO_DM(gas.z)/m_H checked right. 
             else{
-                file<<setw(16)<<gas.rhoc_DM/(mu*m_H)<<setw(16)<<gas.MPs[gas.iMer].z;
-                file<<setw(16)<<gas.MPs[gas.iMer].t/gas.t_ff0<<setw(16)<<gas.Mh/Ms<<setw(16)<<gas.MPs[gas.iMer].Tvir;
-                file<<setw(16)<<gas.f_Ma<<setw(16)<<gas.cs/km<<setw(16)<<sqrt(gas.v_tur2)/km<<setw(16)<<halo.Vc/km;
-                file<<setw(16)<<gas.v_bsm/km;
+                file<<setw(16)<<gas.MPs[gas.iMer].z<<setw(16)<<gas.MPs[gas.iMer].t/gas.t_ff0;
+                file<<setw(16)<<gas.Mh/Ms<<setw(16)<<gas.MPs[gas.iMer].Tvir<<setw(16)<<halo.Vc/km;
+
+                file<<setw(16)<<gas.cs/km<<setw(16)<<sqrt(gas.v_tur2)/km<<setw(16)<<gas.v_bsm/km;
+                file<<setw(16)<<gas.f_Ma;
+                if (gas.evol_stage==4) {
+                    file<<setw(16)<<gas.f_Ma + gas.Gamma_mer_th/Gamma_compr(gas.cs,1.,gas.t_ff);
+                }
+                else file<<setw(16)<<0.;
+                
             }
         }
 
@@ -218,11 +224,12 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
         }
 
         if (mer) {
+            HALO halo(gas.Mh, gas.z);
             if (i==0) {
-                if (py) file<<setw(16)<<"dMdt"<<setw(16)<<"Gamma_mer"<<setw(16)<<"Gamma_mer_th"<<setw(16)<<"Gamma_mer_k";
-                else file<<" dMdt Gamma_{mer} Gamma_{mer,th} Gamma_{mer,k}";
+                if (py) file<<setw(16)<<"iMer"<<setw(16)<<"nc_DM"<<setw(16)<<"dMdt"<<setw(16)<<"Gamma_mer";
+                else file<<" iMer nc_{DM} dMdt Gamma_{mer}";
             }
-            else file<<setw(16)<<gas.dMdt<<setw(16)<<gas.Gamma_mer<<setw(16)<<gas.Gamma_mer_th<<setw(16)<<gas.Gamma_mer_k;
+            else file<<setw(16)<<gas.iMer<<setw(16)<<halo.rho_c/(mu*m_H)<<setw(16)<<gas.dMdt<<setw(16)<<gas.Gamma_mer;
         }
         file<<endl;
         i++;
@@ -255,11 +262,12 @@ double getT(double& zcol, bool write,int MerMod, double J, double Tb, string tre
     string tree = treename.substr(index+5); // tree_id 输出
 
     int i=0;
-    string fout = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J))+".txt";
     fstream f1;
-    f1.open(fout, ios::out | ios::trunc );
-    f1<<setiosflags(ios::scientific)<<setprecision(5);
-
+    if (write){
+        string fout = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J))+".txt";
+        f1.open(fout, ios::out | ios::trunc );
+        f1<<setiosflags(ios::scientific)<<setprecision(5);
+    }
     while (gas.nH0<nH_tell){
         gas.setMerger();
         gas.timescales(); 
@@ -288,7 +296,7 @@ double getT(double& zcol, bool write,int MerMod, double J, double Tb, string tre
 
         i++;
     }
-    f1.close();
+    if (write) f1.close();
 
     zcol = gas.z_col;
     printf("*******IN GET_T***********\n");
@@ -300,6 +308,7 @@ double getT(double& zcol, bool write,int MerMod, double J, double Tb, string tre
 
 void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
     printf("############################\t JC_SOL\t ########################\n");
+    printf("i_bsm=%d Ma_on=%d\n",i_bsm,(Ma_on)?1:0);
     double T_tell = 4000, nH_tell=1.e4;
     // boundary of bisection J21 
     double J0 = epE2, J1 = 1.e4; //包括所有的Tb所需range 没必要
@@ -346,9 +355,16 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
         else { J0 = (J0+J1)/2.; T0 = T; z0_col = z_col; }
     }
 
+
     printf("J0=%3.2f\tT0=%3.2e\tJ1=%3.2f\tT1=%3.2e\n --> Jc_sol=%3.2f z_col=%3.2f\n",J0,T0,J1,T1, J1, z1_col);
     int index=treename.find("fort.");
     string tree = treename.substr(index+5); // tree_id 输出
-    file<<setw(16)<<stoi(tree)<<setw(16)<<Tb<<setw(16)<<i_bsm<<setw(16)<< ((Ma_on)?1:0) <<setw(16)<<z1_col<<setw(16)<<J1<<endl;
+    file<<setw(16)<<stoi(tree)<<setw(16)<<Tb<<setw(16)<<i_bsm<<setw(16)<<((Ma_on)?1:0);
+    file<<setw(16)<<z1_col<<setw(16)<<J1<<endl;
     file.close();
+
+    string fevol = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J0))+".txt";
+    evol(treename, fevol, MerMod, Tb, J0, spec, Ma_on, i_bsm);
+    fevol = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J1))+".txt";
+    evol(treename, fevol, MerMod, Tb, J1, spec, Ma_on, i_bsm);
 }

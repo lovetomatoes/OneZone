@@ -28,27 +28,20 @@ int main(){
     string ftree = "../code_tree/fort.217"; //不行！！！会
     double Tb = 2.e4;
     bool Ma_on = true, spec=false;
-    int MerMod = 1;
+    int MerMod = 0;
     double J21 = 0;
     int i_bsm;
     string fout;
     Ma_on = true;
     ftree = "../tree_Hirano/fort.1";
-
-    // i_bsm = 0; Ma_on = true;
-    // J21 = 828.;
-    // fout = "evolvetr20bsm0tur1_iso1tff_react6J828.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-
-    J21 = 835.;
-    fout = "evolvetr20bsm0tur1_J835_finer.txt";
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    
+    fout =  "a.txt";
+    MerMod = 0; Ma_on = false;
+    evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
 
     // int index=ftree.find("fort.");
     // string tree = ftree.substr(index+5); // tree_id 输出
     // fout = "tr"+tree+"Jcs.txt";
-    // // i_bsm=1; Ma_on = true;
-    // // evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
 
     // Ma_on = false;
     // for (i_bsm=0; i_bsm<1; i_bsm++){
