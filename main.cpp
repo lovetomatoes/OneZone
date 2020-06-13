@@ -18,8 +18,8 @@ using namespace std;
 
 int main(){
     printf("################################################################################\n");
-    cout<<"dt from z: "<<(t_from_z(20.) - t_from_z(20.2))/Myr<<endl;
-    cout<<"t_ff (n=300/cc): "<<t_freefall(300)/Myr<<endl;
+    // cout<<"dt from z: "<<(t_from_z(20.) - t_from_z(20.2))/Myr<<endl;
+    // cout<<"t_ff (n=300/cc): "<<t_freefall(300)/Myr<<endl;
 
     int i =0;
     int n = 8;
@@ -28,20 +28,27 @@ int main(){
     string ftree = "../code_tree/fort.217"; //不行！！！会
     double Tb = 2.e4;
     bool Ma_on = true, spec=false;
-    int MerMod = 0;
+    int MerMod = 1;
     double J21 = 0;
     int i_bsm;
     string fout;
     Ma_on = true;
     ftree = "../tree_Hirano/fort.1";
-    
-    fout =  "a.txt";
-    MerMod = 0; Ma_on = false;
-    evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
 
-    // int index=ftree.find("fort.");
-    // string tree = ftree.substr(index+5); // tree_id 输出
-    // fout = "tr"+tree+"Jcs.txt";
+    int index=ftree.find("fort.");
+    string tree = ftree.substr(index+5); // tree_id 输出
+    fout = "tr"+tree+"Jcs.txt";
+    MerMod = 1; Ma_on = true;
+    i_bsm = 1;
+    // evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+
+    // fout="f_Ma1.txt";
+    // J21 = 1296.;
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+
+    fout="f_Ma3.txt";
+    J21 = 750.;
+    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
     // Ma_on = false;
     // for (i_bsm=0; i_bsm<1; i_bsm++){

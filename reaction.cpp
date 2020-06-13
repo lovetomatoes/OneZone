@@ -407,6 +407,35 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
             k[i]=0.;
         }
     } */
+
+// wli: 调试H2 related reactions
+    // decreasing H- at higher n w/ cd of H2
+    // k[11] =0; // Hm + Hp --> 2 H; 
+    // k[18]=0;  // Hm + H  --> 2 H + e; 
+
+    // k[12]=0; 
+    // k[10]=0; 
+    // k[13]=0; 
+    // k[14]=0; 
+    // k[17]=0; 
+    // k[19]=0; //没啥影响
+
+    // k[15] = 0; //3b 关掉
+    // k[5] = 0; k[6] = 0; k[23] = 0; // H2p --> H2 关掉
+
+    //cd:
+//  7)   H2    +   H     -> 3 H               kH2_cd_H
+//  8)   H2    +   H+    ->   H2+   +   H     kH2_cd_Hp
+//  9)   H2    +   e     -> 2 H     +   e     kH2_cd_e
+//  20)  H2    +   e     ->   H-    +   H
+//  16)  2 H2            -> 2 H     +   H2    kH2_cd_H2
+//  35)  H2    +   He    ->   He    +  2 H    kH2_cd_He
+    // k[8] = 0; k[9] = 0; k[20] = 0; k[16]= 0; k[35] = 0; //不重要的cd先设为0
+
+    // He:
+    // for (int ire=25; ire<=42; ire++) k[ire] =0;
+    // k[36] = 0; k[37] = 0; k[42] = 0; // realted to H2, 这仨没影响
+
 }
 
 void react_rat(double *r_f_tot, double *y, double *k, double nH, double T_K){

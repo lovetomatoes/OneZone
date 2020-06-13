@@ -85,7 +85,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
     bool haloinfo = true;
     bool heatingcooling = true;
     bool mer = true;
-    double kform, rform, yequi, ycool;
+    double kform, rform, yequi, ycool, ypred;
     int itime=0;
 
     i = 0;
@@ -132,24 +132,71 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
             if (i==0){
                 if (py){
                     file<<setw(16)<<"yH"<<setw(16)<<"yH2"<<setw(16)<<"ye"<<setw(16)<<"yH+"<<setw(16)<<"yH2+";
-                    file<<setw(16)<<"yH-"<<setw(16)<<"yHe"<<setw(16)<<"yHe+"<<setw(16)<<"yHe++"<<setw(16)<<"i3"; //y_equi y_cool
+                    file<<setw(16)<<"yH-"<<setw(16)<<"yHe"<<setw(16)<<"yHe+"<<setw(16)<<"y_equi"<<setw(16)<<"y_cool";
                 }
-                else    file<<" y_H y_{H2} y_e y_{H+} y_{H2+} y_{H-} y_{He} y_{y_He+} y_{He++} 0";
+                else file<<" y_H y_{H2} y_e y_{H+} y_{H2+} y_{H-} y_{He} y_{pred} y_{equi} y_{cool}";
             }
             else {
-                for (int i=1; i<N_sp+1; i++) file<<setw(16)<<gas.y0[i];
+                for (int i=1; i<=7; i++) file<<setw(16)<<gas.y0[i];
+                double kHm_e, kH2_Hm,   kH2p_Hp, kH2_H2p,   kH2_3b;
+                double kHm_pd, kH2p_pd, kH2_pd;
+                double kH2_cd_tot, kH2_cd_H, kH2_cd_e, kH2_cd_H2, kH2_cd_Hp, kH2_cd_He; 
+                double kform_Hm, kform_H2p;
+                double kHm_rcb, kHm_cd;
+//
+//  1)   H     +   e     ->   H+    +  2 e    col ionization
+//  2)   H+    +   e     ->   H     +   ph.   recombination
 
-                kform = gas.k[2]*gas.k[3]/(gas.k[3]+gas.k[7]/gas.nH0);
-                rform = max(kform*gas.nH0*gas.y0[1]*gas.y0[3], gas.k[5]*pow(gas.nH0,2)*pow(gas.y0[1],3));
-                            //H-, n小                              3b,  n>~10^9/cm^3
-                yequi = min(rform/gas.k[6], rform/(gas.k[4]*gas.y0[1]*gas.nH0) );
-                                // pd,  n<~100/cm^3      cd n大 
-                //file<<setw(16)<<yequi;
-                //file<<setw(16)<<gas.Dt*gas.rf[2]+gas.y0[2]; prediciton of yH2
-                //ycool = 3.*k_B*gas.T_K0*gas.y0[2]/(2.*gas.t_ff*Lambda_H2(gas.nH0,gas.T_K0,gas.y0[2])*(mu*m_H));
-                //file<<setw(16)<<ycool;
-                file<<setw(16)<<0;
+//  3)   H     +   e     ->   H-    +   ph.   kHm_e
+//  4)   H-    +   H     ->   H2    +   e     kH2_Hm
+//  11)  H-    +   H+    -> 2 H               kHm_rcb
 
+//  5)   H     +   H+    ->   H2+   +   ph.   kH2p_Hp
+//  6)   H2+   +   H     ->   H2    +   H+    kH2_H2p
+
+//  15) 3 H              ->   H2    +   H     kH2_3b
+
+//  21)  H2   +   ph   -> 2 H                 kH2_pd
+//  22)  H-   +   ph  ->  H   +  e            kHm_pd
+//  23)  H2+  +   ph  ->  H   +  H+           kH2p_pd
+
+//  7)   H2    +   H     -> 3 H               kH2_cd_H
+//  8)   H2    +   H+    ->   H2+   +   H     kH2_cd_Hp
+//  9)   H2    +   e     -> 2 H     +   e     kH2_cd_e
+//  20)  H2    +   e     ->   H-    +   H
+//  16)  2 H2            -> 2 H     +   H2    kH2_cd_H2
+//  35)  H2    +   He    ->   He    +  2 H    kH2_cd_He
+
+                kHm_e = gas.k[3]; kH2_Hm = gas.k[4];
+                kH2p_Hp = gas.k[5]; kH2_H2p = gas.k[6];
+
+                kH2_pd = gas.k[21]; kHm_pd = gas.k[22]; kH2p_pd = gas.k[23];
+                kH2_3b = gas.k[15];
+                kH2_cd_H = gas.k[7]; kH2_cd_Hp = gas.k[8]; kH2_cd_e = gas.k[9] + gas.k[20]; kH2_cd_H2 = gas.k[16];
+                kH2_cd_He = gas.k[35];
+                kH2_cd_tot = gas.nH0* (kH2_cd_H*gas.y0[1] + kH2_cd_Hp*gas.y0[4] + kH2_cd_e*gas.y0[3] + kH2_cd_H2*gas.y0[2] + kH2_cd_He*gas.y0[7]); 
+                // kH2_cd_tot = gas.nH0* (kH2_cd_H*gas.y0[1]); collisional dissociation dominated by H
+
+                // regualte H2 at high n, together w/ H2 cd 
+                kHm_rcb = gas.k[11];
+                kHm_cd = gas.k[18];
+
+                kform_Hm = kHm_e* kH2_Hm/( kH2_Hm*gas.y0[1] + kHm_pd/gas.nH0 + kHm_rcb*gas.y0[4] + kHm_cd*gas.y0[1]);
+                kform_H2p = kH2p_Hp* kH2_H2p/(kH2_H2p + kH2p_pd/gas.nH0);
+                // H2 forming rate; 
+                rform = max(kform_Hm*gas.nH0*gas.y0[1]*gas.y0[3]+kform_H2p*gas.nH0*gas.y0[1]*gas.y0[4], kH2_3b*pow(gas.nH0,2)*pow(gas.y0[1],3));
+                            // H-, small n                        H2+                                     3b,  n>~10^9/cm^3
+                // rform = kform_Hm*gas.nH0*gas.y0[1]*gas.y0[3]; // H2 formation dominated by H- over H2+
+                yequi = min(rform/kH2_pd, rform/kH2_cd_tot);
+                yequi = rform/(kH2_pd+kH2_cd_tot);
+                            // pd,  n<~100/cm^3      cd, large n 
+
+                // sufficient cooling fraction. Λ_H2 v.s. Γ_compr(f_Ma)
+                ycool = 1.5*gas.f_Ma*gas.nH0*k_B*gas.T_K0 * gas.y0[2]/(gas.t_ff*Lambda_H2(gas.nH0,gas.T_K0,gas.y0));
+                ypred = gas.Dt*gas.rf[2]+gas.y0[2]; // prediciton of yH2
+                file<<setw(16)<<ypred; 
+                file<<setw(16)<<yequi;
+                file<<setw(16)<<ycool;
             }
         }
         /* if (itime <=2){
@@ -160,7 +207,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
             }
             if (yequi>=1){
                 printf("yequi >= 1, follow normal H2 formation track \n");
-                itime += 1;
+                itime ++;
             }
         } */
 

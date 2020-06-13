@@ -29,54 +29,44 @@ g++ class_gas.o -o gas
 // constructor; initializes
 GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefile, bool spec, bool Ma_turn, int bsm){
     //N_sp = 5; N_react = 6; 
-    MerMod = MergerModel;
-    nMer = 0;
+    MerMod = MergerModel; printf("MerMod=%d\n",MerMod);
+    nMer = 0; iMer = 0;
     MPs = NULL;
     MPs = new MainProgenitor [100];
     aTree(nMer,treefile,MPs); printf("read tree done\n");
-    z0 = MPs[0].z;
+    z0 = MPs[iMer].z;
     z = z0;
     z_col = -1.;
     i_bsm = bsm;
     v_bsm = i_bsm*sigma1*(1+z)/(1+z_rcb);
-    Mh = MPs[0].mhalo;
-
+    Mh = MPs[iMer].mhalo;
     HALO halo(Mh,z0);
-
     rhoc_DM = halo.rho_c;
-    printf("z0 = %3.2f\thalo concentration = %3.2f,\n", z0,halo.c);
-    printf("halo center number density = %3.2f,\n", halo.rho_c/(mu*m_H));
-    printf("halo virial velocity = %3.2f,\n", halo.Vc/km);
+    // printf("z0 = %3.2f\thalo concentration = %3.2f,\n", z0,halo.c);
+    // printf("halo center number density = %3.2f,\n", halo.rho_c/(mu*m_H));
+    // printf("halo virial velocity = %3.2f,\n", halo.Vc/km);
 
     inMer = false;
-    inDelay = false;
     evol_stage = (MerMod)?5:0;
     Gamma_mer = 0;
-    iMer = 0;
-    // file_ingas.open("mer_record.txt", ios::out | ios::trunc); //
-    // if (MerMod != 0) file_ingas<<"z t_halo t_act Mh Tvir Rvir dt t_dyn n_gas Mcore nc_DM M_BE MJ"<<endl;
-    M_major = 0;
-    M_minor = 0;
+    M_major = 0; M_minor = 0;
 
     // initial density & T setting.
-    nH0 = halo.rho_c*fb/(mu*m_H);
     T_K0 = halo.Tvir;
-    nH0 = 6.*pow(T_K0/1000.,1.5); // Visbal 2014 Eq(2)
-    printf("MerMod=%d\n",MerMod);
-    /* if (MergerModel==0){
+    nH0 = MPs[iMer].ng_adb;
+
+    /* if (MerMod==0){
         nH0 = 4.5e-3;
         T_K0 = 20;
+        nH0 = 6.*pow(T_K0/1000.,1.5); // Visbal 2014 Eq(2)
     } */
-    if (MerMod) nH0 = MPs[iMer].ng_adb;
-
     rho0 = (mu*m_H) * nH0;
     e0 = k_B*T_K0/(gamma_adb-1)/(mu*m_H); // in erg/g
-
     P0 = nH0*k_B*T_K0;
     S0 = k_B*T_K0/pow(nH0,2./3.); 
 
     t_ff = 1./(Cp * sqrt(rhoc_DM + (mu*m_H)*nH0));
-
+    // if (MerMod==0)  t_ff = 1./C/sqrt(nH0);
     cs = sqrt( gamma_adb*k_B*T_K0/(mu*m_H) );
     Mgas = Mh*fb;
     Mcore = 4.*pi/3.*pow(0.1*halo.Rvir,3)* nH0;
@@ -323,7 +313,7 @@ void GAS:: timescales(){
 // merger case (evol_stage=4 is freefall)
     if (evol_stage ==4) r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0;
     else r_h = Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0; //no compressional
-    
+
     //printf("f_Ma=%3.2e, cs=%3.2e, t_ff=%3.2e, compr=%3.2e mer=%3.2e mer_th=%3.2e\n", f_Ma, cs, t_ff, Gamma_compr(cs,f_Ma,t_ff),Gamma_mer,Gamma_mer_th);
 
     t_c = e0/r_c;
@@ -331,6 +321,8 @@ void GAS:: timescales(){
     HALO halo(Mh,z);
     rhoc_DM = halo.rho_c;
     t_ff = 1./(Cp * sqrt(rhoc_DM + (mu*m_H)*nH0));
+
+    // printf("t_ff1=%3.2e\t t_ff2=%3.2e\n",t_ff/Myr, 1./C/sqrt(nH0)/Myr);
 
     // Dt firstly by cooling/heating/free-fall timescales; also all for NO merger case
     Dt = 0.1* min( min(t_c,t_h), t_ff ); //不行不够细
@@ -443,9 +435,8 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             break;
     }
 
-    reduction = 1;// WL ADDED //cout<<nH0<<"\t"<<ncore<<endl;
+
     v_tur2 += Dt * Gamma_mer_k*2; // 2 coz e=1/2v^2
-    // f_Ma = (Ma_on)? 1 + v_tur2/pow(cs,2) * reduction :1; //wrong, didn't consider cs^2/gamma; reduction no use
 
     double b = 1./3.; // [1/3, 0.5)
     f_Ma = 1;
@@ -453,8 +444,9 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     if (Ma_on) f_Ma += v_tur2/pow(cs,2) * gamma_adb*b; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
     // bsm velocity: alpha = 4.7; // [4, 8)
     if (i_bsm) f_Ma += pow(alpha*v_bsm/cs,2); //Eq(3) in Hirano+2018. from Fialkov2012
+    // f_Ma = 3.; //调试用 1 和 3
 
-    Ma = sqrt(v_tur2* reduction )/cs;
+    Ma = sqrt(v_tur2)/cs;
     // if (evol_stage==3) {
     //     printf("f_Ma=%3.2e v_bsm=%3.2e, Vc=%3.2e\n",f_Ma, v_bsm/km, cs/km, halo1.Vc/km);
     //     printf("Vc^2/ (cs^2 + v_tur^2 + v_bsm^2)=%3.2e\n",pow(halo1.Vc,2)/(pow(cs,2)+v_tur2+pow(v_bsm,2)));
