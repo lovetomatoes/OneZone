@@ -44,12 +44,13 @@ double evol_y_He = evol_yHe - 2.*evol_tiny, evol_y_Hep = evol_tiny, evol_y_Hepp 
 double evol_y_e = evol_y_Hp + evol_y_H2p - evol_y_Hm + evol_y_Hep + 2.*evol_y_Hepp;
 
 double frac0[] = {0., evol_y_H, evol_y_H2, evol_y_e, evol_y_Hp, evol_y_H2p, evol_y_Hm, evol_y_He, evol_y_Hep, evol_y_Hepp};
+static int i;
 
 void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool spec, bool Ma_on, int i_bsm){
     printf("################################################################################\n");
     printf("################################################################################\n");
     printf("################################################################################\n");
-    int i =0;
+    i =0;
 
     GAS gas(frac0,MerMod,J21,Tbb,treename,spec,Ma_on,i_bsm);
     printf("z0 = %3.2f, initial nH = %3.2e /cc & T = %3.2e K\n",gas.z0,gas.nH0,gas.T_K0);
@@ -132,12 +133,12 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
             if (i==0){
                 if (py){
                     file<<setw(16)<<"yH"<<setw(16)<<"yH2"<<setw(16)<<"ye"<<setw(16)<<"yH+"<<setw(16)<<"yH2+";
-                    file<<setw(16)<<"yH-"<<setw(16)<<"yHe"<<setw(16)<<"yHe+"<<setw(16)<<"y_equi"<<setw(16)<<"y_cool";
+                    file<<setw(16)<<"y_euqi"<<setw(16)<<"y_cool"<<setw(16)<<"Jc_pd"<<setw(16)<<"Jc_cd"<<setw(16)<<"Jc_pred";
                 }
                 else file<<" y_H y_{H2} y_e y_{H+} y_{H2+} y_{H-} y_{He} y_{pred} y_{equi} y_{cool}";
             }
             else {
-                for (int i=1; i<=7; i++) file<<setw(16)<<gas.y0[i];
+                for (int i=1; i<=5; i++) file<<setw(16)<<gas.y0[i];
                 double kHm_e, kH2_Hm,   kH2p_Hp, kH2_H2p,   kH2_3b;
                 double kHm_pd, kH2p_pd, kH2_pd;
                 double kH2_cd_tot, kH2_cd_H, kH2_cd_e, kH2_cd_H2, kH2_cd_Hp, kH2_cd_He; 
@@ -186,17 +187,16 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
                 // H2 forming rate; 
                 rform = max(kform_Hm*gas.nH0*gas.y0[1]*gas.y0[3]+kform_H2p*gas.nH0*gas.y0[1]*gas.y0[4], kH2_3b*pow(gas.nH0,2)*pow(gas.y0[1],3));
                             // H-, small n                        H2+                                     3b,  n>~10^9/cm^3
-                // rform = kform_Hm*gas.nH0*gas.y0[1]*gas.y0[3]; // H2 formation dominated by H- over H2+
+                rform = kform_Hm*gas.nH0*gas.y0[1]*gas.y0[3]; // H2 formation dominated by H- over H2+
                 yequi = min(rform/kH2_pd, rform/kH2_cd_tot);
                 yequi = rform/(kH2_pd+kH2_cd_tot);
                             // pd,  n<~100/cm^3      cd, large n 
 
-                // sufficient cooling fraction. Λ_H2 v.s. Γ_compr(f_Ma)
-                ycool = 1.5*gas.f_Ma*gas.nH0*k_B*gas.T_K0 * gas.y0[2]/(gas.t_ff*Lambda_H2(gas.nH0,gas.T_K0,gas.y0));
-                ypred = gas.Dt*gas.rf[2]+gas.y0[2]; // prediciton of yH2
-                file<<setw(16)<<ypred; 
-                file<<setw(16)<<yequi;
-                file<<setw(16)<<ycool;
+                file<<setw(16)<<gas.yequi; //column 21
+                file<<setw(16)<<gas.ycool;
+                file<<setw(16)<<gas.Jc_pd;
+                file<<setw(16)<<gas.Jc_cd; 
+                file<<setw(16)<<gas.Jc_pred;
             }
         }
         /* if (itime <=2){
@@ -227,11 +227,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
 
                 file<<setw(16)<<gas.cs/km<<setw(16)<<sqrt(gas.v_tur2)/km<<setw(16)<<gas.v_bsm/km;
                 file<<setw(16)<<gas.f_Ma;
-                if (gas.evol_stage==4) {
-                    file<<setw(16)<<gas.f_Ma + gas.Gamma_mer_th/Gamma_compr(gas.cs,1.,gas.t_ff);
-                }
-                else file<<setw(16)<<0.;
-                
+                file<<setw(16)<<gas.g_Ma;
             }
         }
 
@@ -301,7 +297,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
 }
 
 // resembling main_Jc1.cpp
-double getT(double& zcol, bool write,int MerMod, double J, double Tb, string treename, bool spec, bool Ma_on, int i_bsm, double nH_tell){
+double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, string treename, bool spec, bool Ma_on, int i_bsm, double nH_tell){
     // printf("\n**************************\nSTART in getT:\n");
     GAS gas(frac0,MerMod,J,Tb,treename,spec,Ma_on,i_bsm);
 
@@ -345,10 +341,16 @@ double getT(double& zcol, bool write,int MerMod, double J, double Tb, string tre
     }
     if (write) f1.close();
 
-    zcol = gas.z_col;
+    argv[0] = gas.n_H2crit;
+    argv[1] = gas.z_H2crit;
+    argv[2] = gas.Jc_pred_max;
+    argv[3] = gas.fMa_H2crit;
+    argv[4] = gas.gMa_H2crit;
+    argv[5] = gas.z_col;
+
     printf("*******IN GET_T***********\n");
     cout<<"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0);
-    printf("\tJ=%3.2f, z_col=%3.2f, nH_tell=%3.2e, T=%3.2e\n\n\n",J,zcol,nH_tell, gas.T_K0);
+    printf("\tJ=%3.2f, z_col=%3.2f, nH_tell=%3.2e, T=%3.2e\n\n\n",J, gas.z_col, nH_tell, gas.T_K0);
     return gas.T_K0;
 }
 
@@ -361,54 +363,83 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
     double J0 = epE2, J1 = 1.e4; //包括所有的Tb所需range 没必要
     J0 = 500, J1 = 1.5e3;
     double T0, T1, T;
-    double z0_col,z1_col,z_col;
+    int const c = 6;
+    double y0[c];
+    double y1[c];
+    double y[c];
 
     ofstream file;
     ifstream checkf_exist(fout.c_str());
     if (checkf_exist.good()) cout<<fout.c_str()<<" exist\n";
     else {
         file.open(fout, ios::out | ios::trunc);
-        file<<setw(16)<<"tree"<<setw(16)<<"Tb"<<setw(16)<<"i_bsm"<<setw(16)<<"tur"<<setw(16)<<"z_col"<<setw(16)<<"Jc"<<endl;
+        file<<setw(16)<<"tree"<<setw(16)<<"Tb"<<setw(16)<<"i_bsm"<<setw(16)<<"tur"; 
+        file<<setw(16)<<"n_H2crit"<<setw(16)<<"z_H2crit";
+        file<<setw(16)<<"Jc"<<setw(16)<<"Jc_pred";
+        file<<setw(16)<<"fMa_H2crit"<<setw(16)<<"gMa_H2crit";
+        file<<setw(16)<<"z_col"<<endl;
         file.close();
     }
     file.open(fout, ios::out | ios::app);
 
-    T0 = getT(z0_col,false,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell); T1 = getT(z1_col,false,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+    T0 = getT(c,y0, false,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
+    T1 = getT(c,y1, false,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
     cout<<"***********log**************\n";
     if ( T0-T_tell>0 ) {
         while(T0-T_tell>0){
             printf("J0=%3.2f,T0=%3.2e,T_tell=%3.2e, wrong INITIAL LEFT boundary\n",J0,T0,T_tell);
-            J1 = J0; T1 = T0; z1_col = z0_col;
-            J0 *= 0.9;
-            T0 = getT(z0_col,false,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+            J1 = J0; T1 = T0;
+            J0 *= 0.5;
+            T0 = getT(c,y0,false,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
         }
     }
     else if (T1-T_tell<0) {
         while (T1-T_tell<0){
             printf("J1=%3.2f,T1=%3.2e,T_tell=%3.2e, wrong INITIAL RIGHT boundary\n",J1,T1,T_tell);
-            J0 = J1; T0 = T1; z0_col = z1_col;
-            J1 *= 1.1;
-            T1 = getT(z1_col,false,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
+            J0 = J1; T0 = T1;
+            J1 *= 2.;
+            T1 = getT(c,y1,false,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
         }
     }
 
     while (J1-J0 > 0.01*J0){
         bool write = false;
         // if (J1-J0 > 0.05*J0) write = true;
-        T = getT(z_col,write,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+        T = getT(c,y,write,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
         printf("#######\t########\t########\t#########");
         printf("J0=%3.2f, T0=%3.2f,J1=%3.2f,T1=%3.2f, Jmid=%4.3f\tTmid=%3.2e\n",J0,T0,J1,T1,(J0+J1)/2.,T);
-        if (T-T_tell>=0) { J1 = (J0+J1)/2.; T1 = T; z1_col = z_col; }
-        else { J0 = (J0+J1)/2.; T0 = T; z0_col = z_col; }
+        if (T-T_tell>=0) {
+            J1 = (J0+J1)/2.; T1 = T;
+            for (i=0;i<c;i++) y1[i] = y[i];
+        }
+        else {
+            J0 = (J0+J1)/2.; T0 = T;
+            for (i=0;i<c;i++) y0[i] = y[i];
+        }
     }
 
 
-    printf("J0=%3.2f\tT0=%3.2e\tJ1=%3.2f\tT1=%3.2e\n --> Jc_sol=%3.2f z_col=%3.2f\n",J0,T0,J1,T1, J1, z1_col);
+    printf("J0=%3.2f\tT0=%3.2e\tJ1=%3.2f\tT1=%3.2e\n --> Jc_sol=%3.2f z_col=%3.2f\n",J0,T0,J1,T1, J1, y1[5]);
     int index=treename.find("fort.");
     string tree = treename.substr(index+5); // tree_id 输出
     file<<setw(16)<<stoi(tree)<<setw(16)<<Tb<<setw(16)<<i_bsm<<setw(16)<<((Ma_on)?1:0);
-    file<<setw(16)<<z1_col<<setw(16)<<J1<<endl;
+    file<<setw(16)<<y1[0]<<setw(16)<<y1[1];
+    file<<setw(16)<<J1<<setw(16)<<y1[2];
+    file<<setw(16)<<y1[3]<<setw(16)<<y1[4];
+    file<<setw(16)<<y1[5]<<endl;
     file.close();
+
+        // file<<"tree"<<"Tb"<<"i_bsm"<<"tur"; 
+        // file<<"n_H2crit"<<"z_H2crit";
+        // file<<"Jc"<<"Jc_pred";
+        // file<<"fMa_H2crit"<<"gMa_H2crit";
+        // file<<"z_col"<<endl;
+//     argv[0] = gas.n_H2crit;
+//     argv[1] = gas.z_H2crit;
+//     argv[2] = gas.Jc_pred;
+//     argv[3] = gas.fMa_H2crit;
+//     argv[4] = gas.gMa_H2crit;
+//     argv[5] = gas.z_col;
 
     string fevol = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J0))+".txt";
     evol(treename, fevol, MerMod, Tb, J0, spec, Ma_on, i_bsm);

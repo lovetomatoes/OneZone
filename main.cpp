@@ -37,19 +37,12 @@ int main(){
 
     int index=ftree.find("fort.");
     string tree = ftree.substr(index+5); // tree_id 输出
-    fout = "tr"+tree+"Jcs.txt";
-    MerMod = 1; Ma_on = true;
-    i_bsm = 1;
-    // evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
-
+    fout = "tr"+tree+"Tb"+to_string(int(Tb))+"Jcs.txt";
+    MerMod = 1;
+    i_bsm = 0; Ma_on = true;
     // fout="f_Ma1.txt";
     // J21 = 1296.;
     // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-
-    fout="f_Ma3.txt";
-    J21 = 750.;
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-
     // Ma_on = false;
     // for (i_bsm=0; i_bsm<1; i_bsm++){
     //     evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);

@@ -34,14 +34,19 @@ class GAS
         double rhoc_DM;
         double J_LW, Tb;
         double *y0, *y1, *ys,  *k, *rf;
+        double yequi, ycool, ycool_crit;
+        double Jc_pd, Jc_cd, Jc_pred, Jc_pred_max;
+        double delta_H2_compr, delta_H2_compr_min;
+        double fMa_H2crit, gMa_H2crit, n_H2crit, z_H2crit;
+        double a, b, c, d, e;
         double r_h, r_c, r_cH, r_cH2;
         double t_ff, t_h, t_c, t_rcb, t_chem, t_ion;
         int evol_stage, i_bsm;
         double n_iso, Mh_prev, t_prev, dt_iso;
-        //label density evolve: MerMod==0直接freefall; MerMod==1, evol_stage=1 等熵,2 Eli saturated core,3 等温,4 freefall
+        // evol_stage: label density evolve: MerMod==0 直接freefall; MerMod==1, evol_stage=1 等熵,2 Eli saturated core,3 等温,4 freefall
         double Gamma_mer, Gamma_mer_th, Gamma_mer_k;
         double cs, MJ, RJ, MJ_eff, Mgas, Mcore, M_BE, Mg_intg;
-        double M_major, M_minor, MJ0, Ma, f_Ma, v_tur2, reduction, ncore, nb200;
+        double M_major, M_minor, MJ0, Ma, f_Ma, g_Ma, v_tur2, reduction, ncore, nb200;
         double de_tot, dM_tot;
         double v_inf2, v_bsm;
         bool inMer, inDelay, not_adb, Ma_on;

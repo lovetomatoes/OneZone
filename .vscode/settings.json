@@ -10,6 +10,8 @@
         "fstream": "cpp",
         "ostream": "cpp",
         "__locale": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "memory": "cpp",
+        "utility": "cpp"
     }
 }

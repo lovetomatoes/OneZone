@@ -93,9 +93,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     e0 = k_B*T_K0/(gamma_adb-1)/(mu*m_H); // in erg/g
 
     P0 = (gamma_adb-1) * rho0 * e0;
-    v_tur2 = 1./2.*e0; //initialize turbulent energy, following ratio Eth/Ek = 3:1
-    //v_tur2 = 2./3.*e0; //initialize turbulent energy, following ratio Eth/Ek = 3:1
-    //v_tur2 = 0; //initialize turbulent energy, following ratio Eth/Ek = 3:1
+    v_tur2 = 2./3.*e0; //initialize turbulent energy, following ratio Eth/Ek = 3:1
 
     J_LW = J21; Tb = Tbb;
     y0 = NULL; y1 = NULL; ys = NULL;
@@ -105,6 +103,11 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     ys = new double[(Nt+1)*N];
     k = new double [N_react+1]; rf = new double[N_react+1];
 
+    ycool = 0.; yequi = 0.; ycool_crit = 1.e100;
+    Jc_pd = 0.; Jc_cd = 0.; Jc_pred = 0.; Jc_pred_max = 0;
+    delta_H2_compr_min = 1.e100;
+    a=0; b=0; c=0; d=0; e=0;
+    n_H2crit = 0;
 
     Ta = new double [n_ra]; ka = new double [n_ra];
     read_k(n_ra, Ta, ka);
@@ -114,7 +117,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     k[22] *= J21; k[23] *= J21;
     //printf("CONSTRUCTOR: k_pdH2=%3.2e, k_pdHm=%3.2e, k_pdH2p=%3.2e\n",k[21],k[22],k[23]);
 
-    RJ = cs*t_ff0;//RJ = sqrt( pi*k_B*T_K0/ (G*pow(mu*m_H,2)*nH0) );
+    RJ = cs*t_ff0;//RJ = sqrt( pi*k_B*T_K0/ (G*pow(mu*m_H,2)*nH0) ); !wli: RJ not precise
     printf("cs_0 is %3.2e km/s; R_vir is %3.2e pc, RJ_0 is %3.2e pc \n",cs/1.e5,halo.Rvir/pc, RJ/pc);
     printf("sqrt(2)*cs_0 is %3.2e km/s; halo Vc is %3.2e km/s \n",cs/1.e5*sqrt(2), halo.Vc);
     MJ0 = 4.*pi/3.*rho0*pow(RJ/2.,3);
@@ -246,6 +249,97 @@ void GAS:: react_sol(bool write){
 
 //reset Nt
     Nt = 5;
+
+    double kHm_e, kH2_Hm,   kH2p_Hp, kH2_H2p,   kH2_3b;
+    double kHm_pd, kH2p_pd, kH2_pd;
+    double kH2_cd_tot, kH2_cd_H, kH2_cd_e, kH2_cd_H2, kH2_cd_Hp, kH2_cd_He; 
+    double kform_Hm, kform_H2p;
+    double kHm_rcb, kHm_cd;
+    double rform;
+
+//
+//  1)   H     +   e     ->   H+    +  2 e    col ionization
+//  2)   H+    +   e     ->   H     +   ph.   recombination
+
+//  3)   H     +   e     ->   H-    +   ph.   kHm_e
+//  4)   H-    +   H     ->   H2    +   e     kH2_Hm
+//  11)  H-    +   H+    -> 2 H               kHm_rcb
+
+//  5)   H     +   H+    ->   H2+   +   ph.   kH2p_Hp
+//  6)   H2+   +   H     ->   H2    +   H+    kH2_H2p
+
+//  15) 3 H              ->   H2    +   H     kH2_3b
+
+//  21)  H2   +   ph   -> 2 H                 kH2_pd
+//  22)  H-   +   ph  ->  H   +  e            kHm_pd
+//  23)  H2+  +   ph  ->  H   +  H+           kH2p_pd
+
+//  7)   H2    +   H     -> 3 H               kH2_cd_H
+//  8)   H2    +   H+    ->   H2+   +   H     kH2_cd_Hp
+//  9)   H2    +   e     -> 2 H     +   e     kH2_cd_e
+//  20)  H2    +   e     ->   H-    +   H
+//  16)  2 H2            -> 2 H     +   H2    kH2_cd_H2
+//  35)  H2    +   He    ->   He    +  2 H    kH2_cd_He
+
+    kHm_e = k[3]; kH2_Hm = k[4];
+    kH2p_Hp = k[5]; kH2_H2p = k[6];
+
+    kH2_pd = k[21]; kHm_pd = k[22]; kH2p_pd = k[23];
+    kH2_3b = k[15];
+    kH2_cd_H = k[7]; kH2_cd_Hp = k[8]; kH2_cd_e = k[9] + k[20]; kH2_cd_H2 = k[16];
+    kH2_cd_He = k[35];
+    kH2_cd_tot = nH0* (kH2_cd_H*y0[1] + kH2_cd_Hp*y0[4] + kH2_cd_e*y0[3] + kH2_cd_H2*y0[2] + kH2_cd_He*y0[7]); 
+    // kH2_cd_tot = nH0* (kH2_cd_H*y0[1]); // collisional dissociation dominated by H
+
+    // regualte H2 at high n, together w/ H2 cd 
+    kHm_rcb = k[11];
+    kHm_cd = k[18];
+
+    kform_Hm = kHm_e* kH2_Hm*y0[1]/( kH2_Hm*y0[1] + kHm_pd/nH0 + kHm_rcb*y0[4] + kHm_cd*y0[1]);
+    kform_H2p = kH2p_Hp* kH2_H2p/(kH2_H2p + kH2p_pd/nH0);
+    // H2 forming rate; 
+    rform = max(kform_Hm*nH0*y0[1]*y0[3]+kform_H2p*nH0*y0[1]*y0[4], kH2_3b*pow(nH0,2)*pow(y0[1],3));
+                // H-, small n              // H2+                            3b,  n>~10^9/cm^3
+    rform = kform_Hm*nH0*y0[1]*y0[3];// + kform_H2p*nH0*y0[1]*y0[4]; // H2 formation dominated by H- over H2+
+    // yequi = min(rform/kH2_pd, rform/kH2_cd_tot);
+        // pd,  n<~100/cm^3   cd, large n 
+    yequi = rform/(kH2_pd+kH2_cd_tot);
+    // yequi = rform/(kH2_pd);
+    // yequi = rform/(kH2_cd_tot);
+
+
+    // sufficient cooling fraction. Λ_H2 (erg/cm^3/s) v.s. Γ_compr(g_Ma) (erg/g/s) 
+    ycool = g_Ma* rho0*Gamma_compr(cs,1.,t_ff) * y0[2]/Lambda_H2(nH0,T_K0,y0);
+
+    // ycool = yequi;
+    Jc_pd = rform / (ycool * kH2_pd/J_LW);
+
+    double beta_Hm = kHm_pd/J_LW; double beta_H2 = kH2_pd/J_LW;
+
+    a = y0[1]*y0[3]*nH0/kH2_cd_tot*kHm_e*kH2_Hm*y0[1];
+    b = kH2_Hm*y0[1] + kHm_rcb*y0[4] + kHm_cd*y0[1];
+    c = beta_Hm/nH0;
+    Jc_cd = (a/ycool - b)/c; 
+
+    delta_H2_compr = abs(r_cH2 - Gamma_compr(cs,f_Ma,t_ff))/r_cH2 ;
+
+    a = nH0*y0[1]*y0[3]*kHm_e*kH2_Hm*y0[1];
+    b = kH2_Hm*y0[1] + kHm_rcb*y0[4] + kHm_cd*y0[1];
+    c = beta_Hm/nH0;
+    d = kH2_cd_tot*y0[1];
+    e = beta_H2;
+    ycool_crit = ycool;
+    Jc_pred = (-(c*d+b*e)+sqrt( pow(c*d+b*e,2)-4.*(c*e)*(b*d-a/ycool_crit)))/(2.*c*e);
+
+    if (Jc_pred> Jc_pred_max){
+        n_H2crit = nH0;
+        z_H2crit = z0;
+        gMa_H2crit = g_Ma;
+        fMa_H2crit = f_Ma;
+        ycool_crit = ycool;
+        Jc_pred_max = Jc_pred;
+    }
+
 }
 
 void GAS:: setMerger(){
@@ -256,7 +350,6 @@ void GAS:: setMerger(){
             inMer = true;
             if ( t_act >= MPs[iMer+1].t){
                 iMer ++;
-                // Mh = MPs[iMer].mhalo;
                 if (MPs[iMer].major) M_major += MPs[iMer].dm;
             }
             if (MPs[iMer].t <= t_act and t_act < MPs[iMer+1].t){ 
@@ -305,12 +398,13 @@ void GAS:: timescales(){
     r_cH = Lambda_H(nH0,T_K0,y_H,y_e, k_Hion)/rho0;
     r_cH2 = Lambda_H2(nH0,T_K0,y0)/rho0;
     r_c =  r_cH2 + r_cH + Lambda_Hep(nH0, T_K0, y_Hep, y_e, y_He, k_Heion)/rho0;
-    //开关 turn_off cooling
-    //r_c = 0;
+    //开关 turn_off H2 cooling wli!
+    // r_c -= r_cH2;
 //// Merger heating -> turbulent & thermal
     Gamma_mer_th = fraction * Gamma_mer;
     Gamma_mer_k = (1-fraction) * Gamma_mer;
-// merger case (evol_stage=4 is freefall)
+// merger case (evol_stage=4 is freefall) !wli!!!
+    //if (evol_stage ==4) r_h = Gamma_compr(cs,1,t_ff) + Gamma_chem(nH0, T_K0, y0, k)/rho0;
     if (evol_stage ==4) r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0;
     else r_h = Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0; //no compressional
 
@@ -358,7 +452,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     double alpha = 4.7;
     switch(evol_stage){
         case 0: // not combined w/ mergers
-            nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
+            nH0 = n_ff(z0,nH0,0.,Dt); //设成0 为了使其不受rhoc_DM的redshift dependence 影响
             break;
         case 1: // adiabatic heating, n ~ T^1.5, constant entropy
             nH0 = N_ADB(S0,T_K0);
@@ -452,8 +546,15 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     //     printf("Vc^2/ (cs^2 + v_tur^2 + v_bsm^2)=%3.2e\n",pow(halo1.Vc,2)/(pow(cs,2)+v_tur2+pow(v_bsm,2)));
     //     printf("concentration c=%3.2e\n",halo1.Rs/halo1.Rvir);
     // }
-    if (MerMod==0) f_Ma = 1; //for MerMod=0 case
 
+    if (evol_stage==4) g_Ma = f_Ma + Gamma_mer_th/Gamma_compr(cs,1.,t_ff);
+    else g_Ma = 1.;
+
+ //for MerMod=0 case
+    if (MerMod==0) {
+        f_Ma = 1;
+        g_Ma = 1;
+    }
     // update rho
     rho0 = (mu*m_H) * nH0;
 }
