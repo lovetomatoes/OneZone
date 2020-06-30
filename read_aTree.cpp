@@ -105,6 +105,8 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
         f.close();
     }
 // other attributes
+    cout<<"\t#\t#\t#\t tree: nMP= "<<nMP<<endl;
+
     for (i=0;i<nMP;i++){
             HALO halo(MPs[i].mhalo,MPs[i].z);
 

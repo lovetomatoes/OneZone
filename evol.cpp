@@ -90,7 +90,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
     int itime=0;
 
     i = 0;
-    //while (gas.t0<gas.t1 && gas.nH0<1.e15){
+    //while (gas.t_act<2*gas.t_ff0){
     while (gas.z>10 && gas.nH0<1.e11){
         if (i==0){
             if (py) file<<setw(16)<<"t"<<setw(16)<<"Dt"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T";
@@ -132,13 +132,14 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
         if (fract){
             if (i==0){
                 if (py){
-                    file<<setw(16)<<"yH"<<setw(16)<<"yH2"<<setw(16)<<"ye"<<setw(16)<<"yH+"<<setw(16)<<"yH2+";
+                    file<<setw(16)<<"yH"<<setw(16)<<"yH2"<<setw(16)<<"ye"<<setw(16)<<"yH+"<<setw(16)<<"yH-";
                     file<<setw(16)<<"y_euqi"<<setw(16)<<"y_cool"<<setw(16)<<"Jc_pd"<<setw(16)<<"Jc_cd"<<setw(16)<<"Jc_pred";
                 }
                 else file<<" y_H y_{H2} y_e y_{H+} y_{H2+} y_{H-} y_{He} y_{pred} y_{equi} y_{cool}";
             }
             else {
-                for (int i=1; i<=5; i++) file<<setw(16)<<gas.y0[i];
+                for (int i=1; i<=4; i++) file<<setw(16)<<gas.y0[i];
+                file<<setw(16)<<gas.y0[6]; // Hm
                 double kHm_e, kH2_Hm,   kH2p_Hp, kH2_H2p,   kH2_3b;
                 double kHm_pd, kH2p_pd, kH2_pd;
                 double kH2_cd_tot, kH2_cd_H, kH2_cd_e, kH2_cd_H2, kH2_cd_Hp, kH2_cd_He; 

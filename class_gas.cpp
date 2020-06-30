@@ -109,6 +109,8 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     a=0; b=0; c=0; d=0; e=0;
     n_H2crit = 0;
 
+    intoequi = false;
+
     Ta = new double [n_ra]; ka = new double [n_ra];
     read_k(n_ra, Ta, ka);
 
@@ -385,6 +387,7 @@ void GAS:: timescales(){
             ifast = isp;
         }
     }
+    // printf("ifast=%d\n",ifast);
     //if (nH0<1.5e3 and nH0>900) printf("t_ch[%d]=%3.2e t_ff0\n",t_chem, y0[ifast]/rf[ifast]/t_ff0);
 
     //Hm + H -> H2+e  &  3H -> H2+H  
@@ -516,7 +519,13 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             break;
         case 5:
             nH0 = MPs[iMer].ng_adb;
-            if (r_cH2>2*abs(r_h) or r_cH>abs(r_h) and t_act!=0) { //factor 2 coz H2 cooling somehow high initially
+
+            if (not intoequi and y0[2]/yequi<2.) {
+                intoequi = true; 
+                printf("into equi at %3.2e t_ff0, nH=%3.2e /cc\n",t_act/t_ff0,nH0);
+            }
+
+            if (intoequi and r_cH2>abs(r_h) or r_cH>abs(r_h)) { //factor 2 for H2 cooling deleted
                 printf(" in CASE5: adb not hold, go to 3\t");
                 evol_stage = 3;
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
