@@ -30,16 +30,16 @@ g++ class_gas.o -o gas
 GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefile, bool spec, bool Ma_turn, int bsm){
     //N_sp = 5; N_react = 6; 
     MerMod = MergerModel; printf("MerMod=%d\n",MerMod);
-    nMer = 0; iMer = 0;
+    nMer = 0; iMP = 1;
     MPs = NULL;
-    MPs = new MainProgenitor [100];
+    MPs = new MainProgenitor [200];
     aTree(nMer,treefile,MPs); printf("read tree done\n");
-    z0 = MPs[iMer].z;
+    z0 = MPs[iMP].z;
     z = z0;
     z_col = -1.;
     i_bsm = bsm;
     v_bsm = i_bsm*sigma1*(1+z)/(1+z_rcb);
-    Mh = MPs[iMer].mhalo;
+    Mh = MPs[iMP].mhalo;
     HALO halo(Mh,z0);
     rhoc_DM = halo.rho_c;
     // printf("z0 = %3.2f\thalo concentration = %3.2f,\n", z0,halo.c);
@@ -53,7 +53,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
 
     // initial density & T setting.
     T_K0 = halo.Tvir;
-    nH0 = MPs[iMer].ng_adb;
+    nH0 = MPs[iMP].ng_adb;
 
     /* if (MerMod==0){
         nH0 = 4.5e-3;
@@ -345,21 +345,21 @@ void GAS:: react_sol(bool write){
 }
 
 void GAS:: setMerger(){
-    //printf("iMer = %d, nMer = %d", iMer, nMer);
+    //printf("iMP = %d, nMer = %d", iMP, nMer);
     if (MerMod !=  0){
-        if (iMer< nMer-2){ // final merger not included, since nMer halos only nMer-1 intervals, //WLI
-        // from iMer=0 to nMer-2, MPs[iMer] has dt, dm, mratio, etc.
+        if (iMP< nMer){ // final merger not included, since nMer halos only nMer-1 intervals, //wli
+        // from iMP=1 to nMer-1, MPs[iMP] has dt, dm, mratio, etc.
             inMer = true;
-            if ( t_act >= MPs[iMer+1].t){
-                iMer ++;
-                if (MPs[iMer].major) M_major += MPs[iMer].dm;
+            if ( t_act >= MPs[iMP+1].t){
+                iMP ++;
+                if (MPs[iMP].major) M_major += MPs[iMP].dm;
             }
-            if (MPs[iMer].t <= t_act and t_act < MPs[iMer+1].t){ 
+            if (MPs[iMP].t <= t_act and t_act < MPs[iMP+1].t){ 
                 // interpolation btw mergers
-                Mh = (MPs[iMer].mhalo*(MPs[iMer+1].t-t_act) + MPs[iMer+1].mhalo*(t_act-MPs[iMer].t)) / MPs[iMer].dt; 
+                Mh = (MPs[iMP].mhalo*(MPs[iMP+1].t-t_act) + MPs[iMP+1].mhalo*(t_act-MPs[iMP].t)) / MPs[iMP].dt; 
             }
             else cout<<"\n!\n!\n!\n! wrong in setMer\n";
-            dMdt = MPs[iMer].dm / MPs[iMer].dt;
+            dMdt = MPs[iMP].dm / MPs[iMP].dt;
             Mgas = Mh*fb;
             
             HALO halo(Mh, z); //更真实的Mh 和 z
@@ -426,7 +426,7 @@ void GAS:: timescales(){
     Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h));
 
 // merger case: Dt << merger intervals dt
-    if (inMer and evol_stage !=4) Dt = min( Dt, .1*MPs[iMer].dt ); // wli : check 能否放宽
+    if (inMer and evol_stage !=4) Dt = min( Dt, .1*MPs[iMP].dt ); // wli : check 能否放宽
     
 // no merger case, just free fall; one-zone case of former work
     if (MerMod==0) { 
@@ -500,7 +500,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             }
             break;
         case 3: // iso T=8000K (H Lya cooling)
-            adjust_iso = (t_act - t_prev >= min( 0.1*MPs[iMer].dt, t_ff) );
+            adjust_iso = (t_act - t_prev >= min( 0.1*MPs[iMP].dt, t_ff) );
             if (adjust_iso) {
                 dt_iso = t_act - t_prev;
                 Mh_prev = Mh; t_prev = t_act;
@@ -518,7 +518,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
             break;
         case 5:
-            nH0 = MPs[iMer].ng_adb;
+            nH0 = MPs[iMP].ng_adb;
 
             if (not intoequi and y0[2]/yequi<2.) {
                 intoequi = true; 

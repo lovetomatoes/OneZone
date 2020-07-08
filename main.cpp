@@ -32,17 +32,21 @@ int main(){
     double J21 = 0;
     int i_bsm;
     string fout;
-    Ma_on = true;
-    ftree = "../tree_Hirano/fort.1";
+    int ntree = 10;
+    ntree = 1; 
+    for (i=0;i<ntree;i++){
+        ftree = "../treefiles/tree_"+to_string(i); // cout<<ftree<<endl;
+        fout = "Tb"+to_string(int(Tb))+"Jcs.txt";
+        fout = "Jcs.txt";
+        cout<<fout<<endl;
+        for (i_bsm=0; i_bsm<4; i_bsm++){
+            evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+        }
+    }
 
-    int index=ftree.find("fort.");
-    string tree = ftree.substr(index+5); // tree_id 输出
-    fout = "tr"+tree+"Tb"+to_string(int(Tb))+"Jcs.txt";
-    MerMod = 1;
-    i_bsm = 0; Ma_on = true;
+    // string tree = to_string(i); // tree_id 输出
+    // fout = "tr"+tree+"Tb"+to_string(int(Tb))+"Jcs.txt";
 
-    // fout="evolve960.txt";
-    // J21 = 960.;
     // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
     // Ma_on = false;

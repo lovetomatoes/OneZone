@@ -3,13 +3,16 @@
 #SBATCH --partition=C032M0128G
 #SBATCH --qos=low
 #SBATCH -A hpc1806187118
-#SBATCH -J PYevol_wli
+#SBATCH -J 10Jc
 #SBATCH --get-user-env
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --time=00:10:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --time=10:56:00
 
 module load gsl/2.4 anaconda/3.7.1
+module load gcc/7.2.0
 
-#python evol.py 
-make && m
+make && ./main
+
+# mk && m cannot be executed, bash_profile alias only by login shells

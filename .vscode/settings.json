@@ -12,6 +12,7 @@
         "__locale": "cpp",
         "iomanip": "cpp",
         "memory": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "ratio": "cpp"
     }
 }

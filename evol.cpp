@@ -120,7 +120,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
                 file<<setw(16)<<gas.t_ion/gas.t_ff0;
                 file<<setw(16)<<gas.e0/gas.r_cH2 /gas.t_ff0;
                 file<<setw(16)<<gas.e0/gas.r_cH / gas.t_ff0;
-                file<<setw(16)<<gas.MPs[gas.iMer].dt/gas.t_ff0;
+                file<<setw(16)<<gas.MPs[gas.iMP].dt/gas.t_ff0;
                 file<<setw(16)<<0;
                 /* 
                 file<<setw(16)<<gas.e0*gas.rho0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0); //t_cH2
@@ -223,8 +223,8 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
                 else file <<" z_{Mh} t_{Mh} Mh T_{vir} Vc cs v_{tur} v_{bsm} f_{Ma} g_{Ma}";
             } //rho_c = d0*RHO_DM(gas.z)/m_H checked right. 
             else{
-                file<<setw(16)<<gas.MPs[gas.iMer].z<<setw(16)<<gas.MPs[gas.iMer].t/gas.t_ff0;
-                file<<setw(16)<<gas.Mh/Ms<<setw(16)<<gas.MPs[gas.iMer].Tvir<<setw(16)<<halo.Vc/km;
+                file<<setw(16)<<gas.MPs[gas.iMP].z<<setw(16)<<gas.MPs[gas.iMP].t/gas.t_ff0;
+                file<<setw(16)<<gas.Mh/Ms<<setw(16)<<gas.MPs[gas.iMP].Tvir<<setw(16)<<halo.Vc/km;
 
                 file<<setw(16)<<gas.cs/km<<setw(16)<<sqrt(gas.v_tur2)/km<<setw(16)<<gas.v_bsm/km;
                 file<<setw(16)<<gas.f_Ma;
@@ -237,7 +237,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
                 if (py) file<<setw(16)<<"ievol"<<setw(16)<<"M_J"<<setw(16)<<"M_Jeff"<<setw(16)<<"Mg_intg"<<setw(16)<<"q";
                 else file<<" ievol M_J M_{Jeff} Mg_{intg} q";
             }
-            else file<<setw(16)<<gas.evol_stage<<setw(16)<<gas.MJ/Ms<<setw(16)<<gas.MJ_eff/Ms<<setw(16)<<gas.Mg_intg/Ms<<setw(16)<<gas.MPs[gas.iMer].mratio;
+            else file<<setw(16)<<gas.evol_stage<<setw(16)<<gas.MJ/Ms<<setw(16)<<gas.MJ_eff/Ms<<setw(16)<<gas.Mg_intg/Ms<<setw(16)<<gas.MPs[gas.iMP].mratio;
         }
 
 
@@ -270,10 +270,10 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
         if (mer) {
             HALO halo(gas.Mh, gas.z);
             if (i==0) {
-                if (py) file<<setw(16)<<"iMer"<<setw(16)<<"nc_DM"<<setw(16)<<"dMdt"<<setw(16)<<"Gamma_mer";
-                else file<<" iMer nc_{DM} dMdt Gamma_{mer}";
+                if (py) file<<setw(16)<<"iMP"<<setw(16)<<"nc_DM"<<setw(16)<<"dMdt"<<setw(16)<<"Gamma_mer";
+                else file<<" iMP nc_{DM} dMdt Gamma_{mer}";
             }
-            else file<<setw(16)<<gas.iMer<<setw(16)<<halo.rho_c/(mu*m_H)<<setw(16)<<gas.dMdt<<setw(16)<<gas.Gamma_mer;
+            else file<<setw(16)<<gas.iMP<<setw(16)<<halo.rho_c/(mu*m_H)<<setw(16)<<gas.dMdt<<setw(16)<<gas.Gamma_mer;
         }
         file<<endl;
         i++;
@@ -293,7 +293,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
     // HALO halo (gas.Mh,gas.z);
     // printf(" z from 35 to 10 %f Myr\n", (t_from_z(10) - t_from_z(35))/Myr );
     // printf(" freefall timescale %f Myr\n", gas.t_ff0/Myr );
-    // printf("1.93/2.2*dTvir = %f K\n",1.89/2.2*(gas.MPs[gas.iMer].Tvir - gas.MPs[0].Tvir));
+    // printf("1.93/2.2*dTvir = %f K\n",1.89/2.2*(gas.MPs[gas.iMP].Tvir - gas.MPs[0].Tvir));
     printf("J21= %5.2f, z_col=%3.2f\n\n\n\n",J21,gas.z_col);
 }
 
@@ -302,8 +302,8 @@ double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, 
     // printf("\n**************************\nSTART in getT:\n");
     GAS gas(frac0,MerMod,J,Tb,treename,spec,Ma_on,i_bsm);
 
-    int index=treename.find("fort.");
-    string tree = treename.substr(index+5); // tree_id 输出
+    int index=treename.find("_");
+    string tree = treename.substr(index+1); // tree_id 输出
 
     int i=0;
     fstream f1;
@@ -421,8 +421,12 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
 
 
     printf("J0=%3.2f\tT0=%3.2e\tJ1=%3.2f\tT1=%3.2e\n --> Jc_sol=%3.2f z_col=%3.2f\n",J0,T0,J1,T1, J1, y1[5]);
-    int index=treename.find("fort.");
-    string tree = treename.substr(index+5); // tree_id 输出
+    // int index=treename.find("fort.");
+    // string tree = treename.substr(index+5); // tree_id 输出
+    
+    int index=treename.find("_");
+    string tree = treename.substr(index+1); // tree_id 输出
+
     file<<setw(16)<<stoi(tree)<<setw(16)<<Tb<<setw(16)<<i_bsm<<setw(16)<<((Ma_on)?1:0);
     file<<setw(16)<<y1[0]<<setw(16)<<y1[1];
     file<<setw(16)<<J1<<setw(16)<<y1[2];

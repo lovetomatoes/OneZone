@@ -25,7 +25,7 @@ class GAS
     //private:
         int N, Nt;
         int i_m; int MerMod;
-        int nMer, iMer;
+        int nMer, iMP;
         double z0, z, z_col;
         double t0, t1, Dt, t_act, t_ff0, t_delay;
         double dMdt, dEdt;
