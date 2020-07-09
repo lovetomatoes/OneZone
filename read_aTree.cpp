@@ -66,9 +66,10 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
         // cout<<"tree: nMP= "<<nMP<<endl;
 
     // 调换位置 以num/2为轴 MPs[1]<->MPs[nMP]
+    // wli: 必须*0.5而非/2取整!!! 否则出错 (int, float)比大小先把int转化成float
         num = nMP + 1; // cout<<"num= "<<num<<"num/2= "<<num/2<<endl;
         double temp_dbl;
-        for (i=1;i<num/2;i++){
+        for (i=1;i<0.5*num;i++){
             temp_dbl = MPs[num-i].z; MPs[num-i].z = MPs[i].z; MPs[i].z = temp_dbl;
             temp_dbl = MPs[num-i].t; MPs[num-i].t = MPs[i].t; MPs[i].t = temp_dbl;
             temp_dbl = MPs[num-i].mhalo; MPs[num-i].mhalo = MPs[i].mhalo; MPs[i].mhalo = temp_dbl;
@@ -128,10 +129,12 @@ g++ read_aTree.cpp dyn.cpp PARA.cpp LE_adb.cpp RK4.o my_linalg.o class_halo.o  -
     MainProgenitor* MPs = NULL;
     MPs = new MainProgenitor [200];
     int nMP = 0;
-    aTree(nMP, "../treefiles/tree_10", MPs);
+    aTree(nMP, "../treefiles/tree_8", MPs);
     int i=1;
     double n0_sol, ni=1;
     cout<<"aa"<<3/2<<" "<<4/2<<endl;
+    num = 5;
+    for (i=1;i<0.5*num;i++) printf("i=%d, num=%d, int()=%d, num/2=%f\n",i, num, int(num/2),num/2);
     while(i<=nMP){
         // printf("%dth ");
         // HALO halo(MPs[i].mhalo,MPs[i].z);

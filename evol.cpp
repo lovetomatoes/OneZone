@@ -448,6 +448,8 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
 
     string fevol = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J0))+".txt";
     evol(treename, fevol, MerMod, Tb, J0, spec, Ma_on, i_bsm);
+    cout<<fevol<<endl;
     fevol = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J1))+".txt";
     evol(treename, fevol, MerMod, Tb, J1, spec, Ma_on, i_bsm);
+    cout<<fevol<<endl;
 }

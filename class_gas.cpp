@@ -358,7 +358,10 @@ void GAS:: setMerger(){
                 // interpolation btw mergers
                 Mh = (MPs[iMP].mhalo*(MPs[iMP+1].t-t_act) + MPs[iMP+1].mhalo*(t_act-MPs[iMP].t)) / MPs[iMP].dt; 
             }
-            else cout<<"\n!\n!\n!\n! wrong in setMer\n";
+            else {
+                printf("MPs[%d].t=%3.2e, t_act=%3.2e, MPs[iMP+1].t=%3.2e",iMP, MPs[iMP].t, t_act, MPs[iMP+1].t); 
+                cout<<"\n!\n!\n!\n! wrong in setMer\n";
+            }
             dMdt = MPs[iMP].dm / MPs[iMP].dt;
             Mgas = Mh*fb;
             
