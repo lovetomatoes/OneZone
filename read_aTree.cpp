@@ -125,26 +125,44 @@ rm ../treefiles/*mer
 g++ read_aTree.cpp dyn.cpp PARA.cpp LE_adb.cpp RK4.o my_linalg.o class_halo.o  -o read.out && ./read.out
  */
 
-/* int main(){
+int main(){
     MainProgenitor* MPs = NULL;
     MPs = new MainProgenitor [200];
     int nMP = 0;
-    aTree(nMP, "../treefiles/tree_8", MPs);
+    aTree(nMP, "../treefiles/tree_0", MPs);
     int i=1;
     double n0_sol, ni=1;
     cout<<"aa"<<3/2<<" "<<4/2<<endl;
     num = 5;
     for (i=1;i<0.5*num;i++) printf("i=%d, num=%d, int()=%d, num/2=%f\n",i, num, int(num/2),num/2);
+    fstream f1;
+    f1.open("ts.txt", ios::out | ios::trunc );
+    f1<<setiosflags(ios::scientific)<<setprecision(5);
+    f1<<setw(16)<<"z"<<setw(16)<<"Tvir"<<setw(16)<<"Mh";
+    f1<<setw(16)<<"dt1000"<<setw(16)<<"t_ff"<<setw(16)<<"tg_ff";
+    f1<<setw(16)<<"dt100"<<setw(16)<<"dt_col"<<setw(16)<<"t_dyn";
+    f1<<setw(16)<<"ng_adb"<<setw(16)<<"nc_DM";
+    f1<<endl;
     while(i<=nMP){
-        // printf("%dth ");
-        // HALO halo(MPs[i].mhalo,MPs[i].z);
+        HALO halo(MPs[i].mhalo,MPs[i].z);
         // printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e\n",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
-        // if (halo.Tvir<1.e4){
-        //     printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e,\t",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
-        //     printf("ng_adb:%3.2e\n",MPs[i].ng_adb);
-        // }
+        if (halo.Tvir<5.e4){
+            // printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e,\t",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
+            printf("nc_DM:%3.2e, ng_adb:%3.2e\n",halo.rho_c/(mu*m_H), MPs[i].ng_adb);
+            printf("t_ff= %3.2e, MPs.dt= %3.2e\n",t_freefall(halo.rho_c/(mu*m_H)+ MPs[i].ng_adb)/Myr, MPs[i].dt/Myr);
+            f1<<setw(16)<<MPs[i].z<<setw(16)<<halo.Tvir<<setw(16)<<halo.Mh/Ms;
+            f1<<setw(16)<<(t_from_z(MPs[i].z)-t_from_z(MPs[i].z+50./1000.))/Myr;
+            f1<<setw(16)<<t_freefall(halo.rho_c/(mu*m_H)+ MPs[i].ng_adb)/Myr;
+            f1<<setw(16)<<t_freefall(MPs[i].ng_adb)/Myr;
+            f1<<setw(16)<<MPs[i].dt/Myr;
+            f1<<setw(16)<< t_freefall(18.*pi*pi*RHO_crit(MPs[i].z)/(mu*m_H)) /Myr;
+            f1<<setw(16)<<halo.t_dyn/Myr;
+            f1<<setw(16)<<MPs[i].ng_adb;
+            f1<<setw(16)<<halo.rho_c/(mu*m_H);
+            f1<<endl;
+        }
         i++;      
     }
-
+    f1.close();
     delete [] MPs;
-} */
+}

@@ -6,7 +6,7 @@ const double G=6.67408e-8, c=2.9979245e10, k_B=1.38064852e-16, m_H=1.66053904e-2
 const double gamma_adb=5./3, pi=3.141593;
 const double mu = 1.2;
 const double C = sqrt( 32*G*(mu*m_H)/ (3*pi) );// t_ff = C^-1 * n^-.5
-const double Cp = sqrt( 32*G / (3*pi) );// t_ff = C^-1 * n^-.5
+const double Cp = sqrt( 32*G / (3*pi) );// t_ff = Cp^-1 * rho^-.5
 const double erg2eV = 6.2415e11;
 const double km = 1.e5;
 const double pc = 3.e18, kpc = 3.e21, Mpc = 3.e24;

@@ -69,6 +69,7 @@ double RHO_crit(double z){
 }
 
 double t_freefall(double nH){
+    // precise: 1./Cp/sqrt(rho_DM + (mu*m_H)*nH0)
     return 1./C/sqrt(nH);
 }
 
@@ -76,7 +77,7 @@ double z_ana(double z0, double t_from_z0){
     return pow(3*H0*sqrt(Omega_m0)/2*t_from_z0 + pow(1+z0,-1.5), -2./3) - 1;
 }
 
-double t_from_z(double z){ // age of universe at redshift z
+double t_from_z(double z){ // age of universe at redshift z: tH = 2/(3Hz)
     return 2./(3*H0*sqrt(Omega_m0)) * pow(1+z, -1.5);
 }
 
