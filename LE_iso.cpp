@@ -25,6 +25,7 @@ g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 
 static int const N = 1000;
 static int const n = 2;
+static int i;
 
 double Tvir = 1.6e4;
 //double z = 20; double Mh = 1.e7*Ms;
@@ -32,16 +33,9 @@ double z1 = 20; double Mh1 = 1.e5*Ms;
 //double z = 30; double Mh = Mh_Tz(Tvir,z);
 //double z = 25; double Mh = Mh_Tz(Tvir,z);
 //double z = 10; double Mh = Mh_Tz(Tvir,z);
-//double z = 0; double Mh = Mh_Tz(Tvir,z);
-double R_EQ(double Tg, double rhoc, double rs){
-    return 9.*pi*G*mu*m_H*rhoc*(rs*rs)/(k_B*Tg);
-}
-double A_TR(double Tg, double rhoc, double R){
-    return sqrt(k_B*Tg/ (4*pi*G*mu*m_H*rhoc*R) );
-}
+
 void profile(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
     HALO halo1(Mh,z);
-    int i;
     double rho_g0 = halo1.rho_c * R;
     double M_intg = 0;
     double a = sqrt(k_B*Tg/(4*pi*G*mu*m_H*rho_g0));
@@ -68,7 +62,7 @@ void profile(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
     fstream file;
     file.open(filename, ios::out | ios::trunc );
 
-    file<<"r r_Rvir r_Rs r_r1 phi psi rhog_over_rhog0 n_gas rhoDM_over_rhog0 n_DM M_intg M_fit Bfx\n";
+    file<<"r r_Rvir r_Rs phi psi rhog_over_rhog0 n_gas rhoDM_over_rhog0 n_DM M_intg M_fit Bfx\n";
     // dx
     double dx;
     double err=.01;
@@ -88,9 +82,8 @@ void profile(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
         x[i]=x[i-1]+dx;
         //integrate within R_vir
         if (x[i]<=halo1.Rvir/a) M_intg += pow(a,3)* 4*pi*pow(x[i],2)*dx * rho_g0 *exp(-y[i][0]);
-        double r1 = A_TR(Tg,halo1.rho_c,R_EQ(Tg,halo1.rho_c,halo1.Rs));
-    ////file<<"r r_Rvir r_Rs r_r1 phi psi rhog_over_rhog0 n_gas rhoDM_over_rhog0 n_DM M_intg Bfx\n";
-        file<<a*x[i]<<" "<<a*x[i]/halo1.Rvir<<" "<<alpha*x[i]<<" "<<a*x[i]/r1;
+    ////file<<"r r_Rvir r_Rs phi psi rhog_over_rhog0 n_gas rhoDM_over_rhog0 n_DM M_intg Bfx\n";
+        file<<a*x[i]<<" "<<a*x[i]/halo1.Rvir<<" "<<alpha*x[i];
         file<<" "<<y[i][0]<<" "<<y[i][1];
         file<<" "<<exp(-y[i][0]); //rhog_over_rhog0
         file<<" "<<rho_g0*exp(-y[i][0])/(mu*m_H); // n_gas
@@ -109,7 +102,6 @@ void profile(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
 void BOUNDARY(double& N_VIR, double& MG_VIR, double Tg, double R, double z=z1, double Mh=Mh1){
     MG_VIR = 0;
     HALO halo1(Mh,z);
-    int i;
     double rho_g0 = halo1.rho_c * R;
     double a = sqrt(k_B*Tg/(4*pi*G*mu*m_H*rho_g0));
     double alpha = a/halo1.Rs;
@@ -268,8 +260,7 @@ void Mg2N0(double& n_sol, double& Mg_max, double ni, double Tg, double z, double
 
 
 /* 
-g++ -c LE_iso.cpp
-g++ -c RK4.cpp
+g++ -c LE_iso.cpp RK4.cpp
 g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out
 ./le_iso.out
 */

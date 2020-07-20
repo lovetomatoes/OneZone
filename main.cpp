@@ -40,14 +40,14 @@ int main(){
         fout = "Jcs.txt";
         cout<<fout<<endl;
         for (i_bsm=0; i_bsm<4; i_bsm++){
-            evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+            // evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
         }
     }
 
-    // string tree = to_string(i); // tree_id 输出
-    // fout = "tr"+tree+"Tb"+to_string(int(Tb))+"Jcs.txt";
+    string tree = to_string(i); // tree_id 输出
+    fout = "tr"+tree+"Tb"+to_string(int(Tb))+"Jcs.txt";
 
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
     // Ma_on = false;
     // for (i_bsm=0; i_bsm<1; i_bsm++){

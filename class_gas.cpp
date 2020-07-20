@@ -26,13 +26,14 @@ g++ class_gas.o -o gas
 ./gas
 */
 
+int static Nmp = 300; //nlev = 250 now
+
 // constructor; initializes
 GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefile, bool spec, bool Ma_turn, int bsm){
-    //N_sp = 5; N_react = 6; 
     MerMod = MergerModel; printf("MerMod=%d\n",MerMod);
     nMer = 0; iMP = 1;
     MPs = NULL;
-    MPs = new MainProgenitor [200];
+    MPs = new MainProgenitor [Nmp];
     aTree(nMer,treefile,MPs); printf("read tree done\n");
     z0 = MPs[iMP].z;
     z = z0;

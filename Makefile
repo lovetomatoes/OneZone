@@ -53,5 +53,5 @@ gsl_inverse.o: gsl_inverse.cpp
 #	g++ -L/usr/local/lib gsl_inverse.o -lgsl -lgslcblas -lm
 # g++  gsl_inverse.o 
 
-clean:
-	rm *.o *.txt *.10 *.so *.out *.plt main
+clean: # ./以免文件名前缀奇怪 e.g. "-" 不识别; -f force 忽略不存在的文件无警告
+	rm -f ./*.o *.txt *.10 *.so *.out *.plt main
