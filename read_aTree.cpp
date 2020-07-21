@@ -49,10 +49,10 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
 // no mer file; calculate n_adb; write
     else{
         cout<<" no mer file\n";
-        readtree.open(treename);
+        readtree.open(treename); cout<<treename<<"\n";
         int id_m;
         while (getline(readtree,line)){
-            // cout<<line;
+            // cout<<line<<endl;
             stringstream ss(line);
             ss>>MPs[i].j>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>MPs[i].c>>MPs[i].id_tree;
             MPs[i].t = t_from_z(MPs[i].z); // time from universe age of 0
@@ -63,7 +63,7 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
         }
         readtree.close();
         nMP = i-1;
-        // cout<<"tree: nMP= "<<nMP<<endl;
+        cout<<"tree: nMP= "<<nMP<<endl;
 
     // 调换位置 以num/2为轴 MPs[1]<->MPs[nMP]
     // wli: 必须*0.5而非/2取整!!! 否则出错 (int, float)比大小先把int转化成float
@@ -81,7 +81,7 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
         for (i=1;i<=nMP;i++){ 
             MPs[i].t -= temp_dbl; 
             HALO halo(MPs[i].mhalo,MPs[i].z);
-            double ni=1; MPs[i].ng_adb = 1;
+            double ni=100.; MPs[i].ng_adb = 1; //初始尝试值不能太小 原本ni=1 牛顿迭代求解出错
             // only calculate ng_adb for halo w/ Tvir <1.e5 K; wli
             if (MPs[i].Tvir<1.e5) Mg2N0_adb(MPs[i].ng_adb,ni,MPs[i].z,MPs[i].mhalo);
             MPs[i].dm = (i==nMP)? 0: MPs[i+1].mhalo - MPs[i].mhalo;
@@ -119,21 +119,21 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
 
 
 /*
-rm ../treefiles/*mer
+rm ../tree_Jc/tree*mer
 g++ read_aTree.cpp dyn.cpp PARA.cpp LE_adb.cpp RK4.o my_linalg.o class_halo.o  -o read.out && ./read.out
  */
 
-/* 
-int main(){
+/* int main(){
     MainProgenitor* MPs = NULL;
-    MPs = new MainProgenitor [200];
+    MPs = new MainProgenitor [300];
     int nMP = 0;
-    aTree(nMP, "../treefiles/tree_0", MPs);
+    aTree(nMP, "../tree_Jc/tree_0", MPs);
+    // aTree(nMP, "../treefiles/tree_0", MPs);
     int i=1;
     double n0_sol, ni=1;
     cout<<"aa"<<3/2<<" "<<4/2<<endl;
     num = 5;
-    for (i=1;i<0.5*num;i++) printf("i=%d, num=%d, int()=%d, num/2=%f\n",i, num, int(num/2),num/2);
+    for (i=1;i<0.5*num;i++) printf("i=%d, num=%d, int(num/2)=%d, num/2=%f\n",i, num, int(num/2),num/2);
     fstream f1;
     f1.open("ts.txt", ios::out | ios::trunc );
     f1<<setiosflags(ios::scientific)<<setprecision(5);
@@ -147,8 +147,8 @@ int main(){
         // printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e\n",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
         if (halo.Tvir<5.e4){
             // printf("%dth:z=%3.2f, Mh=%3.2e, Tv=%3.2e, Kv=%3.2e,\t",i,halo.z, halo.Mh/Ms, halo.Tvir, halo.Kvir);  
-            printf("nc_DM:%3.2e, ng_adb:%3.2e\n",halo.rho_c/(mu*m_H), MPs[i].ng_adb);
-            printf("t_ff= %3.2e, MPs.dt= %3.2e\n",t_freefall(halo.rho_c/(mu*m_H)+ MPs[i].ng_adb)/Myr, MPs[i].dt/Myr);
+            // printf("nc_DM:%3.2e, ng_adb:%3.2e\n",halo.rho_c/(mu*m_H), MPs[i].ng_adb);
+            // printf("t_ff= %3.2e, MPs.dt= %3.2e\n",t_freefall(halo.rho_c/(mu*m_H)+ MPs[i].ng_adb)/Myr, MPs[i].dt/Myr);
             f1<<setw(16)<<MPs[i].z<<setw(16)<<halo.Tvir<<setw(16)<<halo.Mh/Ms;
             f1<<setw(16)<<(t_from_z(MPs[i].z)-t_from_z(MPs[i].z+50./1000.))/Myr;
             f1<<setw(16)<<t_freefall(halo.rho_c/(mu*m_H)+ MPs[i].ng_adb)/Myr;

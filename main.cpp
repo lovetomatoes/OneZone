@@ -31,23 +31,25 @@ int main(){
     int MerMod = 1;
     double J21 = 0;
     int i_bsm;
-    string fout;
+    string fout, tree;
     int ntree = 10;
     ntree = 1; 
+
     for (i=0;i<ntree;i++){
+        tree = to_string(i); // tree_id 输出
         ftree = "../treefiles/tree_"+to_string(i); // cout<<ftree<<endl;
-        fout = "Tb"+to_string(int(Tb))+"Jcs.txt";
-        fout = "Jcs.txt";
+        fout = "Jcs250.txt";
         cout<<fout<<endl;
         for (i_bsm=0; i_bsm<4; i_bsm++){
-            // evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+            evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
         }
     }
 
-    string tree = to_string(i); // tree_id 输出
-    fout = "tr"+tree+"Tb"+to_string(int(Tb))+"Jcs.txt";
-
-    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i = 0;
+    // ftree = "../treefiles/tree_"+to_string(i); cout<<ftree;
+    // // ftree = "../tree_Hirano/fort.120"; cout<<ftree;
+    // fout = "tr"+tree+"Tb"+to_string(int(Tb))+"evol.txt"; cout<<fout;
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
     // Ma_on = false;
     // for (i_bsm=0; i_bsm<1; i_bsm++){
