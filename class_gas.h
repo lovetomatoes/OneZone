@@ -34,7 +34,7 @@ class GAS
         double rhoc_DM;
         double J_LW, Tb;
         double *y0, *y1, *ys,  *k, *rf;
-        double yequi, ycool, ycool_crit;
+        double yequi, ypd, ycd, ycool, ycool_crit;
         double Jc_pd, Jc_cd, Jc_pred, Jc_pred_max;
         double delta_H2_compr, delta_H2_compr_min;
         double fMa_H2crit, gMa_H2crit, n_H2crit, z_H2crit;

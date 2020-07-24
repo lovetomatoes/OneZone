@@ -133,7 +133,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
             if (i==0){
                 if (py){
                     file<<setw(16)<<"yH"<<setw(16)<<"yH2"<<setw(16)<<"ye"<<setw(16)<<"yH+"<<setw(16)<<"yH-";
-                    file<<setw(16)<<"y_euqi"<<setw(16)<<"y_cool"<<setw(16)<<"Jc_pd"<<setw(16)<<"Jc_cd"<<setw(16)<<"Jc_pred";
+                    file<<setw(16)<<"y_euqi"<<setw(16)<<"y_cool"<<setw(16)<<"y_pd"<<setw(16)<<"y_cd"<<setw(16)<<"Jc_pred";
                 }
                 else file<<" y_H y_{H2} y_e y_{H+} y_{H2+} y_{H-} y_{He} y_{pred} y_{equi} y_{cool}";
             }
@@ -195,8 +195,8 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
 
                 file<<setw(16)<<gas.yequi; //column 21
                 file<<setw(16)<<gas.ycool;
-                file<<setw(16)<<gas.Jc_pd;
-                file<<setw(16)<<gas.Jc_cd; 
+                file<<setw(16)<<gas.ypd;
+                file<<setw(16)<<gas.ycd; 
                 file<<setw(16)<<gas.Jc_pred;
             }
         }
@@ -447,9 +447,9 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
 //     argv[5] = gas.z_col;
 
     string fevol = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J0))+".txt";
-    evol(treename, fevol, MerMod, Tb, J0, spec, Ma_on, i_bsm);
+    // evol(treename, fevol, MerMod, Tb, J0, spec, Ma_on, i_bsm);
     cout<<fevol<<endl;
     fevol = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J1))+".txt";
-    evol(treename, fevol, MerMod, Tb, J1, spec, Ma_on, i_bsm);
+    // evol(treename, fevol, MerMod, Tb, J1, spec, Ma_on, i_bsm);
     cout<<fevol<<endl;
 }

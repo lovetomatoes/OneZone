@@ -105,6 +105,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     k = new double [N_react+1]; rf = new double[N_react+1];
 
     ycool = 0.; yequi = 0.; ycool_crit = 1.e100;
+    ypd = 0.; ycd = 0.;
     Jc_pd = 0.; Jc_cd = 0.; Jc_pred = 0.; Jc_pred_max = 0;
     delta_H2_compr_min = 1.e100;
     a=0; b=0; c=0; d=0; e=0;
@@ -307,14 +308,13 @@ void GAS:: react_sol(bool write){
     // yequi = min(rform/kH2_pd, rform/kH2_cd_tot);
         // pd,  n<~100/cm^3   cd, large n 
     yequi = rform/(kH2_pd+kH2_cd_tot);
-    // yequi = rform/(kH2_pd);
-    // yequi = rform/(kH2_cd_tot);
+    ypd = rform/(kH2_pd);
+    ycd = rform/(kH2_cd_tot);
 
 
     // sufficient cooling fraction. Λ_H2 (erg/cm^3/s) v.s. Γ_compr(g_Ma) (erg/g/s) 
     ycool = g_Ma* rho0*Gamma_compr(cs,1.,t_ff) * y0[2]/Lambda_H2(nH0,T_K0,y0);
 
-    // ycool = yequi;
     Jc_pd = rform / (ycool * kH2_pd/J_LW);
 
     double beta_Hm = kHm_pd/J_LW; double beta_H2 = kH2_pd/J_LW;
@@ -340,7 +340,8 @@ void GAS:: react_sol(bool write){
         gMa_H2crit = g_Ma;
         fMa_H2crit = f_Ma;
         ycool_crit = ycool;
-        Jc_pred_max = Jc_pred;
+        Jc_pred_max = Jc_pred; 
+    // 取max 不准来源于 ycool 取自 instant heating rate & ncrit 不确定
     }
 
 }
@@ -427,10 +428,12 @@ void GAS:: timescales(){
 
     // Dt firstly by cooling/heating/free-fall timescales; also all for NO merger case
     Dt = 0.1* min( min(t_c,t_h), t_ff ); //不行不够细
-    Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h));
+    Dt = 0.005*min( min(t_ff,100*t_chem),min(t_c,t_h));
+    // if (evol_stage ==3) Dt = 0.005*min( min(t_ff,100*t_chem),min(t_c,t_h));
 
 // merger case: Dt << merger intervals dt
     if (inMer and evol_stage !=4) Dt = min( Dt, .1*MPs[iMP].dt ); // wli : check 能否放宽
+    if (inMer and evol_stage ==3) Dt = min( Dt, .005*MPs[iMP].dt );
     
 // no merger case, just free fall; one-zone case of former work
     if (MerMod==0) { 
@@ -504,8 +507,8 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             }
             break;
         case 3: // iso T=8000K (H Lya cooling)
-            adjust_iso = (t_act - t_prev >= min( 0.1*MPs[iMP].dt, t_ff) );
-            if (adjust_iso) {
+            // adjust_iso = (t_act - t_prev >= 0.1* min(min( MPs[iMP].dt,t_ff), min(t_c,t_h)) );
+            if (true) {
                 dt_iso = t_act - t_prev;
                 Mh_prev = Mh; t_prev = t_act;
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);

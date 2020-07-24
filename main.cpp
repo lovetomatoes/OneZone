@@ -33,9 +33,9 @@ int main(){
     int i_bsm;
     string fout, tree;
     int ntree = 10;
-    ntree = 1; 
+    ntree = 3; 
 
-    for (i=0;i<ntree;i++){
+    for (i=2;i<ntree;i++){
         tree = to_string(i); // tree_id 输出
         ftree = "../treefiles/tree_"+to_string(i); // cout<<ftree<<endl;
         fout = "Jcs250.txt";
@@ -45,11 +45,28 @@ int main(){
         }
     }
 
-    // i = 0;
+    // i = 2; tree = to_string(i);
     // ftree = "../treefiles/tree_"+to_string(i); cout<<ftree;
-    // // ftree = "../tree_Hirano/fort.120"; cout<<ftree;
-    // fout = "tr"+tree+"Tb"+to_string(int(Tb))+"evol.txt"; cout<<fout;
+
+    // i_bsm = 0; J21 = 2156.;
+    // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"evol.txt";
     // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 1; J21 = 531.;
+    // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"evol.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 2; J21 = 531.;
+    // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"evol.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);    
+
+    // i_bsm = 0; J21 = 2156.;
+    // fout = "f0ypred.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 1; J21 = 531.;
+    // fout = "f1ypred.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);        
+    // i_bsm = 2; J21 = 531.;
+    // fout = "f2ypred.txt";
+    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);    
 
     // Ma_on = false;
     // for (i_bsm=0; i_bsm<1; i_bsm++){
