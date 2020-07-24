@@ -84,6 +84,7 @@ void profile_adb_Kc(char* filename, double R, double n_adb, double z=z1, double 
         file<<endl;
         }
     }
+    for (i=0;i<N;i++) delete [] y[i];
     delete [] x; delete [] y; delete [] v; delete [] dydx0;
     file.close();
 }
@@ -155,6 +156,7 @@ void profile_adb_Kfit(char* filename,double& N_VIR, double& MG_VIR, double R, do
         }
     }
     printf("OUTSIDE: MG_VIR=%3.2E, N_VIR=%3.2E\n",MG_VIR/Ms, N_VIR);
+    for (i=0;i<N;i++) delete [] y[i];
     delete [] x; delete [] r; delete [] y; delete [] v; delete [] dydx0;
     file.close();
     printf("z = %3.2f\tMh = %3.2e Ms\t rs%3.2e cm\trhoc=%3.2e/cc\n",halo1.z,halo1.Mh/Ms,halo1.Rs,halo1.rho_c);
@@ -261,7 +263,7 @@ void BOUNDARY_adb(double& N_VIR, double& MG_VIR, double& r_out, double& T_ave, d
 
     if (x[i]*a < halo1.Rvir) r_out = x[i]*a / halo1.Rvir;
     else r_out = 1.;
-
+    for (i=0;i<N;i++) delete [] y[i];
     delete [] x; delete [] r; delete [] y; delete [] v; delete [] dydx0;
     // printf("in BOUNDARY: MGVIR=%3.2e\n",MG_VIR/Ms);
 }

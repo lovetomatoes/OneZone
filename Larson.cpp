@@ -29,9 +29,7 @@ void colps(char* filename, double Tg, int const N){
     double* x = new double [N];
     
     double** y = new double* [N]; // y[0] = xi, y[1] = ln eta
-    for (i=0;i<N;i++){
-        y[i] = new double [n];
-    }
+    for (i=0;i<N;i++) y[i] = new double [n];
 
     double* dydx0 = new double [n];
 
@@ -85,7 +83,7 @@ void colps(char* filename, double Tg, int const N){
         file<<x[i]<<" "<<y[i][0]<<" "<<y[i][1]<<endl;
     }
 
-
+    for (i=0;i<N;i++) delete [] y[i];
     delete [] x; delete [] y; delete [] dydx0;
     file.close();
 }

@@ -47,9 +47,7 @@ void profile(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
     double* x = new double [N];
     
     double** y = new double* [N];
-    for (i=0;i<N;i++){
-        y[i] = new double [n];
-    }
+    for (i=0;i<N;i++) y[i] = new double [n];
     int c = 2;
     double* v = new double [c];
     v[0] = alpha; v[1] = R;
@@ -93,6 +91,7 @@ void profile(char* filename, double Tg, double R, double z=z1, double Mh=Mh1){
         file<<" "<<4.*pi/3.*rho_g0*pow(a*x[i],3);
         file<<" "<<B*(1- log(1+alpha*x[i])/ (alpha*x[i]))<<endl;
     }
+    for (i=0;i<N;i++) delete [] y[i];
     delete [] x; delete [] y; delete [] v; delete [] dydx0;
     file.close();
     printf("z = %3.2f\tMh = %3.2e Ms\t rs%3.2e cm\trhoc=%3.2e/cc\n",halo1.z,halo1.Mh/Ms,halo1.Rs,halo1.rho_c);
@@ -110,9 +109,7 @@ void BOUNDARY(double& N_VIR, double& MG_VIR, double Tg, double R, double z=z1, d
 
     double* x = new double [N];
     double** y = new double* [N];
-    for (i=0;i<N;i++){
-        y[i] = new double [n];
-    }
+    for (i=0;i<N;i++) y[i] = new double [n];
     int c = 2;
     double* v = new double [c];
     v[0] = alpha; v[1] = R; 
@@ -137,6 +134,7 @@ void BOUNDARY(double& N_VIR, double& MG_VIR, double Tg, double R, double z=z1, d
         else break;
     }
     N_VIR = rho_g0*exp(-y[i][0])/(mu*m_H);
+    for (i=0;i<N;i++) delete [] y[i];
     delete [] x; delete [] y; delete [] v; delete [] dydx0;
 
     // printf("in BOUNDARY: R=%3.2e, Tg=%3.2e, z=%3.2e, Mh=%3.2e, Tvir=%3.2e\n",R,Tg,z,Mh/Ms,halo1.Tvir);
