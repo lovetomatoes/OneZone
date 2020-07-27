@@ -426,15 +426,13 @@ void GAS:: timescales(){
 
     // printf("t_ff1=%3.2e\t t_ff2=%3.2e\n",t_ff/Myr, 1./C/sqrt(nH0)/Myr);
 
-    // Dt firstly by cooling/heating/free-fall timescales; also all for NO merger case
-    Dt = 0.1* min( min(t_c,t_h), t_ff ); //不行不够细
-    Dt = 0.005*min( min(t_ff,100*t_chem),min(t_c,t_h));
-    // if (evol_stage ==3) Dt = 0.005*min( min(t_ff,100*t_chem),min(t_c,t_h));
+// Dt firstly by cooling/heating/free-fall timescales; also all for NO merger case
+    Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h)); //由no merger 0.1不行不够细
 
 // merger case: Dt << merger intervals dt
-    if (inMer and evol_stage !=4) Dt = min( Dt, .1*MPs[iMP].dt ); // wli : check 能否放宽
-    if (inMer and evol_stage ==3) Dt = min( Dt, .005*MPs[iMP].dt );
-    
+    if (inMer and evol_stage !=3) Dt = min( Dt, .1*MPs[iMP].dt );  // adb & ff
+    if (inMer and evol_stage ==3) Dt = min( Dt, .01*MPs[iMP].dt ); // iso
+
 // no merger case, just free fall; one-zone case of former work
     if (MerMod==0) { 
         r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_chem(nH0, T_K0, y0, k)/rho0;

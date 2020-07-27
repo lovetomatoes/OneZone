@@ -262,7 +262,8 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
                 file<<setw(16)<<gas.r_c;
                 file<<setw(16)<<gas.r_cH2;
                 file<<setw(16)<<gas.r_cH;
-                file<<setw(16)<<Gamma_compr(gas.cs,gas.f_Ma,gas.t_ff);
+                if (gas.evol_stage==4 or gas.evol_stage==0) file<<setw(16)<<Gamma_compr(gas.cs,gas.f_Ma,gas.t_ff);
+                else file<<setw(16)<<Gamma_compr(gas.cs,gas.f_Ma,gas.t_ff);
                 file<<setw(16)<<gas.Gamma_mer_th; //merger heating; kinetic energy input: *1/3
             }
         }
