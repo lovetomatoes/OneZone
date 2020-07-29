@@ -435,7 +435,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
     // He:
     // for (int ire=25; ire<=42; ire++) k[ire] =0;
     // k[36] = 0; k[37] = 0; k[42] = 0; // realted to H2, 这仨没影响
-
+    // k[11] *=0;
 }
 
 void react_rat(double *r_f_tot, double *y, double *k, double nH, double T_K){

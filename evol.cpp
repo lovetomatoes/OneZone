@@ -91,11 +91,8 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
 
     i = 0;
     //while (gas.t_act<2*gas.t_ff0){
-    while (gas.z>10 && gas.nH0<1.e11){
-        if (i==0){
-            if (py) file<<setw(16)<<"t"<<setw(16)<<"Dt"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T";
-            else file <<" t Dt z nH T";
-        }
+    while (gas.z>6. && gas.nH0<1.e6){
+        if (i==0) file<<setw(16)<<"t"<<setw(16)<<"Dt"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T";
         else file<<setw(16)<<gas.t_act/gas.t_ff0<<setw(16)<<gas.Dt/gas.t_ff0<<setw(16)<<gas.z<<setw(16)<<gas.nH0<<setw(16)<<gas.T_K0;
             
         //printf("nH=%3.2e, T_K=%3.2e\t k[15,+]=%3.2e, k[7,-]=%3.2e, y_H2=%3.2e\n",gas.nH0, gas.T_K0,gas.k[15],gas.k[7],gas.y0[2]);
@@ -104,11 +101,8 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
 
         if (tscales) {            
             if (i==0) {
-                if (py){
-                    file<<setw(16)<<"t_ff"<<setw(16)<<"t_c"<<setw(16)<<"t_h"<<setw(16)<<"t_rcb"<<setw(16)<<"t_chem";
-                    file<<setw(16)<<"t_ion"<<setw(16)<<"tc_H2"<<setw(16)<<"tc_H"<<setw(16)<<"MPs_dt"<<setw(16)<<"i2";
-                }
-                else file<<" t_{ff} t_{c} t_h t_{rcb} t_{chem} t_{ion} tc_{H2} tc_H MPs_dt 0";
+                file<<setw(16)<<"t_ff"<<setw(16)<<"t_c"<<setw(16)<<"t_h"<<setw(16)<<"t_rcb"<<setw(16)<<"t_chem";
+                file<<setw(16)<<"t_ion"<<setw(16)<<"tc_H2"<<setw(16)<<"tc_H"<<setw(16)<<"MPs_dt"<<setw(16)<<"i2";
             }
             else {
                 file<<setw(16)<<gas.t_ff/gas.t_ff0;
@@ -131,11 +125,8 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
 
         if (fract){
             if (i==0){
-                if (py){
-                    file<<setw(16)<<"yH"<<setw(16)<<"yH2"<<setw(16)<<"ye"<<setw(16)<<"yH+"<<setw(16)<<"yH-";
-                    file<<setw(16)<<"y_euqi"<<setw(16)<<"y_cool"<<setw(16)<<"y_pd"<<setw(16)<<"y_cd"<<setw(16)<<"Jc_pred";
-                }
-                else file<<" y_H y_{H2} y_e y_{H+} y_{H2+} y_{H-} y_{He} y_{pred} y_{equi} y_{cool}";
+                file<<setw(16)<<"yH"<<setw(16)<<"yH2"<<setw(16)<<"ye"<<setw(16)<<"yH+"<<setw(16)<<"yH-";
+                file<<setw(16)<<"y_euqi"<<setw(16)<<"y_cool"<<setw(16)<<"y_pd"<<setw(16)<<"y_cd"<<setw(16)<<"Jc_pred";
             }
             else {
                 for (int i=1; i<=4; i++) file<<setw(16)<<gas.y0[i];
@@ -216,11 +207,8 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
             HALO halo(gas.Mh,gas.z);
             double d0 = 200./3.*pow(halo.c,3)/(log(1+halo.c)-halo.c/(1+halo.c));
             if (i==0){
-                if (py){
-                    file<<setw(16)<<"z_Mh"<<setw(16)<<"t_Mh"<<setw(16)<<"Mh"<<setw(16)<<"Tvir"<<setw(16)<<"Vc";
-                    file<<setw(16)<<"cs"<<setw(16)<<"v_tur"<<setw(16)<<"v_bsm"<<setw(16)<<"f_Ma"<<setw(16)<<"g_Ma";
-                }
-                else file <<" z_{Mh} t_{Mh} Mh T_{vir} Vc cs v_{tur} v_{bsm} f_{Ma} g_{Ma}";
+                file<<setw(16)<<"z_Mh"<<setw(16)<<"t_Mh"<<setw(16)<<"Mh"<<setw(16)<<"Tvir"<<setw(16)<<"Vc";
+                file<<setw(16)<<"cs"<<setw(16)<<"v_tur"<<setw(16)<<"v_bsm"<<setw(16)<<"f_Ma"<<setw(16)<<"g_Ma";
             } //rho_c = d0*RHO_DM(gas.z)/m_H checked right. 
             else{
                 file<<setw(16)<<gas.MPs[gas.iMP].z<<setw(16)<<gas.MPs[gas.iMP].t/gas.t_ff0;
@@ -233,10 +221,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
         }
 
         if (haloinfo){
-            if (i==0) {
-                if (py) file<<setw(16)<<"ievol"<<setw(16)<<"M_J"<<setw(16)<<"M_Jeff"<<setw(16)<<"Mg_intg"<<setw(16)<<"q";
-                else file<<" ievol M_J M_{Jeff} Mg_{intg} q";
-            }
+            if (i==0) file<<setw(16)<<"ievol"<<setw(16)<<"M_J"<<setw(16)<<"M_Jeff"<<setw(16)<<"Mg_intg"<<setw(16)<<"q";
             else file<<setw(16)<<gas.evol_stage<<setw(16)<<gas.MJ/Ms<<setw(16)<<gas.MJ_eff/Ms<<setw(16)<<gas.Mg_intg/Ms<<setw(16)<<gas.MPs[gas.iMP].mratio;
         }
 
@@ -253,11 +238,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
             gas.get_para();
         }
         if (heatingcooling) {
-            if (i==0){
-                if (py) file<<setw(16)<<"r_c"<<setw(16)<<"r_cH2"<<setw(16)<<"r_cH"<<setw(16)<<"r_hcompr"<<setw(16)<<"r_hmer";
-                else file<<" r_c r_{c,H2} r_{c,H} r_{h,compr} r_{h,mer}";
-
-            }
+            if (i==0) file<<setw(16)<<"r_c"<<setw(16)<<"r_cH2"<<setw(16)<<"r_cH"<<setw(16)<<"r_hcompr"<<setw(16)<<"r_hmer";
             else{
                 file<<setw(16)<<gas.r_c;
                 file<<setw(16)<<gas.r_cH2;
@@ -270,10 +251,7 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
 
         if (mer) {
             HALO halo(gas.Mh, gas.z);
-            if (i==0) {
-                if (py) file<<setw(16)<<"iMP"<<setw(16)<<"nc_DM"<<setw(16)<<"dMdt"<<setw(16)<<"Gamma_mer";
-                else file<<" iMP nc_{DM} dMdt Gamma_{mer}";
-            }
+            if (i==0) file<<setw(16)<<"iMP"<<setw(16)<<"nc_DM"<<setw(16)<<"dMdt"<<setw(16)<<"Gamma_mer";
             else file<<setw(16)<<gas.iMP<<setw(16)<<halo.rho_c/(mu*m_H)<<setw(16)<<gas.dMdt<<setw(16)<<gas.Gamma_mer;
         }
         file<<endl;
@@ -350,9 +328,9 @@ double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, 
     argv[4] = gas.gMa_H2crit;
     argv[5] = gas.z_col;
 
-    printf("*******IN GET_T***********\n");
-    cout<<"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0);
-    printf("\tJ=%3.2f, z_col=%3.2f, nH_tell=%3.2e, T=%3.2e\n\n\n",J, gas.z_col, nH_tell, gas.T_K0);
+    // printf("*******IN GET_T***********\n");
+    // cout<<"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0);
+    // printf("\tJ=%3.2f, z_col=%3.2f, nH_tell=%3.2e, T=%3.2e\n\n\n",J, gas.z_col, nH_tell, gas.T_K0);
     return gas.T_K0;
 }
 
@@ -376,10 +354,10 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
     else {
         file.open(fout, ios::out | ios::trunc);
         file<<setw(16)<<"tree"<<setw(16)<<"Tb"<<setw(16)<<"i_bsm"<<setw(16)<<"tur"; 
-        file<<setw(16)<<"n_H2crit"<<setw(16)<<"z_H2crit";
-        file<<setw(16)<<"Jc"<<setw(16)<<"Jc_pred";
-        file<<setw(16)<<"fMa_H2crit"<<setw(16)<<"gMa_H2crit";
-        file<<setw(16)<<"z_col"<<endl;
+        // file<<setw(16)<<"n_H2crit"<<setw(16)<<"z_H2crit";
+        file<<setw(16)<<"Jc";// <<setw(16)<<"Jc_pred";
+        // file<<setw(16)<<"gMa_H2crit";// <<setw(16)<<"gMa_H2crit";
+        // file<<setw(16)<<"z_col"<<endl;
         file.close();
     }
     file.open(fout, ios::out | ios::app);
@@ -404,7 +382,7 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
         }
     }
 
-    while (J1-J0 > 0.01*J0){
+    while (J1-J0 > 0.1*J0){
         bool write = false;
         // if (J1-J0 > 0.05*J0) write = true;
         T = getT(c,y,write,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
@@ -429,10 +407,8 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
     string tree = treename.substr(index+1); // tree_id 输出
 
     file<<setw(16)<<stoi(tree)<<setw(16)<<Tb<<setw(16)<<i_bsm<<setw(16)<<((Ma_on)?1:0);
-    file<<setw(16)<<y1[0]<<setw(16)<<y1[1];
-    file<<setw(16)<<J1<<setw(16)<<y1[2];
-    file<<setw(16)<<y1[3]<<setw(16)<<y1[4];
-    file<<setw(16)<<y1[5]<<endl;
+    file<<setw(16)<<J1;
+    file<<endl;
     file.close();
 
         // file<<"tree"<<"Tb"<<"i_bsm"<<"tur"; 

@@ -44,13 +44,19 @@ int main(){
             evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
         }
     }
+    printf("one tree Jc cal, 5 percent accuracy\n");
 
-    // i = 2; tree = to_string(i);
-    // ftree = "../treefiles/tree_"+to_string(i); cout<<ftree;
+    i = 2; tree = to_string(i);
+    ftree = "../treefiles/tree_"+to_string(i); cout<<ftree;
 
-    // i_bsm = 0; J21 = 2156.;
-    // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"evol.txt";
+    i_bsm = 2; J21 = 1800.;
+    fout = "tr"+tree+"bsm"+to_string(i_bsm)+"J"+to_string(int(J21))+"evol.txt";
+    fout = "Hmrcb.txt";
+    evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    // i_bsm = 1; J21 = 1800.;
+    // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"J"+to_string(int(J21))+"evol.txt";
     // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+
     // i_bsm = 1; J21 = 531.;
     // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"evol.txt";
     // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);

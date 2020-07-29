@@ -30,11 +30,11 @@ int static Nmp = 300; //nlev = 250 now
 
 // constructor; initializes
 GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefile, bool spec, bool Ma_turn, int bsm){
-    MerMod = MergerModel; printf("MerMod=%d\n",MerMod);
+    MerMod = MergerModel; // printf("MerMod=%d\n",MerMod);
     nMer = 0; iMP = 1;
     MPs = NULL;
     MPs = new MainProgenitor [Nmp];
-    aTree(nMer,treefile,MPs); printf("read tree done\n");
+    aTree(nMer,treefile,MPs); // printf("read tree done\n");
     z0 = MPs[iMP].z;
     z = z0;
     z_col = -1.;
@@ -79,10 +79,8 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     f_Ma = 1.;
     
     t_ff0 = 1./C/sqrt(nH0); // roughly, not including DM density
-    t1 = 1.9999*t_ff0; //maximum time of evolution
-    // t1 = 1.999999*t_ff0; //to n = 1.e10/cm^3 (when n > 1.e9 /cm^3, 3body starts to act prominently
-    printf("Mh0 = %3.2e Ms, z0 = %2.2f, \n", Mh/Ms, z0);
-    printf("nH0 = %3.2e, T_K0 = %2.2f, t_ff0 = %3.2eMyr \n", nH0, T_K0, t_ff0/Myr);
+    // printf("Mh0 = %3.2e Ms, z0 = %2.2f, \n", Mh/Ms, z0);
+    // printf("nH0 = %3.2e, T_K0 = %2.2f, t_ff0 = %3.2eMyr \n", nH0, T_K0, t_ff0/Myr);
 
     i_m = 0;
     Nt = 5;
@@ -122,8 +120,8 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     //printf("CONSTRUCTOR: k_pdH2=%3.2e, k_pdHm=%3.2e, k_pdH2p=%3.2e\n",k[21],k[22],k[23]);
 
     RJ = cs*t_ff0;//RJ = sqrt( pi*k_B*T_K0/ (G*pow(mu*m_H,2)*nH0) ); !wli: RJ not precise
-    printf("cs_0 is %3.2e km/s; R_vir is %3.2e pc, RJ_0 is %3.2e pc \n",cs/1.e5,halo.Rvir/pc, RJ/pc);
-    printf("sqrt(2)*cs_0 is %3.2e km/s; halo Vc is %3.2e km/s \n",cs/1.e5*sqrt(2), halo.Vc);
+    // printf("cs_0 is %3.2e km/s; R_vir is %3.2e pc, RJ_0 is %3.2e pc \n",cs/1.e5,halo.Rvir/pc, RJ/pc);
+    // printf("sqrt(2)*cs_0 is %3.2e km/s; halo Vc is %3.2e km/s \n",cs/1.e5*sqrt(2), halo.Vc);
     MJ0 = 4.*pi/3.*rho0*pow(RJ/2.,3);
 
     for (int i=0; i<N; i++){
@@ -136,7 +134,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     }
     react_coef(k,nH0,y0[1],y0[2],T_K0,J21,Tb);
     react_rat(rf, y0, k, nH0, T_K0);
-    printf("J_LW=%5.2f, Tb=%3.2e\n ****INITIALIZE DONE****\n\n",J_LW,Tb);
+    // printf("J_LW=%5.2f, Tb=%3.2e\n ****INITIALIZE DONE****\n\n",J_LW,Tb);
 }
 
 
@@ -162,7 +160,6 @@ void GAS:: a_react_sol(bool write){
         int iter0 = 0;
         //while ( len_v(N, dy) > epE8*len_v(N, y_i1) ){ //original, 对于initial y_H+<=1.e-5 可能太精细 循环出不来
         //for(int i=1;i<3;i++){ //会有较大的起伏偏差
-        // y_i1[0]=1;
         while ( len_v(N, dy) > epE5*len_v(N, y_i1) ){ //epE6check过convergence
             SOL_IMPLICIT(dy, y_i0, y_i1, ts[i+1]-ts[i], nH0, T_K0, k,rf, J_LW, Tb); // y_i0 passed but UNCHANGED.
             iter0++;
@@ -349,7 +346,7 @@ void GAS:: react_sol(bool write){
 void GAS:: setMerger(){
     //printf("iMP = %d, nMer = %d", iMP, nMer);
     if (MerMod !=  0){
-        if (iMP< nMer){ // final merger not included, since nMer halos only nMer-1 intervals, //wli
+        if (iMP< nMer){ // final main progenitor not included, since nMer halos only nMer-1 intervals, //wli
         // from iMP=1 to nMer-1, MPs[iMP] has dt, dm, mratio, etc.
             inMer = true;
             if ( t_act >= MPs[iMP+1].t){
@@ -357,7 +354,7 @@ void GAS:: setMerger(){
                 if (MPs[iMP].major) M_major += MPs[iMP].dm;
             }
             if (MPs[iMP].t <= t_act and t_act < MPs[iMP+1].t){ 
-                // interpolation btw mergers
+                // linear interpolation btw mergers
                 Mh = (MPs[iMP].mhalo*(MPs[iMP+1].t-t_act) + MPs[iMP+1].mhalo*(t_act-MPs[iMP].t)) / MPs[iMP].dt; 
             }
             else {
@@ -367,7 +364,7 @@ void GAS:: setMerger(){
             dMdt = MPs[iMP].dm / MPs[iMP].dt;
             Mgas = Mh*fb;
             
-            HALO halo(Mh, z); //更真实的Mh 和 z
+            HALO halo(Mh, z); //更真实的 Mh 和 z
             dEdt = k_B*halo.Tvir /(mu*m_H) * (dMdt*fb); // estimated by Tvir
             // from Virial theorm, thermal energy change according to Phi change
             /* -> thermal from Virial theorm */ // ( 3/4 of Gamma_mer to thermal get Tg~Tvir)
@@ -419,7 +416,7 @@ void GAS:: timescales(){
     //printf("f_Ma=%3.2e, cs=%3.2e, t_ff=%3.2e, compr=%3.2e mer=%3.2e mer_th=%3.2e\n", f_Ma, cs, t_ff, Gamma_compr(cs,f_Ma,t_ff),Gamma_mer,Gamma_mer_th);
 
     t_c = e0/r_c;
-    t_h = abs(e0/r_h);
+    t_h = abs(e0/r_h);  //可能为负 potential well dilution
     HALO halo(Mh,z);
     rhoc_DM = halo.rho_c;
     t_ff = 1./(Cp * sqrt(rhoc_DM + (mu*m_H)*nH0));
@@ -427,7 +424,7 @@ void GAS:: timescales(){
     // printf("t_ff1=%3.2e\t t_ff2=%3.2e\n",t_ff/Myr, 1./C/sqrt(nH0)/Myr);
 
 // Dt firstly by cooling/heating/free-fall timescales; also all for NO merger case
-    Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h)); //由no merger 0.1不行不够细
+    Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h)); //由no merger 0.1不行不够细, 0.001 better convergence 
 
 // merger case: Dt << merger intervals dt
     if (inMer and evol_stage !=3) Dt = min( Dt, .1*MPs[iMP].dt );  // adb & ff
@@ -437,7 +434,7 @@ void GAS:: timescales(){
     if (MerMod==0) { 
         r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_chem(nH0, T_K0, y0, k)/rho0;
         t_c = e0/r_c;
-        t_h = abs(e0/r_h); //可能为负 potential well dilution
+        t_h = abs(e0/r_h);
         //不需要t_rcb //如果加细Dt 用0.001仍然converge而且似乎更smooth但是慢得多 //不能放宽了 0.1明显不行
         Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h));
 
@@ -506,7 +503,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             break;
         case 3: // iso T=8000K (H Lya cooling)
             // adjust_iso = (t_act - t_prev >= 0.1* min(min( MPs[iMP].dt,t_ff), min(t_c,t_h)) );
-            if (true) {
+            if (true) { // update n_iso every Dt
                 dt_iso = t_act - t_prev;
                 Mh_prev = Mh; t_prev = t_act;
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
@@ -524,17 +521,17 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             break;
         case 5:
             nH0 = MPs[iMP].ng_adb;
-
+// H2 fraction enter equilibrium <= the initial setting smoothed out
             if (not intoequi and y0[2]/yequi<2.) {
                 intoequi = true; 
-                printf("into equi at %3.2e t_ff0, nH=%3.2e /cc\n",t_act/t_ff0,nH0);
+                // printf("into equi at %3.2e t_ff0, nH=%3.2e /cc\n",t_act/t_ff0,nH0);
             }
-
-            if (intoequi and r_cH2>abs(r_h) or r_cH>abs(r_h)) { //factor 2 for H2 cooling deleted
+// ERRORIN
+            if (intoequi and r_cH2>abs(r_h) or r_cH>abs(r_h)) { //factor 2 for H2 cooling deleted 
                 printf(" in CASE5: adb not hold, go to 3\t");
                 evol_stage = 3;
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
-                printf("SOLVED FOR THE 1ST TIME\n");
+                // printf("SOLVED FOR THE 1ST TIME\n");
                 // printf("n_iso=%3.2e, f_Ma=%3.2e, v_bsm=%3.2e, Vc=%3.2e\n", n_iso,f_Ma,v_bsm,halo1.Vc);
                 if (!n_iso) evol_stage = 4; // unstable case Mg2ng return 0
                 else nH0 = n_iso;
@@ -546,6 +543,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
 
     v_tur2 += Dt * Gamma_mer_k*2; // 2 coz e=1/2v^2
 
+// ERRORIN alpha, b
     double b = 1./3.; // [1/3, 0.5)
     f_Ma = 1;
     // turbulence
