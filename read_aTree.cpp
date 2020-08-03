@@ -102,7 +102,7 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
         f.close();
     }
 
-    printf("\t#\t#\t#\t tree_%d: nMP= %d\n",MPs[1].id_tree,nMP);
+    // printf("\t#\t#\t#\t tree_%d: nMP= %d\n",MPs[1].id_tree,nMP);
 // reset some attributes
     for (i=1;i<=nMP;i++){
         HALO halo(MPs[i].mhalo,MPs[i].z);

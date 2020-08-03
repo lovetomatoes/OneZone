@@ -1,3 +1,5 @@
+/// log scale
+
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
@@ -13,10 +15,7 @@
 using namespace std;
 
 /* 
-g++ -c LE_adb.cpp
-g++ -c RK4.cpp
-g++ LE_adb.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_adb.out
-./le_adb.out
+g++ -c LE_adb.cpp && g++ -c RK4.cpp && g++ LE_adb.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_adb.out && ./le_adb.out
 */
 
 static double Tvir = 1.6e4;

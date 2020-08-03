@@ -1,5 +1,4 @@
-//: log scale (= LE_iso_log.cpp, proved better than LE_iso_lin.cpp) 
-//: computation time much better than lin scale
+/// log scale (= LE_iso_log.cpp, proved better than LE_iso_lin.cpp)
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
@@ -282,8 +281,8 @@ int main(){
     profile(f_Nsol,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
 
 // 3. Tvir_crit value v.s. Tg (z as input parameter)
-    //:   gravity v.s. pressure, hope linear 
-    //:  halo changes, using n_nfw=10*n_mean as fiducial boundary condition
+    ////   gravity v.s. pressure, hope linear ////
+    ////   halo changes, using n_nfw=10*n_mean as fiducial boundary condition ////
     // fname = "Tg_Tvcrit.txt";
     // f.open(fname, ios::out | ios::trunc );
     // f<<"Tg Tv_crit\n";

@@ -15,6 +15,7 @@
 #include "dyn.h"
 #include "PARA.h"
 using namespace std;
+#include <time.h>
 
 int main(){
     printf("################################################################################\n");
@@ -35,73 +36,39 @@ int main(){
     int ntree = 10;
     ntree = 3; 
 
-    for (i=2;i<ntree;i++){
-        tree = to_string(i); // tree_id 输出
-        ftree = "../treefiles/tree_"+to_string(i); // cout<<ftree<<endl;
-        fout = "Jcs250.txt";
-        cout<<fout<<endl;
-        for (i_bsm=0; i_bsm<4; i_bsm++){
-            evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
-        }
-    }
-    printf("one tree Jc cal, 5 percent accuracy\n");
+    clock_t t0 = clock();
+    // for (i=2;i<ntree;i++){
+    //     tree = to_string(i); // tree_id 输出
+    //     ftree = "../treefiles/tree_"+to_string(i); // cout<<ftree<<endl;
+    //     fout = "Jcs250.txt";
+    //     cout<<fout<<endl;
+    //     for (i_bsm=2; i_bsm<3; i_bsm++){
+    //         evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+    //     }
+    // }
+
+    clock_t t1 = clock();
+    printf("time taken 1st part:%.2f\n", (double)(t1-t0)/CLOCKS_PER_SEC);
 
     i = 2; tree = to_string(i);
-    ftree = "../treefiles/tree_"+to_string(i); cout<<ftree;
+    ftree = "../treefiles/tree_"+to_string(i); cout<<ftree<<endl;
 
-    i_bsm = 2; J21 = 1800.;
-    fout = "tr"+tree+"bsm"+to_string(i_bsm)+"J"+to_string(int(J21))+"evol.txt";
-    fout = "Hmrcb.txt";
+    i_bsm = 2; J21 = 562.;
+    fout = "tr"+tree+"bsm"+to_string(i_bsm)+"J"+to_string(int(J21))+"_6.txt";
     evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // i_bsm = 1; J21 = 1800.;
-    // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"J"+to_string(int(J21))+"evol.txt";
+
+    clock_t t2 = clock();
+    printf("time taken 2nd part:%.2f\n", (double)(t2-t1)/CLOCKS_PER_SEC);
+
+    // i_bsm = 2; J21 = 753.;
+    // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"J"+to_string(int(J21))+"_1.txt";
+    // // fout = "Hm0rcb.txt";
     // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
-    // i_bsm = 1; J21 = 531.;
-    // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"evol.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // i_bsm = 2; J21 = 531.;
-    // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"evol.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);    
-
-    // i_bsm = 0; J21 = 2156.;
-    // fout = "f0ypred.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // i_bsm = 1; J21 = 531.;
-    // fout = "f1ypred.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);        
-    // i_bsm = 2; J21 = 531.;
-    // fout = "f2ypred.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);    
-
-    // Ma_on = false;
-    // for (i_bsm=0; i_bsm<1; i_bsm++){
-    //     evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
-    // }
-    // Ma_on = true;
-    // for (i_bsm=0; i_bsm<4; i_bsm++){
-    //     evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
-    // }
-
-    // double z_col, T, nH_tell=1.e4;
-    // Ma_on = true;
-    // J21 = 656;
-    // i_bsm = 3;
-    // T = getT(z_col, true, MerMod, J21, Tb, ftree, spec, Ma_on, i_bsm, nH_tell);
+    // clock_t t3 = clock();
+    // printf("time taken 3rd part:%.2f\n", (double)(t3-t2)/CLOCKS_PER_SEC);
 
 
-    // i_bsm = 0;
-    // fout = "20J1e1bsm0tur0evolve_Vc.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // i_bsm = 1;
-    // fout = "20J1e1bsm1tur0evolve_Vc.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // i_bsm = 2;
-    // fout = "20J1e1bsm2tur0evolve_Vc.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-    // i_bsm = 3;
-    // fout = "20J1e1bsm3tur0evolve_Vc.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
 
 // bsm; turbulence
     // Ma_on = true;

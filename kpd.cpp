@@ -48,9 +48,10 @@ int const nnu_Hm = 14000;
  */
 void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p, bool spec){
    int i,j;
-   //double T_rad = 5.e4; 
-   if (spec) printf("IN KPD: using real spectrum\t");
-   else printf("IN KPD: T_rad=%5.2f\t", T_rad);
+   // //double T_rad = 5.e4; 
+
+   // if (spec) printf("IN KPD: using real spectrum\t");
+   // else printf("IN KPD: T_rad=%5.2f\t", T_rad);
    double nurat0 = 1.0005;
    double nu_min = 0.45*eV/h_p;
    double nurat = nurat0, nu_prev = nu_min;
@@ -135,7 +136,7 @@ void kpd_Hm_H2p(double T_rad, double& k_Hm, double& k_H2p, bool spec){
    k_Hm *= (1.e-21/Flux_c[k_ly]);
    k_H2p *= (1.e-21/Flux_c[k_ly]);
    //printf("k_Hm=%3.2e, k_H2p=%3.2e, kHm/kH2=%3.2e\n", k_Hm, k_H2p, k_Hm/1.39e-12);
-   printf("kHm/kH2=%3.2e\n", k_Hm/1.39e-12);
+   // printf("kHm/kH2=%3.2e\n", k_Hm/1.39e-12);
 
    for(i=0; i<nT; i++) delete[] sigmaa[i];
    delete[] sigmaa;

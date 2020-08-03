@@ -355,9 +355,9 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
         file.open(fout, ios::out | ios::trunc);
         file<<setw(16)<<"tree"<<setw(16)<<"Tb"<<setw(16)<<"i_bsm"<<setw(16)<<"tur"; 
         // file<<setw(16)<<"n_H2crit"<<setw(16)<<"z_H2crit";
-        file<<setw(16)<<"Jc";// <<setw(16)<<"Jc_pred";
-        // file<<setw(16)<<"gMa_H2crit";// <<setw(16)<<"gMa_H2crit";
-        // file<<setw(16)<<"z_col"<<endl;
+        file<<setw(16)<<"Jc";
+        file<<setw(16)<<"z_col"<<endl;
+        file<<endl;
         file.close();
     }
     file.open(fout, ios::out | ios::app);
@@ -382,7 +382,7 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
         }
     }
 
-    while (J1-J0 > 0.1*J0){
+    while (J1-J0 > 0.05*J0){
         bool write = false;
         // if (J1-J0 > 0.05*J0) write = true;
         T = getT(c,y,write,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
@@ -408,6 +408,7 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
 
     file<<setw(16)<<stoi(tree)<<setw(16)<<Tb<<setw(16)<<i_bsm<<setw(16)<<((Ma_on)?1:0);
     file<<setw(16)<<J1;
+    file<<setw(16)<<y1[5];
     file<<endl;
     file.close();
 

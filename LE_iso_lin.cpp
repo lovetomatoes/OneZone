@@ -1,12 +1,11 @@
-//: log scale (= LE_iso_log.cpp, proved better than LE_iso_lin.cpp) 
-//: computation time much better than lin scale
+/// linear scale
+
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include <iomanip>
-#include <time.h>
 
 #include "class_halo.h"
 #include "PARA.h"
@@ -19,16 +18,18 @@ using namespace std;
 g++ -c LE_iso.cpp RK4.cpp && g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_iso.out && ./le_iso.out
 */
 
-static int N=100, i, hit;
+//input para
+//output: a profile of density distributions, Phi(x), x=r/a, Phi = log(rho/rho_g0)
+
+static int N=5000, i, hit;
 static int const n=2;
 static double a, alpha, rho_g0, M_intg;
-static double x1, dx, x_vir, xrat;
+static double x1, dx, x_vir;
 
 double Tvir = 1.6e4;
 double z1 = 20; double Mh1 = 1.e5*Ms;
 //double z = 30; double Mh = Mh_Tz(Tvir,z);
 
-// a profile of density distributions, Phi(x), x=r/a, Phi = -log(rho/rho_g0)
 void profile(string filename, double Tg, double R, double z=z1, double Mh=Mh1){
     fstream file;
     file.open(filename, ios::out | ios::trunc );
@@ -42,9 +43,6 @@ void profile(string filename, double Tg, double R, double z=z1, double Mh=Mh1){
     rho_g0 = halo1.rho_c * R;
     a = sqrt(k_B*Tg/(4*pi*G*mu*m_H*rho_g0));
     alpha = a/halo1.Rs;
-// B for checking DM gravity w/ Suto, Sasaki, Makino 1998
-    double B = 4*pi*G*(mu*m_H)*halo1.delta0*halo1.rho_crit*pow(halo1.Rs,2)/(k_B*Tg);
-
     // printf("scaling factor a = %3.2e pc, alpha = %3.2e pc, delta_rhoc=%3.2e g/cc, Rs=%3.2e pc Rvir=%3.2e pc\n", 
     // a/pc,alpha/pc,halo1.rho_c,halo1.Rs/pc,halo1.Rvir/pc);
 
@@ -60,30 +58,36 @@ void profile(string filename, double Tg, double R, double z=z1, double Mh=Mh1){
     v = new double [c];
     v[0] = alpha; v[1] = R;
 
-// x1, dx & boundary conditions; linear scale grids
-    x_vir = halo1.Rvir/a;
-    x1 = 2.*x_vir;
-    // x1 = 100; self-gravity
-    // x[i] = dx/1.e8; y[i][0] = 1; y[i][1] = 0; // adiabatic case
-    i = 0; x[i] = x_vir/1.e8; y[i][0] = 0; y[i][1] = 0; // isothermal case
-// boundary x[0]=0, but 0 causes sigularity, using x[0]=x_vir/1e8<<dx
-    xrat = exp( log(x1/x[0])/(N-1) );
+    //B for checking DM gravity w/ Suto, Sasaki, Makino 1998
+    double B = 4*pi*G*(mu*m_H)*halo1.delta0*halo1.rho_crit*pow(halo1.Rs,2)/(k_B*Tg);
 
+    // x1, dx & boundary conditions; linear scale grids
+    x_vir = halo1.Rvir/a;
+    x1 = 2.*x_vir; // 1.01*x_vir;
+    // x1 = 100; self-gravity
+    dx = x1/(N-1);
+    //x[i] = dx/1.e8; y[i][0] = 1; y[i][1] = 0; // adiabatic case
+    i = 0; x[i] = dx/1.e8; y[i][0] = 0; y[i][1] = 0; // isothermal case
+    // boundary x[0]=0, but 0 causes sigularity, using x[0]=dx/1e8<<dx
     M_intg = 0;
+
+    // printf("center boundary: r0=%3.2e (Rvir)\t dr=%3.2e (Rvir)\t r1=%3.2e(Rvir)\n",
+    // x[0]/x_vir, dx/x_vir, x1/x_vir);
+
     hit = 0;
     for (i=1;i<N;i++){
-        x[i]=x[i-1]*xrat;
-        dx = x[i] - x[i-1];
-    //integrate within R_vir
+        dx = x1/(N-1);
+        DyDx_iso(x[i-1],y[i-1],dydx0,c,v);
+        rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
+        x[i]=x[i-1]+dx;
+
+        //integrate within R_vir
         if (x[i]>x_vir && hit==0) {
             x[i] = x_vir;
             dx = x_vir - x[i-1];
+            // printf("hit i_vir= %d, Nvir= %5.3e/cc",i,rho_g0*exp(-y[i][0])/(mu*m_H));
             hit = 1;
         }
-
-        DyDx_iso(x[i-1],y[i-1],dydx0,c,v);
-        rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
-        // if (x[i] == x_vir) printf("ng_vir = %5.3e\n",rho_g0*exp(-y[i][0])/(mu*m_H));
         if (x[i]<=x_vir) M_intg += pow(a,3)* 4*pi*pow(x[i],2)*dx * rho_g0 *exp(-y[i][0]);
 
     // "r_pc r_Rvir r_Rs phi psi ng_ng0 ng nDM_ng0 nDM M_intg Bfx gx";
@@ -106,7 +110,6 @@ void profile(string filename, double Tg, double R, double z=z1, double Mh=Mh1){
 
     for (i=0;i<N;i++) delete [] y[i];
     delete [] x; delete [] y; delete [] v; delete [] dydx0;
-
     // printf("z = %3.2f\tMh = %3.2e Ms\t rs%3.2e cm\trhoc=%3.2e/cc\n",halo1.z,halo1.Mh/Ms,halo1.Rs,halo1.rho_c);
     // printf("rho_g0=%3.2e, rho_crit=%3.2e, delta_0=%3.2e\n",rho_g0, halo1.rho_crit, halo1.delta0);
 }
@@ -130,25 +133,34 @@ void BOUNDARY(double& N_VIR, double& MG_VIR, double Tg, double R, double z=z1, d
     v = new double [c];
     v[0] = alpha; v[1] = R;
 
-// x1, dx & boundary conditions; log scale grids
-    x_vir = halo1.Rvir/a;
-// truncated at Rvir exactly
-    // *********** //
-    x1 = x_vir;    // 
-    // *********** //
-    i = 0; x[i] = x_vir/1.e8; y[i][0] = 0; y[i][1] = 0; // isothermal case
+    //B for checking DM gravity w/ Suto, Sasaki, Makino 1998
+    double B = 4*pi*G*(mu*m_H)*halo1.delta0*halo1.rho_crit*pow(halo1.Rs,2)/(k_B*Tg);
 
-    xrat = exp( log(x1/x[0])/(N-1) );
+    // x1, dx & boundary conditions; linear scale grids
+    x_vir = halo1.Rvir/a;
+    x1 = 2.*x_vir;
+    dx = x1/(N-1);
+    i = 0; x[i] = dx/1.e8; y[i][0] = 0; y[i][1] = 0; // isothermal case
 
     for (i=1;i<N;i++){
-        x[i]=x[i-1]*xrat;
-        dx = x[i] - x[i-1];  
+        dx = x1/(N-1);
+        x[i]=x[i-1]+dx;
+        if (x[i]>= x_vir) {
+            // printf("end i= %d N= %d\n",i,N);
+            x[i] = x_vir;
+            dx = x_vir - x[i-1];
+            DyDx_iso(x[i-1],y[i-1],dydx0,c,v);
+            rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
+            MG_VIR += pow(a,3)* 4*pi*pow(x[i],2)*dx * rho_g0 *exp(-y[i][0]);
+            N_VIR = rho_g0*exp(-y[i][0])/(mu*m_H);
+            break;
+        }
         DyDx_iso(x[i-1],y[i-1],dydx0,c,v);
         rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_iso);
+        // printf("x[%d]/x_vir=%3.2f\n",i,x[i]/x_vir);
         MG_VIR += pow(a,3)* 4*pi*pow(x[i],2)*dx * rho_g0 *exp(-y[i][0]);
     }
-    N_VIR = rho_g0*exp(-y[N-1][0])/(mu*m_H);
-
+    
     // printf("outside loop: i=%d, N=%d, n_vir=%5.3e/cc, MG_VIR=%5.3e Ms,\n",
     // i,N,N_VIR,MG_VIR/Ms);
 
@@ -282,8 +294,8 @@ int main(){
     profile(f_Nsol,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
 
 // 3. Tvir_crit value v.s. Tg (z as input parameter)
-    //:   gravity v.s. pressure, hope linear 
-    //:  halo changes, using n_nfw=10*n_mean as fiducial boundary condition
+    ////   gravity v.s. pressure, hope linear ////
+    ////   halo changes, using n_nfw=10*n_mean as fiducial boundary condition ////
     // fname = "Tg_Tvcrit.txt";
     // f.open(fname, ios::out | ios::trunc );
     // f<<"Tg Tv_crit\n";

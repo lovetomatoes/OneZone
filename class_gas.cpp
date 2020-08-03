@@ -429,6 +429,7 @@ void GAS:: timescales(){
 // merger case: Dt << merger intervals dt
     if (inMer and evol_stage !=3) Dt = min( Dt, .1*MPs[iMP].dt );  // adb & ff
     if (inMer and evol_stage ==3) Dt = min( Dt, .01*MPs[iMP].dt ); // iso
+    // if (inMer) Dt = min( Dt, .01*MPs[iMP].dt ); // iso
 
 // no merger case, just free fall; one-zone case of former work
     if (MerMod==0) { 
@@ -502,8 +503,9 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             }
             break;
         case 3: // iso T=8000K (H Lya cooling)
-            // adjust_iso = (t_act - t_prev >= 0.1* min(min( MPs[iMP].dt,t_ff), min(t_c,t_h)) );
-            if (true) { // update n_iso every Dt
+            adjust_iso = (t_act - t_prev >= 0.05* MPs[iMP].dt);
+            adjust_iso = true;
+            if (adjust_iso) { // update n_iso every Dt
                 dt_iso = t_act - t_prev;
                 Mh_prev = Mh; t_prev = t_act;
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
