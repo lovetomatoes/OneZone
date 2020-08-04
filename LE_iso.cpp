@@ -60,7 +60,7 @@ void profile(string filename, double Tg, double R, double z=z1, double Mh=Mh1){
     v = new double [c];
     v[0] = alpha; v[1] = R;
 
-// x1, dx & boundary conditions; linear scale grids
+// x1, dx & boundary conditions; log scale grids
     x_vir = halo1.Rvir/a;
     x1 = 2.*x_vir;
     // x1 = 100; self-gravity
@@ -186,8 +186,8 @@ void Nvir2N0(double& n_sol, double& nvir_max, double ni, double Tg, double z, do
     // printf("\nMAXIMUM: it=%d, dR/R0 = %3.2e\n",it,dR/R0);
 
     BOUNDARY(nvir_max, Mg_vir, Tg, R0, z, Mh); //求解nvir_max
-    printf("for nvir_max=%3.2e, n0=%3.2e\n",nvir_max,R0*halo.rho_c/(mu*m_H));
-    printf("z=%.1f, Mh=%3.2e Ms\n",z,Mh/Ms);
+    // printf("for nvir_max=%3.2e, n0=%3.2e\n",nvir_max,R0*halo.rho_c/(mu*m_H));
+    // printf("z=%.1f, Mh=%3.2e Ms\n",z,Mh/Ms);
 // unstable criterion: nvir_max < n_nfw (cosmic mean density at z) 
     double n_mean = RHO_crit(z)/(mu*m_H);
     double n_nfw = fb*halo.Rho_r(halo.Rvir)/(mu*m_H);
@@ -213,9 +213,9 @@ void Nvir2N0(double& n_sol, double& nvir_max, double ni, double Tg, double z, do
             else R0 = R1;
             it++;
         }
-        printf("\nin LOOP: it=%d, dR/R0 = %3.2e\n",it,dR/R0);
+        // printf("\nin LOOP: it=%d, dR/R0 = %3.2e\n",it,dR/R0);
         n_sol = R0*halo.rho_c/(mu*m_H);
-        printf("Nvir2N0: n_nfw=%3.2e, solution: of n0: %3.2e\n",n_nfw,n_sol);
+        // printf("Nvir2N0: n_nfw=%3.2e, solution: of n0: %3.2e\n",n_nfw,n_sol);
     }
 }
 
@@ -225,7 +225,7 @@ g++ -c LE_iso.cpp RK4.cpp && g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_lin
 */
 
 
-int main(){
+/* int main(){
     double R = .01;
     double Tg = 1.e4;
     double Mg, nvir;
@@ -324,7 +324,7 @@ int main(){
     printf("executing time: %.2fs s\n", (double)(t1-10)/CLOCKS_PER_SEC);
     return 0;
 }
-
+ */
 
 // 4. 算由Nvir2N0得到的n0-->Mg -->fb
 /* int main(){
