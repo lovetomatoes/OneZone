@@ -24,7 +24,7 @@ class GAS
         ~GAS();
     //private:
         int N, Nt;
-        int i_m; int MerMod;
+        int i_LE; int MerMod;
         int nMer, iMP;
         double z0, z, z_col;
         double t0, t1, Dt, t_act, t_ff0, t_delay;
@@ -56,7 +56,7 @@ class GAS
         //HALO halo (1,1); must have initial parameters...
         ofstream file_ingas;
     private :
-        int const n_ra = 40;
+        int static const n_ra = 40;
         double* Ta, *ka;
 
 };

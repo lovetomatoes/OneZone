@@ -30,7 +30,7 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
     i = 0;
 
     if (readmer.good()){
-        cout<<filename<<"TREEmer exist\n";
+        // cout<<filename<<"TREEmer exist\n";
         while (getline(readmer,line)){
             stringstream ss(line);
             ss>>MPs[i].id_tree>>MPs[i].j>>MPs[i].mhalo>>MPs[i].z>>MPs[i].t>>MPs[i].c>>MPs[i].Tvir>>MPs[i].ng_adb>>MPs[i].mratio;
@@ -48,8 +48,8 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
     }
 // no mer file; calculate n_adb; write
     else{
-        cout<<" no mer file\n";
-        readtree.open(treename); cout<<treename<<"\n";
+        // cout<<" no mer file\n";
+        readtree.open(treename); // cout<<treename<<"\n";
         int id_m;
         while (getline(readtree,line)){
             // cout<<line<<endl;
@@ -63,7 +63,7 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
         }
         readtree.close();
         nMP = i-1;
-        cout<<"tree: nMP= "<<nMP<<endl;
+        // cout<<"tree: nMP= "<<nMP<<endl;
 
     // 调换位置 以num/2为轴 MPs[1]<->MPs[nMP]
     // wli: 必须*0.5而非/2取整!!! 否则出错 (int, float)比大小先把int转化成float

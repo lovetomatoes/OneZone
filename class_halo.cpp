@@ -67,44 +67,6 @@ double HALO:: V_inf2(double rout, double rin){
     return 2*(Phi(rout)-Phi(rin));
 }
 
-/* //origin, checking...(forget goal)
-int main(){
-    int N = 1000;
-    int i,j;
-    double Mh0, z0;
-    double x, r, v;
-    Mh0 = 1.e8*Ms;
-    z0 = 10;
-    HALO halo(Mh0, z0);
-    ofstream file;
-    file.open("data/Vs.txt", ios::out | ios::trunc );
-    for (i=0;i<N+1;i++){
-        if (i==0) file<<" x"<<" Vr/Vc"<<endl;
-        x = (double)i/N;
-        r = x*halo.Rvir;
-        v = sqrt(-2*halo.Phi(r));
-        file <<" "<<x<<" "<<v/halo.Vc<<endl;
-    }
-    file.close();
-
-    ofstream file1;
-    file1.open("data/Vs1.txt", ios::out | ios::trunc );
-    double z1,z2,zi;
-    z1 = 0; z2 = 100;
-    for (i=0;i<N+1;i++){
-        if (i==0) file1 <<" z"<<" Vr0/Vc"<<" g(c)"<<endl;
-        zi = (1-(double)i)/N*z1 + (double)i/N*z2;
-        HALO halo(Mh0, zi);
-        v = sqrt(8*pi*G*halo.rho_crit*halo.delta0*pow(halo.Rs,2));
-        file1 <<" "<<zi<<" "<<v/halo.Vc<<" "<<sqrt(2*halo.c/(log(1+halo.c) - halo.c/(1+halo.c) ))<<endl;
-    }
-    file1.close();
-    HALO halo1(1.e8*Ms,9);
-    printf("z=9, M=1.e8Ms, Rvir = %5.2f kpc, Vc = %5.2f km/s, Tvir = %5.2f K\n", halo1.Rvir/kpc,halo1.Vc/km,halo1.Tvir);
-    printf("z=9, age of Universe = %3.2f Myr\n", t_from_z(9)/Myr);    
-    return 0;
-} */
-
 double Mh_Tz(double Tvir, double z){
     double alpha_T = 2.324e4; //Tvir = 2.324e4 M8^(2./3.) (1+z10)^-1
     return 1.e8*Ms*pow(Tvir/alpha_T*11/(1+z),1.5);
@@ -128,6 +90,9 @@ g++ class_halo.cpp PARA.cpp dyn.cpp -o halo.out && ./halo.out
 /* int main(){
     double z = 20;
     double Mh = Mh_Vc(4*km, z); Mh = Mh_Tz(1000,z);
+// checking Omukai 2001 rho_dm evolution
+    // printf("t from bigbang:%3.2e s\n",t_from_z(0));
+    // printf("Omega_0=%3.2e\n", pow(t_from_z(0)/3.1e17*h0, -2.) );
     printf("Mh=%3.2e\n",Mh/Ms);
     HALO halo(Mh,z);
     printf("Vc=%3.2e, ",halo.Vc/km);

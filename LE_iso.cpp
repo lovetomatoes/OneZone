@@ -194,7 +194,7 @@ void Nvir2N0(double& n_sol, double& nvir_max, double ni, double Tg, double z, do
     // printf("nmean=%3.2e, n_nfw=%3.2e, nvir_max=%3.2e:\n",n_mean,n_nfw, nvir_max);
     n_mean = n_nfw;
     if (n_mean>nvir_max) {
-        printf("UNSTABLE!!!!!!!!!!!!!\n");
+        // printf("UNSTABLE!!!!!!!!!!!!!\n");
         n_sol = 0; //unstable
     }
     // if (true) {} // wli: 不解n0 只要nvir_max

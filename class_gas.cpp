@@ -82,7 +82,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     // printf("Mh0 = %3.2e Ms, z0 = %2.2f, \n", Mh/Ms, z0);
     // printf("nH0 = %3.2e, T_K0 = %2.2f, t_ff0 = %3.2eMyr \n", nH0, T_K0, t_ff0/Myr);
 
-    i_m = 0;
+    i_LE = 0;
     Nt = 5;
     t0 = 0;
     t_act = 0;
@@ -424,12 +424,12 @@ void GAS:: timescales(){
     // printf("t_ff1=%3.2e\t t_ff2=%3.2e\n",t_ff/Myr, 1./C/sqrt(nH0)/Myr);
 
 // Dt firstly by cooling/heating/free-fall timescales; also all for NO merger case
-    Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h)); //由no merger 0.1不行不够细, 0.001 better convergence 
+    Dt = 0.001*min( min(t_ff,100*t_chem),min(t_c,t_h)); //由no merger 0.1不行不够细, 0.001 better convergence 
 
 // merger case: Dt << merger intervals dt
-    if (inMer and evol_stage !=3) Dt = min( Dt, .1*MPs[iMP].dt );  // adb & ff
-    if (inMer and evol_stage ==3) Dt = min( Dt, .01*MPs[iMP].dt ); // iso
-    // if (inMer) Dt = min( Dt, .01*MPs[iMP].dt ); // iso
+    // if (inMer and evol_stage !=3) Dt = min( Dt, .1*MPs[iMP].dt );  // adb & ff
+    // if (inMer and evol_stage ==3) Dt = min( Dt, .01*MPs[iMP].dt ); // iso
+    if (inMer) Dt = min( Dt, .01*MPs[iMP].dt ); // iso 
 
 // no merger case, just free fall; one-zone case of former work
     if (MerMod==0) { 
@@ -508,6 +508,8 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             if (adjust_iso) { // update n_iso every Dt
                 dt_iso = t_act - t_prev;
                 Mh_prev = Mh; t_prev = t_act;
+                // if ( fmod(i_LE,100)==0 ) Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
+                // i_LE ++;
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
                 if (!n_iso) evol_stage = 4; // unstable case Mg2ng return 0
                 else {
@@ -530,7 +532,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             }
 // ERRORIN
             if (intoequi and r_cH2>abs(r_h) or r_cH>abs(r_h)) { //factor 2 for H2 cooling deleted 
-                printf(" in CASE5: adb not hold, go to 3\t");
+                // printf(" in CASE5: adb not hold, go to 3\t");
                 evol_stage = 3;
                 Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
                 // printf("SOLVED FOR THE 1ST TIME\n");
@@ -597,5 +599,5 @@ GAS:: ~GAS(void){
     delete [] Ta; delete [] ka;
     delete [] MPs;
     // file_ingas.close();
-    // cout<<"releasing gas\n";
+    // cout<<"i_LE="<<i_LE<<"\treleasing gas\n";
 }
