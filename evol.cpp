@@ -335,9 +335,8 @@ double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, 
 
 
 void evol_Jc(int* vi, double* vd, int itr, string treename, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
-    printf("#####\t JC_SOL\t #####\t");
-    cout<<treename<<":\t";
-    printf("i_bsm=%d\n",i_bsm);
+    // printf("#####\t JC_SOL\t #####\t");
+    // printf("itr=%d, i_bsm=%d\n",itr, i_bsm);
     double T_tell = 4000, nH_tell=1.e4;
     // boundary of bisection J21 
     double J0 = 500, J1 = 1.5e3;
@@ -381,11 +380,9 @@ void evol_Jc(int* vi, double* vd, int itr, string treename, double Tb, int MerMo
     }
 
 
-    printf("J0=%3.2f\tT0=%3.2e\tJ1=%3.2f\tT1=%3.2e\n --> Jc_sol=%3.2f z_col=%3.2f\n",J0,T0,J1,T1, J1, y1[5]);
-    int index=treename.find("_");
-    string tree = treename.substr(index+1); // tree_id 输出
+    // printf("J0=%3.2f\tT0=%3.2e\tJ1=%3.2f\tT1=%3.2e\n --> Jc_sol=%3.2f z_col=%3.2f\n",J0,T0,J1,T1, J1, y1[5]);
 
-    vi[0] = stoi(tree);
+    vi[0] = itr;
     vi[1] = i_bsm;
     vd[0] = J1;
     vd[1] = y1[5];

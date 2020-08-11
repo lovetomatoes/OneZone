@@ -22,44 +22,38 @@ using namespace std;
 #define ROOT    0
 #define Ni      2
 #define Nd      2
-#define Ncore   2
-#define Ntr     5
-// Ncore = 4, use 4 cores, each claculate Ntr trees (bsm from 1 to 4)
+#define Ntr     10
+// each core claculate Ntr trees (fixed i_bsm)
 
 static int i,j;
-static int ntree = 10, MerMod = 1, i_bsm, itr; 
+static int MerMod = 1, i_bsm=0, itr; 
 static double Tb = 2.e4;
 static bool Ma_on = true, spec=false;
 
 int main(int argc, char *argv[]){
-    int size, rank;
+    int Ncore, rank;
     clock_t t0 = clock();
 
     string fout, tree, ftree;
-    fout = "./Jcs_111.txt";
+    fout = "./Jcs_"+to_string(i_bsm)+".txt";
     fstream file;
+
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &Ncore);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     int data_i[Ni*Ntr], data_ri[Ncore*Ntr][Ni];
     double data_d[Nd*Ntr], data_rd[Ncore*Ntr][Nd];
-
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     if (rank==ROOT){
         file.open(fout.c_str(), ios::out | ios::trunc );
         file<<setw(12)<<"tree"<<setw(12)<<"ibsm"<<setw(12)<<"Jc"<<setw(12)<<"zsol"<<endl;
     }
     
-    i_bsm = 0;
-    for (i=0;i<Ncore;i++){
-        if (rank==i){
-            for (itr=rank*Ntr; itr<(rank+1)*Ntr; itr++){
-                ftree = "../treefiles/tree_"+to_string(itr);
-                evol_Jc(&data_i[(itr-rank*Ntr)*Ni], &data_d[(itr-rank*Ntr)*Nd], itr, ftree, Tb, MerMod, spec, Ma_on, i_bsm);
-                printf("rank=%d, data_i[0]=%d, data_d=%f\n",rank,data_i[0],data_d[0]);
-            }
-        }
+    for (itr=rank*Ntr; itr<(rank+1)*Ntr; itr++){
+        ftree = "../treefiles/tree_"+to_string(itr);
+        evol_Jc(&data_i[(itr-rank*Ntr)*Ni], &data_d[(itr-rank*Ntr)*Nd], itr, ftree, Tb, MerMod, spec, Ma_on, i_bsm);
+        // printf("rank=%d, data_i[0]=%d, data_d=%f\n",rank,data_i[0],data_d[0]);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -78,6 +72,6 @@ int main(int argc, char *argv[]){
     MPI_Finalize();
 
     clock_t t1 = clock();
-    if (rank==ROOT) printf("time taken 1st part:%.2f\n", (double)(t1-t0)/CLOCKS_PER_SEC);
+    if (rank==ROOT) printf("\n\ni_bsm=%d time taken: %.2f seconds\n", i_bsm, (double)(t1-t0)/CLOCKS_PER_SEC);
     return 0;
 }

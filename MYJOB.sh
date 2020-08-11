@@ -6,7 +6,7 @@
 #SBATCH -J 10Jc
 #SBATCH --get-user-env
 #SBATCH --nodes=1
-#SBATCH --ntasks=2
+#SBATCH --ntasks=100
 ###SBATCH --cpus-per-task=12
 #SBATCH --time=10:56:00
 
@@ -15,6 +15,6 @@ module load gcc/7.2.0
 module load mpich/3.2.1-gcc-4.8.5
 
 make
-mpirun -n 2 ./main
+mpirun -n 100 ./main
 
 # mk && m cannot be executed, bash_profile alias only by login shells
