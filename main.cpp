@@ -22,8 +22,6 @@ using namespace std;
 #define ROOT    0
 #define Ni      2
 #define Nd      2
-#define Ntr     10
-// each core claculate Ntr trees (fixed i_bsm)
 
 static int i,j;
 static int MerMod = 1, i_bsm=0, itr; 
@@ -31,7 +29,7 @@ static double Tb = 2.e4;
 static bool Ma_on = true, spec=false;
 
 int main(int argc, char *argv[]){
-    int Ncore, rank;
+    int ntree = 1000, Ncore, rank, Ntr;
     clock_t t0 = clock();
 
     string fout, tree, ftree;
@@ -41,6 +39,11 @@ int main(int argc, char *argv[]){
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &Ncore);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+// each core claculate Ntr trees (fixed i_bsm)   
+    Ntr = ntree/Ncore; // cout<<"Ntr= "<<Ntr<<endl;
+
+    MPI_Barrier(MPI_COMM_WORLD); //must...
 
     int data_i[Ni*Ntr], data_ri[Ncore*Ntr][Ni];
     double data_d[Nd*Ntr], data_rd[Ncore*Ntr][Nd];
