@@ -73,11 +73,10 @@ double t_freefall(double nH){
     return 1./C/sqrt(nH);
 }
 
-double z_ana(double z0, double t_from_z0){
-    return pow(3*H0*sqrt(Omega_m0)/2*t_from_z0 + pow(1+z0,-1.5), -2./3) - 1;
+double z_ana(double z0, double Dt){
+    return pow(3*H0*sqrt(Omega_m0)*Dt/2.+pow(1+z0,-1.5), -2./3.) - 1;
 }
-
+// both z_ana & t_from_z neglect Omega_L0
 double t_from_z(double z){ // age of universe at redshift z: tH = 2/(3Hz)
     return 2./(3*H0*sqrt(Omega_m0)) * pow(1+z, -1.5);
 }
-

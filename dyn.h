@@ -10,4 +10,4 @@ double n_ff(double z, double nH0, double rho_DM, double Dt);
 double t_freefall(double nH);
 double t_from_z(double z);
 double t_col(double z);
-double z_ana(double zz0, double t);
+double z_ana(double zz0, double Dt);
