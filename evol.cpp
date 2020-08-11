@@ -334,34 +334,18 @@ double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, 
 }
 
 
-void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
+void evol_Jc(int* vi, double* vd, int itr, string treename, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
     printf("#####\t JC_SOL\t #####\t");
     cout<<treename<<":\t";
     printf("i_bsm=%d\n",i_bsm);
     double T_tell = 4000, nH_tell=1.e4;
     // boundary of bisection J21 
-    double J0 = epE2, J1 = 1.e4; //包括所有的Tb所需range 没必要
-    J0 = 500, J1 = 1.5e3;
+    double J0 = 500, J1 = 1.5e3;
     double T0, T1, T;
     int const c = 6;
     double y0[c];
     double y1[c];
     double y[c];
-
-    ofstream file;
-    ifstream checkf_exist(fout.c_str());
-    if (checkf_exist.good()) {
-        // cout<<fout.c_str()<<" exist\n";
-    }
-    else {
-        file.open(fout, ios::out | ios::trunc);
-        file<<setw(16)<<"tree"<<setw(16)<<"i_bsm";
-        file<<setw(16)<<"Jc"<<setw(16)<<"z_col";
-        file<<setw(16)<<"Tb"<<setw(16)<<"tur";
-        file<<endl;
-        file.close();
-    }
-    file.open(fout, ios::out | ios::app);
 
     T0 = getT(c,y0, false,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
     T1 = getT(c,y1, false,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
@@ -386,8 +370,6 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
     while (J1-J0 > 0.05*J0){
         bool write = false;
         T = getT(c,y,write,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
-        // printf("#######\t########\t########\t#########");
-        // printf("J0=%3.2f, T0=%3.2f,J1=%3.2f,T1=%3.2f, Jmid=%4.3f\tTmid=%3.2e\n",J0,T0,J1,T1,(J0+J1)/2.,T);
         if (T-T_tell>=0) {
             J1 = (J0+J1)/2.; T1 = T;
             for (i=0;i<c;i++) y1[i] = y[i];
@@ -400,34 +382,11 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
 
 
     printf("J0=%3.2f\tT0=%3.2e\tJ1=%3.2f\tT1=%3.2e\n --> Jc_sol=%3.2f z_col=%3.2f\n",J0,T0,J1,T1, J1, y1[5]);
-    // int index=treename.find("fort.");
-    // string tree = treename.substr(index+5); // tree_id 输出
-    
     int index=treename.find("_");
     string tree = treename.substr(index+1); // tree_id 输出
 
-    file<<setw(16)<<stoi(tree)<<setw(16)<<i_bsm;
-    file<<setw(16)<<J1<<setw(16)<<y1[5];
-    file<<setw(16)<<Tb<<setw(16)<<((Ma_on)?1:0);
-    file<<endl;
-    file.close();
-
-        // file<<"tree"<<"Tb"<<"i_bsm"<<"tur"; 
-        // file<<"n_H2crit"<<"z_H2crit";
-        // file<<"Jc"<<"Jc_pred";
-        // file<<"fMa_H2crit"<<"gMa_H2crit";
-        // file<<"z_col"<<endl;
-//     argv[0] = gas.n_H2crit;
-//     argv[1] = gas.z_H2crit;
-//     argv[2] = gas.Jc_pred;
-//     argv[3] = gas.fMa_H2crit;
-//     argv[4] = gas.gMa_H2crit;
-//     argv[5] = gas.z_col;
-
-    // string fevol = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J0))+".txt";
-    // // evol(treename, fevol, MerMod, Tb, J0, spec, Ma_on, i_bsm);
-    // cout<<fevol<<endl;
-    // fevol = "tr"+tree+"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0)+"J"+to_string(int(J1))+".txt";
-    // // evol(treename, fevol, MerMod, Tb, J1, spec, Ma_on, i_bsm);
-    // cout<<fevol<<endl;
+    vi[0] = stoi(tree);
+    vi[1] = i_bsm;
+    vd[0] = J1;
+    vd[1] = y1[5];
 }

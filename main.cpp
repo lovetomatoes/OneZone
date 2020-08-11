@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 #include "evol.h"
 #include "reaction.h"
@@ -16,61 +17,67 @@
 #include "PARA.h"
 using namespace std;
 #include <time.h>
+#include "mpi.h"
+
+#define ROOT    0
+#define Ni      2
+#define Nd      2
+#define Ncore   2
+#define Ntr     5
+// Ncore = 4, use 4 cores, each claculate Ntr trees (bsm from 1 to 4)
 
 static int i,j;
 static int ntree = 10, MerMod = 1, i_bsm, itr; 
 static double Tb = 2.e4;
 static bool Ma_on = true, spec=false;
-static clock_t t0, t1, t2;
 
-int main(){
-    printf("################################################################################\n");
-    // cout<<"dt from z: "<<(t_from_z(20.) - t_from_z(20.2))/Myr<<endl;
-    // cout<<"t_ff (n=300/cc): "<<t_freefall(300)/Myr<<endl;
+int main(int argc, char *argv[]){
+    int size, rank;
+    clock_t t0 = clock();
 
-    string ftree = "../code_tree/fort.217"; //不行！！！会
-    double Tb = 2.e4;
-    bool Ma_on = true, spec=false;
-    int MerMod = 1;
-    double J21 = 0;
-    int i_bsm;
-    string fout, tree;
-    int ntree = 10;
-    ntree = 3; 
+    string fout, tree, ftree;
+    fout = "./Jcs_111.txt";
+    fstream file;
 
-    // t0 = clock();
-    // for (i=2;i<ntree;i++){
-    //     tree = to_string(i); // tree_id 输出
-    //     ftree = "../treefiles/tree_"+to_string(i); // cout<<ftree<<endl;
-    //     fout = "Jcs250.txt";
-    //     cout<<fout<<endl;
-    //     for (i_bsm=0; i_bsm<1; i_bsm++){
-    //         evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
-    //     }
-    // }
+    int data_i[Ni*Ntr], data_ri[Ncore*Ntr][Ni];
+    double data_d[Nd*Ntr], data_rd[Ncore*Ntr][Nd];
 
-    t1 = clock();
-    printf("time taken 1st part:%.2f \n", (double)(t1-t0)/CLOCKS_PER_SEC);
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    // i = 2; tree = to_string(i);
-    // ftree = "../treefiles/tree_"+to_string(i); 
-    // cout<<ftree<<endl;
+    if (rank==ROOT){
+        file.open(fout.c_str(), ios::out | ios::trunc );
+        file<<setw(12)<<"tree"<<setw(12)<<"ibsm"<<setw(12)<<"Jc"<<setw(12)<<"zsol"<<endl;
+    }
+    
+    i_bsm = 0;
+    for (i=0;i<Ncore;i++){
+        if (rank==i){
+            for (itr=rank*Ntr; itr<(rank+1)*Ntr; itr++){
+                ftree = "../treefiles/tree_"+to_string(itr);
+                evol_Jc(&data_i[(itr-rank*Ntr)*Ni], &data_d[(itr-rank*Ntr)*Nd], itr, ftree, Tb, MerMod, spec, Ma_on, i_bsm);
+                printf("rank=%d, data_i[0]=%d, data_d=%f\n",rank,data_i[0],data_d[0]);
+            }
+        }
+    }
 
-    // i_bsm = 2; J21 = 562.;
-    // fout = "tr"+tree+"bsm"+to_string(i_bsm)+"J"+to_string(int(J21))+"_222.txt";
-    // evol(ftree, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+    MPI_Barrier(MPI_COMM_WORLD);
 
-    t2 = clock();
-    printf("time taken 2nd part:%.2f \n", (double)(t2-t1)/CLOCKS_PER_SEC);
+    MPI_Gather(&data_i[0], Ni*Ntr, MPI_INT, &data_ri[0][0], Ni*Ntr, MPI_INT, ROOT, MPI_COMM_WORLD);
+    MPI_Gather(&data_d[0], Nd*Ntr, MPI_DOUBLE, &data_rd[0][0], Nd*Ntr, MPI_DOUBLE, ROOT, MPI_COMM_WORLD);
 
-// spec
-    // fout = "Jcs_cpp.txt";
-    // spec = false;
-    // for (i=0;i<n;i++) evol_Jc(ftree, fout, Tbs[i], MerMod, spec, Ma_on);
+    if (rank==ROOT) {
+        for (j=0;j<Ncore*Ntr;j++){
+            file<<setw(12)<<data_ri[j][0]<<setw(12)<<data_ri[j][1];
+            file<<setw(12)<<data_rd[j][0]<<setw(12)<<data_rd[j][1];
+            file<<endl;
+        }
+        file.close();
+    }
+    MPI_Finalize();
 
-    // fout = "Jcs_spec.txt";
-    // spec = true;
-    // evol_Jc(ftree, fout, Tbs[i], MerMod, true, Ma_on);
-
+    clock_t t1 = clock();
+    if (rank==ROOT) printf("time taken 1st part:%.2f\n", (double)(t1-t0)/CLOCKS_PER_SEC);
     return 0;
 }
