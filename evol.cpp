@@ -346,6 +346,9 @@ void evol_Jc(int* vi, double* vd, int itr, string treename, double Tb, int MerMo
     double y1[c];
     double y[c];
 
+    // //wli! for generating tree_mer
+    // GAS gas(frac0,MerMod,0.,Tb,treename,spec,Ma_on,i_bsm);
+
     T0 = getT(c,y0, false,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
     T1 = getT(c,y1, false,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
     // cout<<"***********log**************\n";

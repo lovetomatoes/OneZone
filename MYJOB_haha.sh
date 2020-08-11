@@ -3,7 +3,7 @@
 #SBATCH --partition=C032M0128G
 #SBATCH --qos=low
 #SBATCH -A hpc1806187118
-#SBATCH -J Jc_0
+#SBATCH -J 00Jc_0
 #SBATCH --get-user-env
 #SBATCH --nodes=1
 #SBATCH --ntasks=10
