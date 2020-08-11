@@ -1,5 +1,6 @@
 main: main.cpp evol.o class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
-	g++ main.cpp -L/usr/local/lib evol.o class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o main
+	mpicc main.cpp -L/usr/local/lib -lstdc++ -I/usr/local/include evol.o class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o main
+	#g++ main.cpp -L/usr/local/lib evol.o class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o main
 
 # 用 make evol 生成cc.so以供evol.py 
 evol.o: evol.cpp class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
@@ -51,6 +52,7 @@ my_linalg.o: my_linalg.cpp
 gsl_inverse.o: gsl_inverse.cpp
 	g++ -Wall -I/usr/local/include -c gsl_inverse.cpp -shared -fPIC
 #	g++ -L/usr/local/lib gsl_inverse.o -lgsl -lgslcblas -lm
+# g++  gsl_inverse.o 
 
-clean: # ./以免文件名前缀奇怪 e.g. "-" 不识别; -f force 忽略不存在的文件无警告
-	rm -f ./*.o *.txt *.10 *.so *.out *.plt main
+clean:
+	rm *.o *.txt *.10 *.so *.out *.plt main
