@@ -37,21 +37,21 @@ using namespace std;
 
     double frac0[] = {0., y_H, y_H2, y_e, y_Hp, y_H2p, y_Hm, y_He, y_Hep, y_Hepp};
  */
-double evol_tiny = 1.0e-20, evol_yHe = 8.33333e-2, evol_y_H2 = 1.0e-5, evol_y_Hm = 1.0e-12, evol_y_H2p = 1.0e-12;
-double evol_y_Hp = 1.0e-4;
-double evol_y_H = 1.0 - 2.*evol_y_H2 - 2.*evol_y_H2p - evol_y_Hm - evol_y_Hp;
-double evol_y_He = evol_yHe - 2.*evol_tiny, evol_y_Hep = evol_tiny, evol_y_Hepp = evol_tiny;
-double evol_y_e = evol_y_Hp + evol_y_H2p - evol_y_Hm + evol_y_Hep + 2.*evol_y_Hepp;
+static double evol_tiny = 1.0e-20, evol_yHe = 8.33333e-2, evol_y_H2 = 1.0e-5, evol_y_Hm = 1.0e-12, evol_y_H2p = 1.0e-12;
+static double evol_y_Hp = 1.0e-4;
+static double evol_y_H = 1.0 - 2.*evol_y_H2 - 2.*evol_y_H2p - evol_y_Hm - evol_y_Hp;
+static double evol_y_He = evol_yHe - 2.*evol_tiny, evol_y_Hep = evol_tiny, evol_y_Hepp = evol_tiny;
+static double evol_y_e = evol_y_Hp + evol_y_H2p - evol_y_Hm + evol_y_Hep + 2.*evol_y_Hepp;
 
-double frac0[] = {0., evol_y_H, evol_y_H2, evol_y_e, evol_y_Hp, evol_y_H2p, evol_y_Hm, evol_y_He, evol_y_Hep, evol_y_Hepp};
+static double frac0[] = {0., evol_y_H, evol_y_H2, evol_y_e, evol_y_Hp, evol_y_H2p, evol_y_Hm, evol_y_He, evol_y_Hep, evol_y_Hepp};
 static int i;
 
-void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool spec, bool Ma_on, int i_bsm){
+void evol(string treename, string Jzname, string fout, int MerMod, double Tbb, double J21, bool spec, bool Ma_on, int i_bsm){
     printf("#####\t#####\t#####\t#####\t   EVOL   \t#####\t#####\t#####\t#####\t\n");
     printf("################################################################################\n");
     i =0;
 
-    GAS gas(frac0,MerMod,J21,Tbb,treename,spec,Ma_on,i_bsm);
+    GAS gas(frac0,MerMod,J21,Tbb,treename,Jzname,spec,Ma_on,i_bsm);
     // printf("z0 = %3.2f, initial nH = %3.2e /cc & T = %3.2e K\n",gas.z0,gas.nH0,gas.T_K0);
     // printf("t_ff,0 = %e Myr\n",gas.t_ff0/Myr);
     // printf("t_mergers in main is :  %3.2e Myr\n", (gas.MPs[gas.nMer-1].t - gas.MPs[0].t)/Myr );
@@ -276,9 +276,9 @@ void evol(string treename, string fout, int MerMod, double Tbb, double J21, bool
 }
 
 // resembling main_Jc1.cpp
-double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, string treename, bool spec, bool Ma_on, int i_bsm, double nH_tell){
+double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, string treename, string Jzname, bool spec, bool Ma_on, int i_bsm, double nH_tell){
     // printf("\n**************************\nSTART in getT:\n");
-    GAS gas(frac0,MerMod,J,Tb,treename,spec,Ma_on,i_bsm);
+    GAS gas(frac0,MerMod,J,Tb,treename,Jzname,spec,Ma_on,i_bsm);
 
     int index=treename.find("_");
     string tree = treename.substr(index+1); // tree_id 输出
@@ -334,7 +334,7 @@ double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, 
 }
 
 
-void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
+void evol_Jc(string treename, string Jzname, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
     printf("#####\t JC_SOL\t #####\t");
     cout<<treename<<":\t";
     printf("i_bsm=%d\n",i_bsm);
@@ -363,15 +363,15 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
     }
     file.open(fout, ios::out | ios::app);
 
-    T0 = getT(c,y0, false,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
-    T1 = getT(c,y1, false,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+    T0 = getT(c,y0, false,MerMod, J0, Tb, treename, Jzname, spec, Ma_on, i_bsm,nH_tell); 
+    T1 = getT(c,y1, false,MerMod, J1, Tb, treename, Jzname, spec, Ma_on, i_bsm,nH_tell);
     // cout<<"***********log**************\n";
     if ( T0-T_tell>0 ) {
         while(T0-T_tell>0){
             // printf("J0=%3.2f,T0=%3.2e,T_tell=%3.2e, wrong INITIAL LEFT boundary\n",J0,T0,T_tell);
             J1 = J0; T1 = T0;
             J0 *= 0.5;
-            T0 = getT(c,y0,false,MerMod, J0, Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+            T0 = getT(c,y0,false,MerMod, J0, Tb, treename, Jzname, spec, Ma_on, i_bsm,nH_tell);
         }
     }
     else if (T1-T_tell<0) {
@@ -379,13 +379,13 @@ void evol_Jc(string treename, string fout, double Tb, int MerMod, bool spec, boo
             // printf("J1=%3.2f,T1=%3.2e,T_tell=%3.2e, wrong INITIAL RIGHT boundary\n",J1,T1,T_tell);
             J0 = J1; T0 = T1;
             J1 *= 2.;
-            T1 = getT(c,y1,false,MerMod, J1, Tb, treename, spec, Ma_on, i_bsm,nH_tell); 
+            T1 = getT(c,y1,false,MerMod, J1, Tb, treename, Jzname, spec, Ma_on, i_bsm,nH_tell); 
         }
     }
 
     while (J1-J0 > 0.05*J0){
         bool write = false;
-        T = getT(c,y,write,MerMod, (J0+J1)/2., Tb, treename, spec, Ma_on, i_bsm,nH_tell);
+        T = getT(c,y,write,MerMod, (J0+J1)/2., Tb, treename, Jzname, spec, Ma_on, i_bsm,nH_tell);
         // printf("#######\t########\t########\t#########");
         // printf("J0=%3.2f, T0=%3.2f,J1=%3.2f,T1=%3.2f, Jmid=%4.3f\tTmid=%3.2e\n",J0,T0,J1,T1,(J0+J1)/2.,T);
         if (T-T_tell>=0) {

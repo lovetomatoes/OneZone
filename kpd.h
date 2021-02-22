@@ -1,6 +1,7 @@
 void read_spec(double* nub, double* fluxb_cont, double* fluxb_line, std::string fspec_cont, std::string fspec_line);
 void read_sigma(double* nua, double** sigmaa, double* nuc, double* sigmac);
 void linear(double* xa, double* ya, int m, double x, double& y);
+void linear_z(double* xa, double* ya, int m, double x, double& y);
 void bilinear(double* x1a, double* x2a, double** ya, int m, int n, double x1, double x2, double& y);
 void Hm_CrossSec(double& sigma, double nu_eV, double* nuc, double* sigmac);
 void H2p_bf_CrossSec(double& sigma, double nu, double T_K, double* Ta, double* nua, double** sigmaa);

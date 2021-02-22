@@ -17,10 +17,10 @@ class GAS
         void timescales();
         void freefall();
         void T_sol();
-
+        void read_Jz(string, double*, double*, int&);
 
         // member function definition -- constructor
-        GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefile, bool spec, bool Ma_turn, int bsm);
+        GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefile, string Jzfile, bool spec, bool Ma_turn, int bsm);
         ~GAS();
     //private:
         int N, Nt;
@@ -33,6 +33,7 @@ class GAS
         double T_K0, nH0, rho0, P0, e0, S0;
         double rhoc_DM;
         double J_LW, Tb;
+        double kappa_Hm, kappa_H2p;
         double *y0, *y1, *ys,  *k, *rf;
         double yequi, ypd, ycd, ycool, ycool_crit;
         double Jc_pd, Jc_cd, Jc_pred, Jc_pred_max;
@@ -55,9 +56,12 @@ class GAS
         MainProgenitor* MPs; //structure defined in read_aTree.h
         //HALO halo (1,1); must have initial parameters...
         ofstream file_ingas;
+        int n_za;
+
     private :
         int static const n_ra = 40;
         double* Ta, *ka;
+        double* Ja, *za;
 
 };
 

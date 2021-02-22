@@ -236,10 +236,9 @@ void H2p_bf_CrossSec(double& sigma, double nu_eV, double T_K, double* Ta, double
 
 void linear(double* xa, double* ya, int m, double x, double& y){
    int ms;
-   int i,j;
    double y1, y2, t;
    //if( x<xa[0] or x>xa[m-1]) printf("xa_min=%3.2e, x=%3.2e, xa_max=%3.2e\n", xa[0],x,xa[m-1]);
-   for (i=0;i<m;i++){
+   for (int i=0;i<m;i++){
       if (x-xa[i]<=0.) {
          ms = i;
          break;
@@ -250,6 +249,37 @@ void linear(double* xa, double* ya, int m, double x, double& y){
    y2 = ya[ms];
    t=(x-xa[ms-1])/(xa[ms]-xa[ms-1]);
    y=(1.-t)*y1+t*y2;
+}
+
+void linear_z(double* xa, double* ya, int m, double x, double& y){
+   int ms;
+   double y1, y2, t;
+   // linear interpolation
+   for (int i=0;i<m;i++){
+      ms = i;
+      if (x-xa[i]>=0.) break;// !!!!!!!! decreasing x as redshift
+   }
+   if (ms==0) ms = 1;
+   y1 = ya[ms-1];
+   y2 = ya[ms];
+   t = (x-xa[ms-1])/(xa[ms]-xa[ms-1]);
+   y = (1.-t)*y1+t*y2;
+
+   // log linear interpolation; better for J tracks
+   double * logxa = NULL;
+   logxa = new double [m];
+   for (int i=0;i<m;i++) logxa[i] = log(xa[i]);
+   for (int i=0;i<m;i++){
+      ms = i;
+      if (log(x)-logxa[i]>=0.) break;// !!!!!!!! decreasing x as redshift
+   }
+   if (ms==0) ms = 1;
+   y1 = log(ya[ms-1]);
+   y2 = log(ya[ms]);
+   t = (log(x)-logxa[ms-1])/(logxa[ms]-logxa[ms-1]);
+   y = (1.-t)*y1+t*y2;
+   y = exp(y);
+   delete [] logxa;
 }
 
 void bilinear(double* x1a, double* x2a, double** ya, int m, int n, double x1, double x2, double& y){

@@ -3,7 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#include<algorithm>
+#include <algorithm>
+#include <sstream>
 
 #include "kpd.h"
 #include "reaction.h"
@@ -29,7 +30,7 @@ g++ class_gas.o -o gas
 int static Nmp = 300; //nlev = 250 now
 
 // constructor; initializes
-GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefile, bool spec, bool Ma_turn, int bsm){
+GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefile, string Jzfile, bool spec, bool Ma_turn, int bsm){
     MerMod = MergerModel; // printf("MerMod=%d\n",MerMod);
     nMer = 0; iMP = 1;
     MPs = NULL;
@@ -94,7 +95,6 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     P0 = (gamma_adb-1) * rho0 * e0;
     v_tur2 = 2./3.*e0; //initialize turbulent energy, following ratio Eth/Ek = 3:1
 
-    J_LW = J21; Tb = Tbb;
     y0 = NULL; y1 = NULL; ys = NULL;
     k = NULL; rf = NULL;
     N = N_sp + 1; 
@@ -106,17 +106,21 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     ypd = 0.; ycd = 0.;
     Jc_pd = 0.; Jc_cd = 0.; Jc_pred = 0.; Jc_pred_max = 0;
     delta_H2_compr_min = 1.e100;
-    a=0; b=0; c=0; d=0; e=0;
+    a=0; b=0; c=0; d=0; e=0; //c conflict w/ const light speed in PARA.h
     n_H2crit = 0;
 
     intoequi = false;
 
+    za = new double [8]; Ja = new double [8];
+    read_Jz(Jzfile, Ja, za, n_za);
+    linear_z(za, Ja, n_za, z0, J_LW);
+    Tb = Tbb;
     Ta = new double [n_ra]; ka = new double [n_ra];
     read_k(n_ra, Ta, ka);
 
     kra(k[3], T_K0, n_ra, Ta, ka);
-    kpd_Hm_H2p(Tb, k[22],k[23], spec); //返回的是kappa 需乘J21 k_pdHm k_pdH2p 没有self-shielding
-    k[22] *= J21; k[23] *= J21;
+    kpd_Hm_H2p(Tb, kappa_Hm, kappa_H2p, spec); //返回的是kappa 需乘J_LW k_pdHm k_pdH2p 没有self-shielding
+    k[22] = kappa_Hm * J_LW; k[23] = kappa_H2p * J_LW;
     //printf("CONSTRUCTOR: k_pdH2=%3.2e, k_pdHm=%3.2e, k_pdH2p=%3.2e\n",k[21],k[22],k[23]);
 
     RJ = cs*t_ff0;//RJ = sqrt( pi*k_B*T_K0/ (G*pow(mu*m_H,2)*nH0) ); !wli: RJ not precise
@@ -132,11 +136,28 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
         y0[i] = *(frac0++); y1[i] = y0[i];
         ys[i] = y0[i]; 
     }
-    react_coef(k,nH0,y0[1],y0[2],T_K0,J21,Tb);
+    react_coef(k,nH0,y0[1],y0[2],T_K0,J_LW,Tb);
     react_rat(rf, y0, k, nH0, T_K0);
     // printf("J_LW=%5.2f, Tb=%3.2e\n ****INITIALIZE DONE****\n\n",J_LW,Tb);
 }
 
+void GAS:: read_Jz(string fname, double* Ja, double *za, int &len){
+    string line, itr_str, z_str, Mh_str, J_str;
+    int i = 0;
+    ifstream inFile(fname); if (!inFile) cout<<"read error\n";
+    getline(inFile, line); // title line   
+    while (getline(inFile, line)){
+        // cout<<line<<endl;
+        istringstream isolated(line);
+        isolated>>itr_str>>z_str>>Mh_str>>J_str;
+        // cout<<i<<" "<<z_str<<" "<<J_str<<endl;
+        za[i] = stod(z_str);
+        Ja[i] = stod(J_str);
+        i++; 
+    }
+    inFile.close();
+    len = i;
+}
 
 void GAS:: a_react_sol(bool write){
 // len(y_it) = 6 --> to match the Ax=b
@@ -183,6 +204,7 @@ void GAS:: react_sol(bool write){
     for (int i=0; i<N; i++) y1_prev[i] = 0.;
 
     kra(k[3],T_K0,n_ra,Ta,ka);
+    k[22] = kappa_Hm * J_LW; k[23] = kappa_H2p * J_LW;
     react_coef(k,nH0,y0[1],y0[2],T_K0,J_LW,Tb);
     react_rat(rf,y0,k,nH0,T_K0);
     do{ 
@@ -445,6 +467,7 @@ void GAS:: timescales(){
     t_act += Dt;
     z0 = z;
     z = z_ana(z,Dt); //推进 redshift
+    linear_z(za, Ja, n_za, z0, J_LW);
     v_bsm = i_bsm*sigma1*(1.+z)/(1.+z_rcb);
 }
 
@@ -597,6 +620,7 @@ GAS:: ~GAS(void){
     delete [] y0; delete [] y1; delete [] ys;
     delete [] k; delete [] rf;
     delete [] Ta; delete [] ka;
+    delete [] za; delete [] Ja;
     delete [] MPs;
     // file_ingas.close();
     // cout<<"i_LE="<<i_LE<<"\treleasing gas\n";

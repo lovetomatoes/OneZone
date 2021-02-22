@@ -23,31 +23,41 @@ static double Tb = 2.e4;
 static bool Ma_on = true, spec=false;
 static clock_t t0, t1, t2;
 
+static double evol_tiny = 1.0e-20, evol_yHe = 8.33333e-2, evol_y_H2 = 1.0e-5, evol_y_Hm = 1.0e-12, evol_y_H2p = 1.0e-12;
+static double evol_y_Hp = 1.0e-4;
+static double evol_y_H = 1.0 - 2.*evol_y_H2 - 2.*evol_y_H2p - evol_y_Hm - evol_y_Hp;
+static double evol_y_He = evol_yHe - 2.*evol_tiny, evol_y_Hep = evol_tiny, evol_y_Hepp = evol_tiny;
+static double evol_y_e = evol_y_Hp + evol_y_H2p - evol_y_Hm + evol_y_Hep + 2.*evol_y_Hepp;
+
+static double frac0[] = {0., evol_y_H, evol_y_H2, evol_y_e, evol_y_Hp, evol_y_H2p, evol_y_Hm, evol_y_He, evol_y_Hep, evol_y_Hepp};
+
 int main(){
     printf("################################################################################\n");
-    // cout<<"dt from z: "<<(t_from_z(20.) - t_from_z(20.2))/Myr<<endl;
-    // cout<<"t_ff (n=300/cc): "<<t_freefall(300)/Myr<<endl;
 
-    string ftree = "../code_tree/fort.217"; //不行！！！会
+    string ftree = "../treefiles/tree_0"; //不行！！！会
+    string fJtrack = "../treefiles/tree_0_Jtrack"; //不行！！！会
     double Tb = 2.e4;
     bool Ma_on = true, spec=false;
     int MerMod = 1;
-    double J21 = 0;
+    double J21 = 1;
     int i_bsm;
     string fout, tree;
     int ntree = 10;
-    ntree = 3; 
+    ntree = 1; 
+    string Jzname = "../P_JLW/Jpoints/tree_0_Jtrack";
 
-    // t0 = clock();
-    // for (i=2;i<ntree;i++){
-    //     tree = to_string(i); // tree_id 输出
-    //     ftree = "../treefiles/tree_"+to_string(i); // cout<<ftree<<endl;
-    //     fout = "Jcs250.txt";
-    //     cout<<fout<<endl;
-    //     for (i_bsm=0; i_bsm<1; i_bsm++){
-    //         evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
-    //     }
-    // }
+    t0 = clock();
+    for (i=0;i<ntree;i++){
+        tree = to_string(i); // tree_id 输出
+        ftree = "../treefiles/tree_"+to_string(i); // cout<<ftree<<endl;
+        fout = "tree"+to_string(i)+"J1e"+to_string(int(log10(J21)))+".txt";
+        // cout<<fout<<endl;
+        for (i_bsm=0; i_bsm<1; i_bsm++){
+            // evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+            evol(ftree, Jzname, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+            // GAS gas(frac0,MerMod,J21,Tb,ftree, Jzname, spec,Ma_on,i_bsm);
+        }
+    }
 
     t1 = clock();
     printf("time taken 1st part:%.2f \n", (double)(t1-t0)/CLOCKS_PER_SEC);
