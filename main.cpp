@@ -39,25 +39,27 @@ int main(){
     double Tb = 2.e4;
     bool Ma_on = true, spec=false;
     int MerMod = 1;
-    double J21 = 1;
+    double J21 = 1000;
     int i_bsm;
     string fout, tree;
     int ntree = 10;
     ntree = 1; 
-    string Jzname = "../P_JLW/Jpoints/tree_0_Jtrack";
+    string Jzname;
 
     t0 = clock();
-    for (i=0;i<ntree;i++){
-        tree = to_string(i); // tree_id 输出
-        ftree = "../treefiles/tree_"+to_string(i); // cout<<ftree<<endl;
-        fout = "tree"+to_string(i)+"J1e"+to_string(int(log10(J21)))+".txt";
-        // cout<<fout<<endl;
-        for (i_bsm=0; i_bsm<1; i_bsm++){
-            // evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
-            evol(ftree, Jzname, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
-            // GAS gas(frac0,MerMod,J21,Tb,ftree, Jzname, spec,Ma_on,i_bsm);
-        }
+    itr = 3460;
+    tree = to_string(itr); // tree_id 输出
+    ftree = "../treefiles/tree_"+to_string(itr); // cout<<ftree<<endl;
+    Jzname = "../Jpoints/tree_"+to_string(itr)+"_Jtrack";
+
+    // fout = "tree"+to_string(itr)+"Jtrack.txt";
+    fout = "tree"+to_string(itr)+"J1e"+to_string(int(log10(J21)))+".txt";
+    for (i_bsm=0; i_bsm<1; i_bsm++){
+        // evol_Jc(ftree,fout,Tb,MerMod,spec,Ma_on,i_bsm);
+        evol(ftree, Jzname, fout, MerMod, Tb, J21, spec, Ma_on, i_bsm);
+        // GAS gas(frac0,MerMod,J21,Tb,ftree, Jzname, spec,Ma_on,i_bsm);
     }
+
 
     t1 = clock();
     printf("time taken 1st part:%.2f \n", (double)(t1-t0)/CLOCKS_PER_SEC);
