@@ -39,6 +39,8 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     z0 = MPs[iMP].z;
     z = z0;
     z_col = -1.;
+    J_col = -1.;
+    J_1000 = -1.;
     i_bsm = bsm;
     v_bsm = i_bsm*sigma1*(1+z)/(1+z_rcb);
     Mh = MPs[iMP].mhalo;
@@ -110,10 +112,12 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     n_H2crit = 0;
 
     intoequi = false;
-
+    // ---------- interpolation for J track
     za = new double [8]; Ja = new double [8];
     read_Jz(Jzfile, Ja, za, n_za);
     linear_z(za, Ja, n_za, z0, J_LW);
+    // // ---------- constant J
+    // J_LW = J21;
     Tb = Tbb;
     Ta = new double [n_ra]; ka = new double [n_ra];
     read_k(n_ra, Ta, ka);
@@ -411,6 +415,7 @@ void GAS:: timescales(){
             ifast = isp;
         }
     }
+    t_chem = abs(y0[2]/rf[2]);
     // printf("ifast=%d\n",ifast);
     //if (nH0<1.5e3 and nH0>900) printf("t_ch[%d]=%3.2e t_ff0\n",t_chem, y0[ifast]/rf[ifast]/t_ff0);
 
@@ -447,6 +452,7 @@ void GAS:: timescales(){
 
 // Dt firstly by cooling/heating/free-fall timescales; also all for NO merger case
     Dt = 0.001*min( min(t_ff,100*t_chem),min(t_c,t_h)); //由no merger 0.1不行不够细, 0.001 better convergence 
+    Dt = 0.001*min(t_ff, min(t_c,t_h)); //由no merger 0.1不行不够细, 0.001 better convergence 
 
 // merger case: Dt << merger intervals dt
     // if (inMer and evol_stage !=3) Dt = min( Dt, .1*MPs[iMP].dt );  // adb & ff
@@ -460,6 +466,7 @@ void GAS:: timescales(){
         t_h = abs(e0/r_h);
         //不需要t_rcb //如果加细Dt 用0.001仍然converge而且似乎更smooth但是慢得多 //不能放宽了 0.1明显不行
         Dt = 0.01*min( min(t_ff,100*t_chem),min(t_c,t_h));
+        Dt = 0.01*min(t_ff, min(t_c,t_h));
 
         //printf("in TIMESCALES:t_c=%3.2e,t_h=%3.2e,t_ff=%3.2e,t_chem=%3.2e\n",t_c,t_h,t_ff,t_chem);
     }
@@ -467,7 +474,7 @@ void GAS:: timescales(){
     t_act += Dt;
     z0 = z;
     z = z_ana(z,Dt); //推进 redshift
-    linear_z(za, Ja, n_za, z0, J_LW);
+    linear_z(za, Ja, n_za, z, J_LW);
     v_bsm = i_bsm*sigma1*(1.+z)/(1.+z_rcb);
 }
 
@@ -543,13 +550,18 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             break;
         case 4:
             Mg_intg = 0; // gas mass within Rvir
-            if (z_col<0.) z_col = z0; // mark collapse redshift
+            if (z_col<0.) {
+                z_col = z0; // mark collapse redshift
+                J_col = J_LW;
+                // printf("zcol=%3.2f, Jcol=%3.2e\n",z_col,J_col);
+            }
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
             break;
         case 5:
             nH0 = MPs[iMP].ng_adb;
 // H2 fraction enter equilibrium <= the initial setting smoothed out
-            if (not intoequi and y0[2]/yequi<2.) {
+            // if (not intoequi and abs(y0[2]/yequi -1)<1.e-1) {
+            if (not intoequi and t_act>=t_chem) {
                 intoequi = true; 
                 // printf("into equi at %3.2e t_ff0, nH=%3.2e /cc\n",t_act/t_ff0,nH0);
             }
@@ -567,6 +579,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             break;
     }
 
+    if (J_1000<0. and nH0>=1000.) J_1000 = J_LW;
 
     v_tur2 += Dt * Gamma_mer_k*2; // 2 coz e=1/2v^2
 

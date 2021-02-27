@@ -178,7 +178,7 @@ void evol(string treename, string Jzname, string fout, int MerMod, double Tbb, d
                 // H2 forming rate; 
                 rform = max(kform_Hm*gas.nH0*gas.y0[1]*gas.y0[3]+kform_H2p*gas.nH0*gas.y0[1]*gas.y0[4], kH2_3b*pow(gas.nH0,2)*pow(gas.y0[1],3));
                             // H-, small n                        H2+                                     3b,  n>~10^9/cm^3
-                rform = kform_Hm*gas.nH0*gas.y0[1]*gas.y0[3]; // H2 formation dominated by H- over H2+
+                // rform = kform_Hm*gas.nH0*gas.y0[1]*gas.y0[3]; // H2 formation dominated by H- over H2+
                 yequi = min(rform/kH2_pd, rform/kH2_cd_tot);
                 yequi = rform/(kH2_pd+kH2_cd_tot);
                             // pd,  n<~100/cm^3      cd, large n 
@@ -277,7 +277,6 @@ void evol(string treename, string Jzname, string fout, int MerMod, double Tbb, d
 
 // resembling main_Jc1.cpp
 double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, string treename, string Jzname, bool spec, bool Ma_on, int i_bsm, double nH_tell){
-    // printf("\n**************************\nSTART in getT:\n");
     GAS gas(frac0,MerMod,J,Tb,treename,Jzname,spec,Ma_on,i_bsm);
 
     int index=treename.find("_");
@@ -303,8 +302,7 @@ double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, 
                 // cout<<"getT: writing file \" "<<fout<<"\"\n";
                 f1<<setw(16)<<"t"<<setw(16)<<"ievol"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T";
                 f1<<setw(16)<<"cs"<<setw(16)<<"v_bsm"<<setw(16)<<"v_tur"<<setw(16)<<"Vc"<<setw(16)<<"f_Ma";
-                f1<<setw(16)<<"Mh"<<setw(16)<<"Tv"<<endl;
-                f1<<setw(16)<<"y_H2"<<setw(16)<<"y_e"<<endl;
+                f1<<setw(16)<<"Mh"<<setw(16)<<"Tv"<<setw(16)<<"y_H2"<<setw(16)<<"y_e"<<endl;
             }
             else if(fmod(i,100)==0) {
                 HALO halo(gas.Mh,gas.z0);
@@ -333,6 +331,149 @@ double getT(int argc, double* argv, bool write,int MerMod, double J, double Tb, 
     return gas.T_K0;
 }
 
+double getJT(int argc, double* argv, bool write, int MerMod, double Tb, string treename, string Jzname, bool spec, bool Ma_on, int i_bsm, double nH_tell){
+    GAS gas(frac0,MerMod,0.,Tb,treename,Jzname,spec,Ma_on,i_bsm);
+
+    int index=treename.find("_");
+    string tree = treename.substr(index+1); // tree_id 输出
+
+    int i=0;
+    fstream f1;
+    if (write){
+        string fout = "tr"+tree+"_bsm"+to_string(i_bsm)+"tur"+to_string((Ma_on)?1:0)+"Jtrack.txt";
+        f1.open(fout, ios::out | ios::trunc );
+        f1<<setiosflags(ios::scientific)<<setprecision(5);
+    }
+    while (gas.nH0<nH_tell){
+        gas.setMerger();
+        gas.timescales(); 
+        gas.freefall(); 
+        gas.react_sol(1); 
+        gas.T_sol();
+        gas.get_para();
+        if (write){
+            if (i==0) {
+                f1<<setw(16)<<"t"<<setw(16)<<"ievol"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T"<<setw(16)<<"J_LW";
+                f1<<setw(16)<<"cs"<<setw(16)<<"v_bsm"<<setw(16)<<"v_tur"<<setw(16)<<"Vc"<<setw(16)<<"f_Ma";
+                f1<<setw(16)<<"Mh"<<setw(16)<<"Tv"<<setw(16)<<"y_H2"<<setw(16)<<"y_e"<<setw(16)<<"yequi"<<endl;
+            }
+            else {
+                HALO halo(gas.Mh,gas.z0);
+                double kHm_e, kH2_Hm,   kH2p_Hp, kH2_H2p,   kH2_3b;
+                double kHm_pd, kH2p_pd, kH2_pd;
+                double kH2_cd_tot, kH2_cd_H, kH2_cd_e, kH2_cd_H2, kH2_cd_Hp, kH2_cd_He; 
+                double kform_Hm, kform_H2p;
+                double kHm_rcb, kHm_cd;
+                double rform, yequi;
+                //
+                //  1)   H     +   e     ->   H+    +  2 e    col ionization
+                //  2)   H+    +   e     ->   H     +   ph.   recombination
+
+                //  3)   H     +   e     ->   H-    +   ph.   kHm_e
+                //  4)   H-    +   H     ->   H2    +   e     kH2_Hm
+                //  11)  H-    +   H+    -> 2 H               kHm_rcb
+
+                //  5)   H     +   H+    ->   H2+   +   ph.   kH2p_Hp
+                //  6)   H2+   +   H     ->   H2    +   H+    kH2_H2p
+
+                //  15) 3 H              ->   H2    +   H     kH2_3b
+
+                //  21)  H2   +   ph   -> 2 H                 kH2_pd
+                //  22)  H-   +   ph  ->  H   +  e            kHm_pd
+                //  23)  H2+  +   ph  ->  H   +  H+           kH2p_pd
+
+                //  7)   H2    +   H     -> 3 H               kH2_cd_H
+                //  8)   H2    +   H+    ->   H2+   +   H     kH2_cd_Hp
+                //  9)   H2    +   e     -> 2 H     +   e     kH2_cd_e
+                //  20)  H2    +   e     ->   H-    +   H
+                //  16)  2 H2            -> 2 H     +   H2    kH2_cd_H2
+                //  35)  H2    +   He    ->   He    +  2 H    kH2_cd_He
+
+                kHm_e = gas.k[3]; kH2_Hm = gas.k[4];
+                kH2p_Hp = gas.k[5]; kH2_H2p = gas.k[6];
+
+                kH2_pd = gas.k[21]; kHm_pd = gas.k[22]; kH2p_pd = gas.k[23];
+                kH2_3b = gas.k[15];
+                kH2_cd_H = gas.k[7]; kH2_cd_Hp = gas.k[8]; kH2_cd_e = gas.k[9] + gas.k[20]; kH2_cd_H2 = gas.k[16];
+                kH2_cd_He = gas.k[35];
+                kH2_cd_tot = gas.nH0* (kH2_cd_H*gas.y0[1] + kH2_cd_Hp*gas.y0[4] + kH2_cd_e*gas.y0[3] + kH2_cd_H2*gas.y0[2] + kH2_cd_He*gas.y0[7]); 
+                // kH2_cd_tot = gas.nH0* (kH2_cd_H*gas.y0[1]); collisional dissociation dominated by H
+
+                // regualte H2 at high n, together w/ H2 cd 
+                kHm_rcb = gas.k[11];
+                kHm_cd = gas.k[18];
+
+                kform_Hm = kHm_e* kH2_Hm/( kH2_Hm*gas.y0[1] + kHm_pd/gas.nH0 + kHm_rcb*gas.y0[4] + kHm_cd*gas.y0[1]);
+                kform_H2p = kH2p_Hp* kH2_H2p/(kH2_H2p + kH2p_pd/gas.nH0);
+                // H2 forming rate; 
+                rform = max(kform_Hm*gas.nH0*gas.y0[1]*gas.y0[3]+kform_H2p*gas.nH0*gas.y0[1]*gas.y0[4], kH2_3b*pow(gas.nH0,2)*pow(gas.y0[1],3));
+                            // H-, small n                        H2+                                     3b,  n>~10^9/cm^3
+                // rform = kform_Hm*gas.nH0*gas.y0[1]*gas.y0[3]; // H2 formation dominated by H- over H2+
+                yequi = min(rform/kH2_pd, rform/kH2_cd_tot);
+                yequi = rform/(kH2_pd+kH2_cd_tot);
+                            // pd,  n<~100/cm^3      cd, large n 
+
+                f1<<setw(16)<<gas.t_act/gas.t_ff0<<setw(16)<<gas.evol_stage<<setw(16)<<gas.z;
+                f1<<setw(16)<<gas.nH0<<setw(16)<<gas.T_K0<<setw(16)<<gas.J_LW;
+                f1<<setw(16)<<gas.cs/km<<setw(16)<<gas.v_bsm/km;
+                f1<<setw(16)<<sqrt(gas.v_tur2)/km<<setw(16)<<halo.Vc/km<<setw(16)<<gas.f_Ma;
+                f1<<setw(16)<<gas.Mh/Ms<<setw(16)<<halo.Tvir;
+                f1<<setw(16)<<gas.y1[2]<<setw(16)<<gas.y1[3]<<setw(16)<<yequi<<endl;
+            }
+        }
+
+        i++;
+    }
+    if (write) f1.close();
+
+    argv[0] = gas.z_col;
+    argv[1] = gas.Mh/Ms;
+    argv[2] = gas.J_col;
+    argv[3] = gas.J_1000;
+
+    // printf("*******IN GET_T***********\n");
+    // cout<<"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0);
+    // printf("\tJ=%3.2f, z_col=%3.2f, nH_tell=%3.2e, T=%3.2e\n\n\n",J, gas.z_col, nH_tell, gas.T_K0);
+    return gas.T_K0;
+}
+
+void evol_Jtrack(string treename, string Jzname, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
+    double T_tell = 4000, nH_tell=1.e4, T;
+    int const c = 4;
+    double y[c];
+    T = getJT(c,y,false,MerMod,Tb,treename,Jzname,spec,Ma_on,i_bsm,nH_tell);
+
+    int iso_col = (T>T_tell)?1:0;
+    // argv[0] = gas.z_col;
+    // argv[1] = gas.Mh;
+    // argv[2] = gas.J_col;
+    // argv[3] = gas.J_1000;
+    // printf("T = %3.2e z_col=%3.2f, J_col=%3.2e, J_1000=%3.2e\n", T,y[0],y[1],y[2]);
+
+    ofstream file;
+    ifstream checkf_exist(fout.c_str());
+    if (checkf_exist.good()) {
+        // cout<<fout.c_str()<<" exist\n";
+    }
+    else {
+        file.open(fout, ios::out | ios::trunc);
+        file<<setw(16)<<"tree"<<setw(16)<<"i_bsm";
+        file<<setw(16)<<"z_col"<<setw(16)<<"Mh_col"<<setw(16)<<"J_col";
+        file<<setw(16)<<"J_1000"<<setw(16)<<"iso_col";
+        file<<endl;
+        file.close();
+    }
+    file.open(fout, ios::out | ios::app);
+
+    int index=treename.find("_");
+    string tree = treename.substr(index+1); // tree_id 输出
+
+    file<<setw(16)<<stoi(tree)<<setw(16)<<i_bsm;
+    file<<setw(16)<<y[0]<<setw(16)<<y[1]<<setw(16)<<y[2];
+    file<<setw(16)<<y[3]<<setw(16)<<iso_col;
+    file<<endl;
+    file.close();
+}
 
 void evol_Jc(string treename, string Jzname, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
     printf("#####\t JC_SOL\t #####\t");
