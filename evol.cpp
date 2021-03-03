@@ -353,9 +353,10 @@ double getJT(int argc, double* argv, bool write, int MerMod, double Tb, string t
         gas.get_para();
         if (write){
             if (i==0) {
-                f1<<setw(16)<<"t"<<setw(16)<<"ievol"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T"<<setw(16)<<"J_LW";
+                f1<<setw(16)<<"t"<<setw(16)<<"ievol"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T";
+                f1<<setw(16)<<"J_LW"<<setw(16)<<"Mh"<<setw(16)<<"Tv";
                 f1<<setw(16)<<"cs"<<setw(16)<<"v_bsm"<<setw(16)<<"v_tur"<<setw(16)<<"Vc"<<setw(16)<<"f_Ma";
-                f1<<setw(16)<<"Mh"<<setw(16)<<"Tv"<<setw(16)<<"y_H2"<<setw(16)<<"y_e"<<setw(16)<<"yequi"<<endl;
+                f1<<setw(16)<<"y_H2"<<setw(16)<<"y_e"<<setw(16)<<"yequi"<<endl;
             }
             else {
                 HALO halo(gas.Mh,gas.z0);
@@ -414,10 +415,10 @@ double getJT(int argc, double* argv, bool write, int MerMod, double Tb, string t
                             // pd,  n<~100/cm^3      cd, large n 
 
                 f1<<setw(16)<<gas.t_act/gas.t_ff0<<setw(16)<<gas.evol_stage<<setw(16)<<gas.z;
-                f1<<setw(16)<<gas.nH0<<setw(16)<<gas.T_K0<<setw(16)<<gas.J_LW;
+                f1<<setw(16)<<gas.nH0<<setw(16)<<gas.T_K0;
+                f1<<setw(16)<<gas.J_LW<<setw(16)<<gas.Mh/Ms<<setw(16)<<halo.Tvir;
                 f1<<setw(16)<<gas.cs/km<<setw(16)<<gas.v_bsm/km;
                 f1<<setw(16)<<sqrt(gas.v_tur2)/km<<setw(16)<<halo.Vc/km<<setw(16)<<gas.f_Ma;
-                f1<<setw(16)<<gas.Mh/Ms<<setw(16)<<halo.Tvir;
                 f1<<setw(16)<<gas.y1[2]<<setw(16)<<gas.y1[3]<<setw(16)<<yequi<<endl;
             }
         }
@@ -427,9 +428,13 @@ double getJT(int argc, double* argv, bool write, int MerMod, double Tb, string t
     if (write) f1.close();
 
     argv[0] = gas.z_col;
-    argv[1] = gas.Mh/Ms;
-    argv[2] = gas.J_col;
-    argv[3] = gas.J_1000;
+    argv[1] = gas.Mh_col/Ms;
+    argv[2] = gas.Tg_col;
+    argv[3] = gas.J_col;
+    argv[4] = gas.z_1000;
+    argv[5] = gas.Mh_1000/Ms;
+    argv[6] = gas.Tg_1000;
+    argv[7] = gas.J_1000;
 
     // printf("*******IN GET_T***********\n");
     // cout<<"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0);
@@ -439,16 +444,20 @@ double getJT(int argc, double* argv, bool write, int MerMod, double Tb, string t
 
 void evol_Jtrack(string treename, string Jzname, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
     double T_tell = 4000, nH_tell=1.e4, T;
-    int const c = 4;
+    int const c = 8;
     double y[c];
-    T = getJT(c,y,false,MerMod,Tb,treename,Jzname,spec,Ma_on,i_bsm,nH_tell);
+    T = getJT(c,y,true,MerMod,Tb,treename,Jzname,spec,Ma_on,i_bsm,nH_tell);
 
     int iso_col = (T>T_tell)?1:0;
     // argv[0] = gas.z_col;
-    // argv[1] = gas.Mh;
-    // argv[2] = gas.J_col;
-    // argv[3] = gas.J_1000;
-    // printf("T = %3.2e z_col=%3.2f, J_col=%3.2e, J_1000=%3.2e\n", T,y[0],y[1],y[2]);
+    // argv[1] = gas.Mh_col/Ms;
+    // argv[2] = gas.Tg_col;
+    // argv[3] = gas.J_col;
+    // argv[4] = gas.z_1000;
+    // argv[5] = gas.Mh_1000/Ms;
+    // argv[6] = gas.Tg_1000;
+    // argv[7] = gas.J_1000;
+
 
     ofstream file;
     ifstream checkf_exist(fout.c_str());
@@ -457,9 +466,9 @@ void evol_Jtrack(string treename, string Jzname, string fout, double Tb, int Mer
     }
     else {
         file.open(fout, ios::out | ios::trunc);
-        file<<setw(16)<<"tree"<<setw(16)<<"i_bsm";
-        file<<setw(16)<<"z_col"<<setw(16)<<"Mh_col"<<setw(16)<<"J_col";
-        file<<setw(16)<<"J_1000"<<setw(16)<<"iso_col";
+        file<<setw(16)<<"tree"<<setw(16)<<"i_bsm"<<setw(16)<<"iso_col";
+        file<<setw(16)<<"z_col"<<setw(16)<<"Mh_col"<<setw(16)<<"Tg_col"<<setw(16)<<"J_col";
+        file<<setw(16)<<"z_1000"<<setw(16)<<"Mh_1000"<<setw(16)<<"Tg_1000"<<setw(16)<<"J_1000";
         file<<endl;
         file.close();
     }
@@ -468,9 +477,9 @@ void evol_Jtrack(string treename, string Jzname, string fout, double Tb, int Mer
     int index=treename.find("_");
     string tree = treename.substr(index+1); // tree_id 输出
 
-    file<<setw(16)<<stoi(tree)<<setw(16)<<i_bsm;
-    file<<setw(16)<<y[0]<<setw(16)<<y[1]<<setw(16)<<y[2];
-    file<<setw(16)<<y[3]<<setw(16)<<iso_col;
+    file<<setw(16)<<stoi(tree)<<setw(16)<<i_bsm<<setw(16)<<iso_col;
+    file<<setw(16)<<y[0]<<setw(16)<<y[1]<<setw(16)<<y[2]<<setw(16)<<y[3];
+    file<<setw(16)<<y[4]<<setw(16)<<y[5]<<setw(16)<<y[6]<<setw(16)<<y[7];
     file<<endl;
     file.close();
 }
