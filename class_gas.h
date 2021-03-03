@@ -26,13 +26,13 @@ class GAS
         int N, Nt;
         int i_LE; int MerMod;
         int nMer, iMP;
-        double z0, z, z_col;
+        double z0, z;
         double t0, t1, Dt, t_act, t_ff0, t_delay;
         double dMdt, dEdt;
 
         double T_K0, nH0, rho0, P0, e0, S0;
         double rhoc_DM;
-        double J_LW, Tb, J_col, J_1000;
+        double J_LW, Tb;
         double kappa_Hm, kappa_H2p;
         double *y0, *y1, *ys,  *k, *rf;
         double yequi, ypd, ycd, ycool, ycool_crit;
@@ -57,6 +57,10 @@ class GAS
         //HALO halo (1,1); must have initial parameters...
         ofstream file_ingas;
         int n_za;
+        double z_col, z_1000;
+        double Mh_col, Mh_1000;
+        double Tg_col, Tg_1000;
+        double J_col, J_1000;
 
     private :
         int static const n_ra = 40;
