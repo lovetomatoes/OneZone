@@ -7,7 +7,7 @@ from astropy.table import Table
 import os
 
 #os.system("g++ evol.cpp -L/usr/local/lib class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o reaction.o Newton5.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o cc.so -shared -fPIC")
-libc = CDLL('cc.so') # 装入动态链接库 ## 居然必须放在这里
+#libc = CDLL('cc.so') # 装入动态链接库 ## 居然必须放在这里
 
 global G, h0, H0, Omega_m0, Omega_L0, m_H, mu, Ms, pi, km, pc, Myr, alpha_T
 G, c, k_B, m_H = 6.67408e-8, 2.9979245e10, 1.38064852e-16, 1.66053904e-24

@@ -68,7 +68,7 @@ double HALO:: V_inf2(double rout, double rin){
 }
 
 double Mh_Tz(double Tvir, double z){
-    double alpha_T = 2.324e4; //Tvir = 2.324e4 M8^(2./3.) (1+z10)^-1
+    double alpha_T = 2.324e4; //Tvir = 2.324e4 M8^(2./3.) * (1+z10)
     return 1.e8*Ms*pow(Tvir/alpha_T*11/(1+z),1.5);
 }
 

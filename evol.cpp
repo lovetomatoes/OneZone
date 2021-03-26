@@ -90,7 +90,7 @@ void evol(string treename, string Jzname, string fout, int MerMod, double Tbb, d
 
     i = 0;
     //while (gas.t_act<2*gas.t_ff0){
-    while (gas.z>6. && gas.nH0<1.e4){
+    while (gas.z>6. && gas.nH0<1.e6){
         if (i==0) file<<setw(16)<<"t"<<setw(16)<<"Dt"<<setw(16)<<"z"<<setw(16)<<"nH"<<setw(16)<<"T";
         else file<<setw(16)<<gas.t_act/gas.t_ff0<<setw(16)<<gas.Dt/gas.t_ff0<<setw(16)<<gas.z<<setw(16)<<gas.nH0<<setw(16)<<gas.T_K0;
             
@@ -101,7 +101,7 @@ void evol(string treename, string Jzname, string fout, int MerMod, double Tbb, d
         if (tscales) {            
             if (i==0) {
                 file<<setw(16)<<"t_ff"<<setw(16)<<"t_c"<<setw(16)<<"t_h"<<setw(16)<<"t_rcb"<<setw(16)<<"t_chem";
-                file<<setw(16)<<"t_ion"<<setw(16)<<"tc_H2"<<setw(16)<<"tc_H"<<setw(16)<<"MPs_dt"<<setw(16)<<"i2";
+                file<<setw(16)<<"t_ion"<<setw(16)<<"tc_H2"<<setw(16)<<"tc_H"<<setw(16)<<"MPs_dt"<<setw(16)<<"J_LW";
             }
             else {
                 file<<setw(16)<<gas.t_ff/gas.t_ff0;
@@ -114,7 +114,7 @@ void evol(string treename, string Jzname, string fout, int MerMod, double Tbb, d
                 file<<setw(16)<<gas.e0/gas.r_cH2 /gas.t_ff0;
                 file<<setw(16)<<gas.e0/gas.r_cH / gas.t_ff0;
                 file<<setw(16)<<gas.MPs[gas.iMP].dt/gas.t_ff0;
-                file<<setw(16)<<0;
+                file<<setw(16)<<gas.J_LW;
                 /* 
                 file<<setw(16)<<gas.e0*gas.rho0/Lambda_H2(gas.nH0,gas.T_K0,gas.y0); //t_cH2
                 file<<setw(16)<<gas.e0*gas.rho0/Lambda_H(gas.nH0,gas.T_K0,gas.y0[1],gas.y0[3],gas.k[1]); //t_cH

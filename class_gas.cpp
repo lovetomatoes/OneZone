@@ -112,7 +112,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
 
     intoequi = false;
     // ---------- interpolation for J track
-    za = new double [8]; Ja = new double [8];
+    za = new double [100]; Ja = new double [100];
     read_Jz(Jzfile, Ja, za, n_za);
     linear_z(za, Ja, n_za, z0, J_LW);
     // // ---------- constant J
