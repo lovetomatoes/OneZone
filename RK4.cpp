@@ -53,6 +53,40 @@ void DyDx_adb_fit(double x, double* y, double* dydx, int argc, double* argv){
     dydx[1] = -beta* pow(x,2)*( y[0] + 1./ (R * (alpha*x) * pow(1+alpha*x,2)) ) ; // gas+DM
 }
 
+// using smoothed fitting formula of K_r; add dP/dr from 
+// 1st: know how P_eff in iso is obtained; how to check to make sure the result correct;
+// check convergence?
+// 
+void DyDx_adb(double x, double* y, double* dydx, int argc, double* argv){
+/*     int c = 7;
+    v = new double [c];
+    v[0] = n_adb;
+    v[1] = R;
+    v[2] = alpha;
+    v[3] = beta;
+    v[4] = halo1.c;
+    v[5] = K0/halo1.Kvir;
+    v[6] = 0;
+ */
+    double gamma = 1. + 1./argv[0];
+    double R = argv[1]; //printf("alpha=%3.2e, R=%3.2e\n", alpha, R);
+    double alpha = argv[2];
+    double beta = argv[3];
+    double halo_c = argv[4];
+    double K0_in_Kv = argv[5];
+    double eta = argv[6];
+    double Ktilde = x + K0_in_Kv;
+
+    // dydx[0] = y[1]*pow(y[0],2.-gamma)/ pow(x,2) / gamma; // K = Kcore const (+gas only checked; w/ K const y0=theta)
+    // dydx[0] = ( y[1]*pow(y[0],2.-gamma)/pow(x,2) - y[0] )/ (x*gamma); // Kr; infinity; cannot check
+    dydx[0] = ( y[0]*y[1]/pow(x,2) - pow(y[0],gamma)*alpha )
+             / ( gamma*pow(y[0],gamma-1.)*alpha*Ktilde + eta); // Kfit; finally into use
+
+    dydx[1] = -beta * pow(x,2) * y[0]; //gas only 
+    dydx[1] = -beta* pow(x,2) / (R * (halo_c*x) * pow(1+halo_c*x,2) ); // DM only 
+    dydx[1] = -beta* pow(x,2)*( y[0] + 1./ (R * (halo_c*x) * pow(1+halo_c*x,2)) ) ; // gas+DM
+}
+
 void rk4(double* yout, double x, double h, double *y, int const n, double *dydx0,
             int argc, double* argv,
             void (*derivs)(double, double*, double*, int, double*)){

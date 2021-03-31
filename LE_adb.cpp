@@ -23,6 +23,7 @@ static int const N=2000, n=2;
 static int i, hit, it;
 static double rho_g0, ng0, M_intg, a, alpha, beta, Kcore, Kc;
 static double x1, dx, x_vir, xrat, r_core;
+static double K0, eta;
 
 void profile_adb_Kc(char* filename, double R, double n_adb, double z=z1, double Mh=Mh1){
     fstream file;
@@ -185,7 +186,7 @@ void profile_adb_Kfit(char* filename,double& N_VIR, double& MG_VIR, double R, do
     printf("rho_g0=%3.2e, rho_crit=%3.2e, delta_0=%3.2e\n",rho_g0, halo1.rho_crit, halo1.delta0);
 }
 
-void BOUNDARY_adb(double& N_VIR, double& MG_VIR, double& r_out, double& T_ave, double R, double z=z1, double Mh=Mh1){
+void BOUNDARY_adb_fit(double& N_VIR, double& MG_VIR, double& r_out, double& T_ave, double R, double z=z1, double Mh=Mh1){
 // with a core + r^1 K profile;
     HALO halo1(Mh,z);
     int c;
@@ -279,6 +280,149 @@ void BOUNDARY_adb(double& N_VIR, double& MG_VIR, double& r_out, double& T_ave, d
     // printf("in BOUNDARY: MGVIR=%3.2e\n",MG_VIR/Ms);
 }
 
+void profile_adb(char* filename,double& N_VIR, double& MG_VIR, double R, double n_adb, double z=z1, double Mh=Mh1){
+// with a core + r^1 K profile;
+    fstream file;
+    file.open(filename, ios::out | ios::trunc );
+    file<<setiosflags(ios::scientific)<<setprecision(3);
+    file<<setw(12)<<"xi"<<setw(12)<<"y0"<<setw(12)<<"y1";
+    file<<setw(12)<<"n_g"<<setw(12)<<"n_DM"<<setw(12)<<"T_g";
+    file<<endl;
+
+    HALO halo1(Mh,z);
+  // adiabatic, entropy K = k_B*T*n^(-2/3), n=pow(k_B*T / S, 1.5); // n \propto T^1.5
+    K0 = max(K_ISM(z),0.1*halo1.Kvir);
+    double gamma = 1. + 1./n_adb;
+    printf("K_ISM=%3.2e, K_vir=%3.2e, K0=%3.2e\n",K_ISM(z),halo1.Kvir,K0);
+
+    rho_g0 = halo1.rho_c * R;
+
+    alpha = halo1.Kvir*pow(rho_g0,gamma-1.) / (k_B*halo1.Tvir/(mu*m_H));
+    beta = 4*pi*G*rho_g0*pow(halo1.Rvir,2)/ (k_B*halo1.Tvir/(mu*m_H));
+
+    double *x=NULL; double **y=NULL; double *dydx0=NULL;
+    double *v=NULL;
+    x = new double [N];
+    y = new double* [N];
+    for (i=0;i<N;i++) y[i] = new double [n];
+    dydx0 = new double [n];
+
+    int c = 7;
+    v = new double [c];
+    v[0] = n_adb;
+    v[1] = R;
+    v[2] = alpha;
+    v[3] = beta;
+    v[4] = halo1.c;
+    v[5] = K0/halo1.Kvir;
+    v[6] = 0;
+
+    // dx boundary conditions
+    x_vir = 1.;
+    i = 0;
+    x[i] = x_vir/1.e8; y[i][0] = 1; y[i][1] = 0; // adiabatic case
+    xrat = pow(x_vir/x[0],1./(N-1) );
+
+    MG_VIR = 0; N_VIR = 0;
+    for (i=1;i<N;i++){
+        x[i]=x[i-1]*xrat;
+        dx = x[i] - x[i-1];
+
+        DyDx_adb(x[i-1], y[i-1], dydx0, c, v);
+        rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_adb);
+
+        if (y[i][0]<=1.e-6 or isnan(y[i][0])) break;
+        if (x[i]<=x_vir) MG_VIR += pow(halo1.Rvir,3)* 4*pi*pow(x[i],2)*dx * rho_g0 * y[i][0];  //integrate within R_vir
+        if (x[i]==x_vir) N_VIR = rho_g0 * y[i][0]/(mu*m_H);
+        // printf("x[%d]/x_vir=%3.2f\n",i,x[i]/x_vir); 
+
+        if (i%10 ==0){
+            file<<setw(12)<<x[i];
+            file<<setw(12)<<y[i][0]<<setw(12)<<y[i][1];
+            file<<setw(12)<<rho_g0*y[i][0]/(mu*m_H); // n_g
+            file<<setw(12)<<halo1.rho_c/( halo1.c*x[i] * pow((1+halo1.c*x[i]),2) )/(mu*m_H); // n_DM
+            // file<<setw(12)<<Kcore*(1+a*x[i]/r_core)* (mu*m_H) *pow(rho_g0*y[i][0], gamma-1.) /k_B; // T_g
+            file<<endl;
+        }
+    }
+    file.close();
+
+    printf("OUTSIDE: MG_VIR=%3.2E, N_VIR=%3.2E\n",MG_VIR/Ms, N_VIR);
+
+    for (i=0;i<N;i++) delete [] y[i];
+    delete [] x;  delete [] y; delete [] v; delete [] dydx0;
+    file.close();
+    printf("z = %3.2f\tMh = %3.2e Ms\t rs%3.2e cm\trhoc=%3.2e/cc\n",halo1.z,halo1.Mh/Ms,halo1.Rs,halo1.rho_c);
+    printf("rho_g0=%3.2e, rho_crit=%3.2e, delta_0=%3.2e\n",rho_g0, halo1.rho_crit, halo1.delta0);
+}
+
+void BOUNDARY_adb(double& N_VIR, double& MG_VIR, double& r_out, double& T_ave, double R, double z=z1, double Mh=Mh1){
+// with a core + r^1 K profile;
+    HALO halo1(Mh,z);
+    rho_g0 = halo1.rho_c * R;
+    double n_adb = 1.5, gamma = 1. + 1./n_adb;;
+
+    K0 = max(K_ISM(z),0.1*halo1.Kvir);
+    // printf("K_ISM=%3.2e, K_vir=%3.2e, K0=%3.2e\n",K_ISM(z),halo1.Kvir,K0);
+
+    alpha = halo1.Kvir*pow(rho_g0,gamma-1.) / (k_B*halo1.Tvir/(mu*m_H));
+    beta = 4*pi*G*rho_g0*pow(halo1.Rvir,2)/ (k_B*halo1.Tvir/(mu*m_H));
+
+    double *x=NULL; double **y=NULL; double *dydx0=NULL;
+    double *v=NULL;
+    x = new double [N];
+    y = new double* [N];
+    for (i=0;i<N;i++) y[i] = new double [n];
+    dydx0 = new double [n];
+
+    int c = 7;
+    v = new double [c];
+    v[0] = n_adb;
+    v[1] = R;
+    v[2] = alpha;
+    v[3] = beta;
+    v[4] = halo1.c;
+    v[5] = K0/halo1.Kvir;
+    v[6] = 0;
+
+  // boundary conditions
+    x_vir = 1.;
+    i = 0;
+    x[i] = x_vir/1.e8; y[i][0] = 1; y[i][1] = 0; // adiabatic case
+    xrat = pow(x_vir/x[0],1./double(N-1) );
+
+    MG_VIR = 0; N_VIR = 0; T_ave = 0;
+    for (i=1;i<N;i++){
+        x[i]=x[i-1]*xrat;
+        dx = x[i] - x[i-1];
+
+        DyDx_adb(x[i-1], y[i-1], dydx0, c, v);
+        rk4(y[i],x[i-1],dx,y[i-1],n,dydx0,c,v,DyDx_adb);
+
+        if (y[i][0]<=1.e-6 or isnan(y[i][0])) {
+            r_out = x[i];
+            break;
+        }
+
+        if (x[i]<=x_vir) {
+            MG_VIR += pow(halo1.Rvir,3)* 4*pi*pow(x[i],2)*dx * rho_g0 * y[i][0];  //integrate within R_vir
+            // T_ave  += Kcore*(1+a*x[i]/r_core)* (mu*m_H) *pow(rho_g0*y[i][0], gamma-1.) /k_B; // T_g
+        }
+        if (abs(x[i]-x_vir)/x_vir<epE4) {
+            N_VIR = rho_g0 * y[i][0]/(mu*m_H);
+            r_out = 1;
+        }
+    }
+
+    T_ave /= i;
+
+    // cout<<"R="<<R<<" "<<r_out<<"  "<<x[i]<<endl;
+    // printf("x[%d]/x_vir=%3.2e\n",i,x[i]/x_vir); 
+    for (i=0;i<N;i++) delete [] y[i];
+    delete [] x; delete [] y; delete [] v; delete [] dydx0;
+    // printf("in BOUNDARY: MGVIR=%3.2e\n",MG_VIR/Ms);
+}
+
 void Mg2N0_adb(double& n_sol, double ni, double z, double Mh){
     double R0, delta_R, R1;
     double Mg_fw, Mg_bw ;
@@ -325,6 +469,39 @@ void Mg2N0_adb(double& n_sol, double ni, double z, double Mh){
 /* 
 g++ -c LE_adb.cpp && g++ -c RK4.cpp && g++ LE_adb.o class_halo.o dyn.o PARA.o RK4.o my_linalg.o -o le_adb.out && ./le_adb.out
 */
+
+// int main(){
+//     double R=1, n_adb = 1.5;
+//     double n_sol, ni = 100., r_out, Tg_ave, n_vir, Mg_vir;
+//     double z = 40, Mh = 8.e5*Ms;
+//     HALO halo(Mh,z);
+//     // profile_adb("z30Mh2e7R4.txt",n_vir,Mg_vir,R,n_adb,z,Mh);
+//     // profile_adb_Kfit("z30Mh2e7Kfit.txt",n_vir,Mg_vir,R,n_adb,z,Mh);
+//     // profile_adb_Kc("R1e-2KcMh6.txt",R,n_adb,z,Mh);
+
+//     clock_t t0 = clock();
+//     Mg2N0_adb(n_sol, ni, z, Mh);
+//     R = n_sol*(mu*m_H)/halo.rho_c;
+//     clock_t t1 = clock();
+//     printf("log n_sol=%.3e, dt=%.2f\n",n_sol, (double)(t1-t0)/CLOCKS_PER_SEC);
+
+//   // R(n0) v.s. n_vir
+//     R = 1.e-5;
+//     int Nspan = 100;
+//     double R1 = 1.e4, Rrat = exp(log(R1/R)/double(Nspan));
+//     string fname = "RM.txt";
+//     fstream f;
+//     f.open(fname, ios::out | ios::trunc );
+//     f<<setiosflags(ios::scientific)<<setprecision(3);
+//     f<<setw(12)<<"R"<<setw(12)<<"ng0"<<setw(12)<<"Mg"<<setw(12)<<"nvir"<<setw(12)<<"Tg_ave"<<setw(12)<<"Rout"<<endl;    
+//     while (R<R1){
+//         BOUNDARY_adb(n_vir, Mg_vir, r_out,Tg_ave, R, z, Mh);
+//         f<<setw(12)<<R<<setw(12)<<R*halo.rho_c/(mu*m_H)<<setw(12)<<Mg_vir/Ms<<setw(12)<<n_vir<<setw(12)<<Tg_ave<<setw(12)<<r_out<<endl;
+//         R *= Rrat;
+//     }
+//     f.close();
+//     return 0;
+// }
 
 // 检查 Mg2N0
 /* int main(){

@@ -33,9 +33,9 @@ int main(){
     string Jzname;
 
     fout = "J_col"+to_string(i_bsm)+".txt";
-    int a[18] = {168,570,764,1186,2277,2669,2709,2797,3042,3195,4900,5062,7088,7242,7308,7586,8038,9503};
-    // for (i=0; i<18; i++){
-    //     itr = a[i];
+    // int a[18] = {168,570,764,1186,2277,2669,2709,2797,3042,3195,4900,5062,7088,7242,7308,7586,8038,9503};
+
+    clock_t t0 = clock();
     for (itr=0;itr<3;itr++){
         ftree = "../treefiles/tree_"+to_string(itr);
         cout<<ftree<<endl;
@@ -50,6 +50,8 @@ int main(){
 
         // evol_Jtrack(ftree, Jzname, fout, Tb, MerMod, spec, Ma_on, i_bsm);
     }
+    clock_t t1 = clock();
+    printf("dt=%.2f\n", (double)(t1-t0)/CLOCKS_PER_SEC);
 
     return 0;
 }

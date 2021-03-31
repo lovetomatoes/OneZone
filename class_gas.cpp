@@ -485,6 +485,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     double nvir_max, nvir;
     double Vc0 = 3.7*km;
     double alpha = 4.7;
+    double ni;
     switch(evol_stage){
         case 0: // not combined w/ mergers
             nH0 = n_ff(z0,nH0,0.,Dt); //设成0 为了使其不受rhoc_DM的redshift dependence 影响
@@ -558,7 +559,10 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
             break;
         case 5:
-            nH0 = MPs[iMP].ng_adb;
+            ni = 100.; //初始尝试值不能太小 原本ni=1 牛顿迭代求解出错
+            Mg2N0_adb(nH0,ni,z0,Mh);
+
+            // nH0 = MPs[iMP].ng_adb;
 // H2 fraction enter equilibrium <= the initial setting smoothed out
             // if (not intoequi and abs(y0[2]/yequi -1)<1.e-1) {
             if (not intoequi and t_act>=t_chem) {
