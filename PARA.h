@@ -20,12 +20,12 @@ const double H0 = h0*100*km/Mpc;
 const double h_p = 6.63e-27, eV = 1.60217657e-12, Angstron = 1.e-8;
 const double Mb = 1.e-18;
 
-const double Omega_m0 = 0.311; // match calculation in code_tree/analysis_trees.f
+const double Omega_m0 = 0.307; // match calculation in code_tree/analysis_trees.f
 const double Omega_L0 = 1 - Omega_m0;
+const double Omega_b0 = 0.0486;
 
-const double fb = 0.16;
+const double fb = Omega_b0/Omega_m0;
 const double rho_m0 = 3*pow(H0,2)/(8*pi*G);// not used;
-const double nb200_0 = 18*pow(pi,2)*rho_m0/m_H*fb;
 
 //const int N_sp = 5, N_react = 8;
 const int N_sp = 9, N_react = 42;

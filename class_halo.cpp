@@ -32,7 +32,7 @@ HALO:: HALO(double Mh0, double z0){
     Vc = sqrt(G*Mh/Rvir);
     t_dyn = Rvir/Vc;
     Tvir = G*Mh*(mu*m_H)/(2.*k_B*Rvir);
-    Kvir = k_B*Tvir/(mu*m_H)/pow(fb*Delta_crit*rho_crit,2./3.); // wli: K normalization not precise, see Voit 05 fig1, Visbal 14
+    Kvir = k_B*Tvir/(mu*m_H)/pow(fb*Delta_crit*RHO_DM(z),2./3.); // wli: K normalization not precise, see Voit 05 fig1, Visbal 14
     gc = 2*c/(log(1+c) - c/(1+c));
     alpha = Tvir/pow(Mh , 2./3);
 
@@ -49,7 +49,7 @@ double HALO:: F_NFW(double x){
 }
 
 double HALO:: Rho_r(double r){ //
-    return rho_crit*delta0/(r/Rs) / pow(1+r/Rs,2);
+    return rho_c/(r/Rs) / pow(1+r/Rs,2);
 }
 
 double HALO:: M_enc(double r){
@@ -87,31 +87,34 @@ g++ class_halo.cpp PARA.cpp dyn.cpp -o halo.out && ./halo.out
 */
 
 // halo Vc, Rvir, n_crit at z...
-/* int main(){
-    double z = 20;
-    double Mh = Mh_Vc(4*km, z); Mh = Mh_Tz(1000,z);
-// checking Omukai 2001 rho_dm evolution
-    // printf("t from bigbang:%3.2e s\n",t_from_z(0));
-    // printf("Omega_0=%3.2e\n", pow(t_from_z(0)/3.1e17*h0, -2.) );
-    printf("Mh=%3.2e\n",Mh/Ms);
-    HALO halo(Mh,z);
-    printf("Vc=%3.2e, ",halo.Vc/km);
-    printf("n_crit:%6.4e, Rvir=%6.4e kpc, Tvir=%6.4e K\n",halo.rho_crit/(mu*m_H), halo.Rvir/kpc, halo.Tvir);
-    printf("K1=%3.2e,K2=%3.2e,Kvir=%3.2e\n",K_Tn(100,.1), K_Tn(1000,.01), halo.Kvir);
+// int main(){
+//     double z = 20;
+//     double Mh = Mh_Vc(4*km, z); Mh = Mh_Tz(1000,z);
+// // checking Omukai 2001 rho_dm evolution
+//     // printf("t from bigbang:%3.2e s\n",t_from_z(0));
+//     // printf("Omega_0=%3.2e\n", pow(t_from_z(0)/3.1e17*h0, -2.) );
+//     printf("Mh=%3.2e\n",Mh/Ms);
+//     HALO halo(Mh,z);
+//     printf("Vc=%3.2e, ",halo.Vc/km);
+//     printf("n_crit:%6.4e, Rvir=%6.4e kpc, Tvir=%6.4e K\n",halo.rho_crit/(mu*m_H), halo.Rvir/kpc, halo.Tvir);
+//     printf("K1=%3.2e,K2=%3.2e,Kvir=%3.2e\n",K_Tn(100,.1), K_Tn(1000,.01), halo.Kvir);
     
-    Mh = 1.e4*Ms;
-    double Mh1 = 1.e8*Ms, Mhrat = exp(log(Mh1/Mh)/20.);
-    while (Mh<=Mh1){
-        HALO halo1(Mh,z);
-        //printf("Mh=%3.2e, 0.1Kvir=%3.2e\n",Mh/Ms, .1*halo1.Kvir);
-        // cout<<Mh/Ms<<" "<<halo1.Kvir<<endl;
-        Mh *= Mhrat;
-    } 
-    ofstream f1;
-    f1.open("a.txt", ios::out | ios::trunc );
-    f1<<setiosflags(ios::scientific)<<setprecision(5);
-    f1<<setw(12);
-    f1<<Mh<<setw(12)<<1.<<setw(12)<<1<<endl;
-    f1.close();
-}
- */
+//     Mh = 1.e4*Ms;
+//     z = 0; Mh = 1.e15/h0*Ms;
+//     HALO halo1(Mh,z);
+//     printf("K200:%5.3e\n",halo1.Kvir);
+
+//     z = 10;
+//     Mh = 1.e5*Ms;
+//     double Mh1 = 1.e8*Ms, Mhrat = exp(log(Mh1/Mh)/20.);
+//     ofstream f1;
+//     f1.open("a.txt", ios::out | ios::trunc );
+//     f1<<setiosflags(ios::scientific)<<setprecision(5);
+//     f1<<setw(12)<<"Mh_Ms"<<setw(12)<<"Kcore"<<setw(12)<<"K_ISM"<<endl;
+//     while (Mh<=Mh1){
+//         HALO halo2(Mh,z);
+//         f1<<setw(12)<<Mh/Ms<<setw(12)<<halo2.Kvir/10.<<setw(12)<<K_ISM(z)<<endl;
+//         Mh *= Mhrat;
+//     }
+//     f1.close();
+// }

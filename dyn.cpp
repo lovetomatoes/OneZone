@@ -43,7 +43,7 @@ double K_Tn(double Tg, double n){
 
 double K_ISM(double z){ // constant: 1.41e+26
     // entropy K = P/rho^gamma
-    double rho_mean_b = fb* RHO_crit(z);
+    double rho_mean_b = fb* RHO_DM(z); // mean baryonic density at z
     double n_mean_b = rho_mean_b/(mu*m_H);
     double T_ism = 0.012*pow( 1+z, 2);
     return n_mean_b *k_B*T_ism/pow(rho_mean_b,gamma_adb);
@@ -54,6 +54,7 @@ double Omega_mz(double z){
 }
 
 double RHO_DM(double z){
+    //z_dependence (1+z)^3
     return 3*pow(H0,2)/(8*pi*G)*pow(1+z,3)*Omega_m0;
 }
 
@@ -64,7 +65,6 @@ double Hz(double z){
 }
 
 double RHO_crit(double z){
-    //z_dependence (1+z)^3
     return 3*pow(H0,2)/(8*pi*G)*pow(1+z,3)*Omega_m0/Omega_mz(z);
 }
 
