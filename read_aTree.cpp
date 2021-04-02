@@ -54,9 +54,10 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
         while (getline(readtree,line)){
             // cout<<line<<endl;
             stringstream ss(line);
-            ss>>MPs[i].j>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>MPs[i].c>>MPs[i].id_tree;
+            ss>>MPs[i].j>>id_m>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>MPs[i].c>>MPs[i].id_tree; // id_m for tree_Hirano/fort.20
             MPs[i].t = t_from_z(MPs[i].z); // time from universe age of 0
-            MPs[i].mhalo *= Ms; // mhalo unit -> g (for treefiles/. file)
+            // MPs[i].mhalo *= Ms; // mhalo unit -> g (for treefiles/. file)
+            MPs[i].mhalo *= 1.e11*Ms; // mhalo unit -> g (for tree_Hirano/fort.20)
             // printf("IN READTREE:\n MPs[%d].j=%d,mhalo=%3.2e,z=%3.2f,Tvir=%3.2e,c=%3.2e,id_tree=%d \n",
             //         i,MPs[i].j,MPs[i].mhalo/Ms,MPs[i].z,MPs[i].Tvir,MPs[i].c,MPs[i].id_tree );
             i++;
@@ -81,9 +82,9 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
         for (i=1;i<=nMP;i++){ 
             MPs[i].t -= temp_dbl; 
             HALO halo(MPs[i].mhalo,MPs[i].z);
-            double ni=100.; MPs[i].ng_adb = 1; //初始尝试值不能太小 原本ni=1 牛顿迭代求解出错
-            // only calculate ng_adb for halo w/ Tvir <1.e5 K; wli
-            if (MPs[i].Tvir<1.e5) Mg2N0_adb(MPs[i].ng_adb,ni,MPs[i].z,MPs[i].mhalo);
+            MPs[i].ng_adb = 1;
+            // only calculate ng_adb for halo w/ Tvir <1.e5 K; cs_eff_2 = 0
+            if (MPs[i].Tvir<1.e5) Mg2N0_adb(MPs[i].ng_adb,0.,MPs[i].z,MPs[i].mhalo);
             MPs[i].dm = (i==nMP)? 0: MPs[i+1].mhalo - MPs[i].mhalo;
             MPs[i].mratio = (i==nMP)? 0:MPs[i].dm/MPs[i].mhalo;
         }
@@ -127,7 +128,9 @@ g++ read_aTree.cpp dyn.cpp PARA.cpp LE_adb.cpp RK4.o my_linalg.o class_halo.o  -
     MainProgenitor* MPs = NULL;
     MPs = new MainProgenitor [300];
     int nMP = 0;
-    aTree(nMP, "../tree_Jc/tree_0", MPs);
+    aTree(nMP, "../tree_Hirano/fort.20", MPs);
+    // starting from iMP = 1
+    printf("nMP=%d, MPs[1].z=%5.4e, MPs[nMP-1].z=%5.4e,K_ISM=%5.4e\n",nMP,MPs[1].z,MPs[nMP].z,K_ISM(10));
     // aTree(nMP, "../treefiles/tree_0", MPs);
     int i=1;
     double n0_sol, ni=1;

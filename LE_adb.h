@@ -1,4 +1,3 @@
-void profile_adb_Kfit(std::string filename,double& N_VIR, double& MG_VIR, double R, double n_adb, double z, double Mh);
-void profile_adb_Kc(std::string filename, double R, double n_adb, double z, double Mh);
-void BOUNDARY_adb(double& N_VIR, double& MG_VIR, double& r_out, double& T_ave, double R, double z, double Mh);
-void Mg2N0_adb(double& n_sol, double ni, double z, double Mh);
+void BOUNDARY_adb(double& N_VIR, double& MG_VIR, double& r_out, double& T_ave, double R, 
+                  bool write, std::string filename, double cs_eff_2, double z, double Mh);
+void Mg2N0_adb(double& n_sol, double cs_eff_2, double z, double Mh);

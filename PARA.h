@@ -27,7 +27,8 @@ const double Omega_b0 = 0.0486;
 const double fb = Omega_b0/Omega_m0;
 const double rho_m0 = 3*pow(H0,2)/(8*pi*G);// not used;
 
-//const int N_sp = 5, N_react = 8;
+const double Kism = 1.4315e+26;
+
 const int N_sp = 9, N_react = 42;
 const int N_sp1 = N_sp+1, N_react1 = N_react+1;
 

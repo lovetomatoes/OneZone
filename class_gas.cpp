@@ -485,7 +485,8 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     double nvir_max, nvir;
     double Vc0 = 3.7*km;
     double alpha = 4.7;
-    double ni;
+    double v_tur2_eff = v_tur2/3. + pow(alpha*v_bsm,2); // Ptur = rho*v_tur2_eff
+
     switch(evol_stage){
         case 0: // not combined w/ mergers
             nH0 = n_ff(z0,nH0,0.,Dt); //设成0 为了使其不受rhoc_DM的redshift dependence 影响
@@ -532,7 +533,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
                 }
             }
             break;
-        case 3: // iso T=8000K (H Lya cooling)
+        case 3: // iso T=8000K (H Lya cooling) or T<8000K tentatively assuming isothermal.
             adjust_iso = (t_act - t_prev >= 0.05* MPs[iMP].dt);
             adjust_iso = true;
             if (adjust_iso) { // update n_iso every Dt
@@ -540,11 +541,12 @@ void GAS:: freefall(){  //module of explicit integration over Dt
                 Mh_prev = Mh; t_prev = t_act;
                 // if ( fmod(i_LE,100)==0 ) Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
                 // i_LE ++;
-                Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
+                Nvir2N0(n_iso, nvir_max, nH0, T_K0+(mu*m_H)*v_tur2_eff/k_B, z0, Mh);
+
                 if (!n_iso) evol_stage = 4; // unstable case Mg2ng return 0
                 else {
                     nH0 = n_iso;
-                    BOUNDARY(nvir,Mg_intg,f_Ma*T_K0,nH0*(mu*m_H)/halo1.rho_c,z0,Mh);
+                    BOUNDARY(nvir,Mg_intg,T_K0+(mu*m_H)*v_tur2_eff/k_B,nH0*(mu*m_H)/halo1.rho_c,z0,Mh);
                 }
             }
             break;
@@ -559,8 +561,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
             break;
         case 5:
-            ni = 100.; //初始尝试值不能太小 原本ni=1 牛顿迭代求解出错
-            Mg2N0_adb(nH0,ni,z0,Mh);
+            Mg2N0_adb(nH0,v_tur2_eff,z0,Mh);
 
             // nH0 = MPs[iMP].ng_adb;
 // H2 fraction enter equilibrium <= the initial setting smoothed out
@@ -573,7 +574,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             if (intoequi and r_cH2>abs(r_h) or r_cH>abs(r_h)) { //factor 2 for H2 cooling deleted 
                 // printf(" in CASE5: adb not hold, go to 3\t");
                 evol_stage = 3;
-                Nvir2N0(n_iso, nvir_max, nH0, f_Ma*T_K0, z0, Mh);
+                Nvir2N0(n_iso, nvir_max, nH0, T_K0+(mu*m_H)*v_tur2_eff/k_B, z0, Mh);
                 // printf("SOLVED FOR THE 1ST TIME\n");
                 // printf("n_iso=%3.2e, f_Ma=%3.2e, v_bsm=%3.2e, Vc=%3.2e\n", n_iso,f_Ma,v_bsm,halo1.Vc);
                 if (!n_iso) evol_stage = 4; // unstable case Mg2ng return 0
@@ -597,8 +598,7 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     // turbulence
     if (Ma_on) f_Ma += v_tur2/pow(cs,2) * gamma_adb*b; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
     // bsm velocity: alpha = 4.7; // [4, 8)
-    if (i_bsm) f_Ma += pow(alpha*v_bsm/cs,2); //Eq(3) in Hirano+2018. from Fialkov2012
-    // f_Ma = 3.; //调试用 1 和 3
+    if (i_bsm) f_Ma += pow(alpha*v_bsm/cs,2) * gamma_adb; //Eq(3) in Hirano+2018. from Fialkov2012
 
     Ma = sqrt(v_tur2)/cs;
     // if (evol_stage==3) {
@@ -629,7 +629,7 @@ void GAS:: T_sol(){
 }
 
 void GAS:: get_para(){
-    cs = sqrt(gamma_adb* k_B*T_K0/(mu*m_H) );
+    cs = (evol_stage==3)?sqrt(k_B*T_K0/(mu*m_H)):sqrt(gamma_adb* k_B*T_K0/(mu*m_H)); // adb or iso
     RJ = sqrt( pi*k_B*T_K0/ (G*pow(mu*m_H,2)*nH0) );
     M_BE = 1.18*sqrt(fb)*pow(cs,4)/(sqrt(P0*pow(G,3)));
     MJ = 4.*pi/3.*rho0*pow(RJ/2.,3);

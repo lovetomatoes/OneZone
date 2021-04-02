@@ -66,7 +66,7 @@ void DyDx_adb(double x, double* y, double* dydx, int argc, double* argv){
     v[3] = beta;
     v[4] = halo1.c;
     v[5] = K0/halo1.Kvir;
-    v[6] = 0;
+    v[6] = eta;
  */
     double gamma = 1. + 1./argv[0];
     double R = argv[1]; //printf("alpha=%3.2e, R=%3.2e\n", alpha, R);

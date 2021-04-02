@@ -225,17 +225,17 @@ void evol(string treename, string Jzname, string fout, int MerMod, double Tbb, d
         }
 
 
-        if (i!=0){
-            gas.setMerger();
-            gas.timescales(); 
-            gas.freefall(); 
-            //cout<<"freefall done. "<<"n= "<<gas.nH0<<" /cc"<<endl;
-            gas.react_sol(1); 
-            //cout<<"react_sol done"<<endl;
-            gas.T_sol();
-            //cout<<"T_sol done. "<<"T= "<<gas.T_K0<<" K"<<endl;
-            gas.get_para();
-        }
+
+        gas.setMerger();
+        gas.timescales(); 
+        gas.freefall(); 
+        //cout<<"freefall done. "<<"n= "<<gas.nH0<<" /cc"<<endl;
+        gas.react_sol(1); 
+        //cout<<"react_sol done"<<endl;
+        gas.T_sol();
+        //cout<<"T_sol done. "<<"T= "<<gas.T_K0<<" K"<<endl;
+        gas.get_para();
+
         if (heatingcooling) {
             if (i==0) file<<setw(16)<<"r_c"<<setw(16)<<"r_cH2"<<setw(16)<<"r_cH"<<setw(16)<<"r_hcompr"<<setw(16)<<"r_hmer";
             else{
