@@ -54,10 +54,9 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
         while (getline(readtree,line)){
             // cout<<line<<endl;
             stringstream ss(line);
-            ss>>MPs[i].j>>id_m>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>MPs[i].c>>MPs[i].id_tree; // id_m for tree_Hirano/fort.20
+            ss>>MPs[i].j>>MPs[i].mhalo>>MPs[i].z>>MPs[i].Tvir>>MPs[i].c>>MPs[i].id_tree;
             MPs[i].t = t_from_z(MPs[i].z); // time from universe age of 0
-            // MPs[i].mhalo *= Ms; // mhalo unit -> g (for treefiles/. file)
-            MPs[i].mhalo *= 1.e11*Ms; // mhalo unit -> g (for tree_Hirano/fort.20)
+            MPs[i].mhalo *= Ms; // mhalo unit -> g (for treefiles/. file)
             // printf("IN READTREE:\n MPs[%d].j=%d,mhalo=%3.2e,z=%3.2f,Tvir=%3.2e,c=%3.2e,id_tree=%d \n",
             //         i,MPs[i].j,MPs[i].mhalo/Ms,MPs[i].z,MPs[i].Tvir,MPs[i].c,MPs[i].id_tree );
             i++;

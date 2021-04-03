@@ -431,10 +431,10 @@ double getJT(int argc, double* argv, bool write, int MerMod, double Tb, string t
     argv[1] = gas.Mh_col/Ms;
     argv[2] = gas.Tg_col;
     argv[3] = gas.J_col;
-    argv[4] = gas.z_1000;
-    argv[5] = gas.Mh_1000/Ms;
-    argv[6] = gas.Tg_1000;
-    argv[7] = gas.J_1000;
+    argv[4] = gas.z_1e4;
+    argv[5] = gas.Mh_1e4/Ms;
+    argv[6] = gas.Tg_1e4;
+    argv[7] = gas.J_1e4;
 
     // printf("*******IN GET_T***********\n");
     // cout<<"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0);
@@ -443,20 +443,20 @@ double getJT(int argc, double* argv, bool write, int MerMod, double Tb, string t
 }
 
 void evol_Jtrack(string treename, string Jzname, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
-    double T_tell = 4000, nH_tell=1.e4, T;
+    double T_tell = 4000, nH_tell=1.e5, T;
     int const c = 8;
     double y[c];
-    T = getJT(c,y,true,MerMod,Tb,treename,Jzname,spec,Ma_on,i_bsm,nH_tell);
+    T = getJT(c,y,false,MerMod,Tb,treename,Jzname,spec,Ma_on,i_bsm,nH_tell);
 
     int iso_col = (T>T_tell)?1:0;
     // argv[0] = gas.z_col;
     // argv[1] = gas.Mh_col/Ms;
     // argv[2] = gas.Tg_col;
     // argv[3] = gas.J_col;
-    // argv[4] = gas.z_1000;
-    // argv[5] = gas.Mh_1000/Ms;
-    // argv[6] = gas.Tg_1000;
-    // argv[7] = gas.J_1000;
+    // argv[4] = gas.z_1e4;
+    // argv[5] = gas.Mh_1e4/Ms;
+    // argv[6] = gas.Tg_1e4;
+    // argv[7] = gas.J_1e4;
 
 
     ofstream file;
@@ -468,7 +468,7 @@ void evol_Jtrack(string treename, string Jzname, string fout, double Tb, int Mer
         file.open(fout, ios::out | ios::trunc);
         file<<setw(16)<<"tree"<<setw(16)<<"i_bsm"<<setw(16)<<"iso_col";
         file<<setw(16)<<"z_col"<<setw(16)<<"Mh_col"<<setw(16)<<"Tg_col"<<setw(16)<<"J_col";
-        file<<setw(16)<<"z_1000"<<setw(16)<<"Mh_1000"<<setw(16)<<"Tg_1000"<<setw(16)<<"J_1000";
+        file<<setw(16)<<"z_1e4"<<setw(16)<<"Mh_1e4"<<setw(16)<<"Tg_1e4"<<setw(16)<<"J_1e4";
         file<<endl;
         file.close();
     }
@@ -488,7 +488,7 @@ void evol_Jc(string treename, string Jzname, string fout, double Tb, int MerMod,
     printf("#####\t JC_SOL\t #####\t");
     cout<<treename<<":\t";
     printf("i_bsm=%d\n",i_bsm);
-    double T_tell = 4000, nH_tell=1.e4;
+    double T_tell = 4000, nH_tell=1.e5;
     // boundary of bisection J21 
     double J0 = epE2, J1 = 1.e4; //包括所有的Tb所需range 没必要
     J0 = 500, J1 = 1.5e3;

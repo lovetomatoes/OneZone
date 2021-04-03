@@ -39,7 +39,7 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     z0 = MPs[iMP].z;
     z = z0;
     z_col = -1.;
-    z_1000 = -1.;
+    z_1e4 = -1.;
     i_bsm = bsm;
     v_bsm = i_bsm*sigma1*(1+z)/(1+z_rcb);
     Mh = MPs[iMP].mhalo;
@@ -584,11 +584,11 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             break;
     }
 
-    if (z_1000<0. and nH0>=1000.) {
-        z_1000 = z0; // mark collapse redshift
-        Mh_1000 = Mh;
-        Tg_1000 = T_K0;
-        J_1000 = J_LW;
+    if (z_1e4<0. and nH0>=1.e4) {
+        z_1e4 = z0; // mark collapse redshift
+        Mh_1e4 = Mh;
+        Tg_1e4 = T_K0;
+        J_1e4 = J_LW;
     }
     v_tur2 += Dt * Gamma_mer_k*2; // 2 coz e=1/2v^2
 

@@ -57,10 +57,10 @@ class GAS
         //HALO halo (1,1); must have initial parameters...
         ofstream file_ingas;
         int n_za;
-        double z_col, z_1000;
-        double Mh_col, Mh_1000;
-        double Tg_col, Tg_1000;
-        double J_col, J_1000;
+        double z_col, z_1e4;
+        double Mh_col, Mh_1e4;
+        double Tg_col, Tg_1e4;
+        double J_col, J_1e4;
 
     private :
         int static const n_ra = 40;
