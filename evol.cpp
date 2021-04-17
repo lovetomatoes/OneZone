@@ -242,8 +242,8 @@ void evol(string treename, string Jzname, string fout, int MerMod, double Tbb, d
                 file<<setw(16)<<gas.r_c;
                 file<<setw(16)<<gas.r_cH2;
                 file<<setw(16)<<gas.r_cH;
-                if (gas.evol_stage==4 or gas.evol_stage==0) file<<setw(16)<<Gamma_compr(gas.cs,gas.f_Ma,gas.t_ff);
-                else file<<setw(16)<<Gamma_compr(gas.cs,gas.f_Ma,gas.t_ff);
+                if (gas.evol_stage==4 or gas.evol_stage==0) file<<setw(16)<<Gamma_compr(gas.cs2_eff,gas.t_ff);
+                else file<<setw(16)<<Gamma_compr(gas.cs2_eff,gas.t_ff);
                 file<<setw(16)<<gas.Gamma_mer_th; //merger heating; kinetic energy input: *1/3
             }
         }
@@ -255,8 +255,6 @@ void evol(string treename, string Jzname, string fout, int MerMod, double Tbb, d
         }
         file<<endl;
         i++;
-    //printf("%3.2e\t %3.2e\n", Gamma_compr(gas.nH0,gas.T_K0,gas.f_Ma), Lambda_H2(gas.nH0,gas.T_K0,gas.y0));
-    //cout<<gas.inDelay<<endl;
     }
     file.close();
 
@@ -427,61 +425,41 @@ double getJT(int argc, double* argv, bool write, int MerMod, double Tb, string t
     }
     if (write) f1.close();
 
+    if (argc!=15) cout<<"error\n";
     argv[0] = gas.z_col;
     argv[1] = gas.Mh_col/Ms;
-    argv[2] = gas.Tg_col;
-    argv[3] = gas.J_col;
-    argv[4] = gas.z_1e4;
-    argv[5] = gas.Mh_1e4/Ms;
-    argv[6] = gas.Tg_1e4;
-    argv[7] = gas.J_1e4;
+    argv[2] = gas.ng_col;
+    argv[3] = gas.Tg_col;
+    argv[4] = gas.Mg_intg/Ms;
+    argv[5] = gas.MJ_col/Ms;
+    argv[6] = gas.J_col;
+    argv[7] = gas.f_col;
+    argv[8] = gas.ng_loi;
+    argv[9] = gas.Tg_loi;
+    argv[10] = gas.MJ_loi/Ms;
+    argv[11] = gas.f_loi;
+    argv[12] = gas.Tg_1e4;
+    argv[13] = gas.f_1e4;
+    argv[14] = gas.Tg_max;
 
-    // printf("*******IN GET_T***********\n");
-    // cout<<"_bsm"+ to_string(i_bsm) + "tur"+ to_string((Ma_on)?1:0);
-    // printf("\tJ=%3.2f, z_col=%3.2f, nH_tell=%3.2e, T=%3.2e\n\n\n",J, gas.z_col, nH_tell, gas.T_K0);
     return gas.T_K0;
 }
 
-void evol_Jtrack(string treename, string Jzname, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
+void evol_Jtrack(int* vi, double* vd, string treename, string Jzname, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){
     double T_tell = 4000, nH_tell=1.e5, T;
-    int const c = 8;
+    int const c = 15;
     double y[c];
+    for (int i=0;i<c;i++) y[i] = double(i);
     T = getJT(c,y,false,MerMod,Tb,treename,Jzname,spec,Ma_on,i_bsm,nH_tell);
 
     int iso_col = (T>T_tell)?1:0;
-    // argv[0] = gas.z_col;
-    // argv[1] = gas.Mh_col/Ms;
-    // argv[2] = gas.Tg_col;
-    // argv[3] = gas.J_col;
-    // argv[4] = gas.z_1e4;
-    // argv[5] = gas.Mh_1e4/Ms;
-    // argv[6] = gas.Tg_1e4;
-    // argv[7] = gas.J_1e4;
-
-
-    ofstream file;
-    ifstream checkf_exist(fout.c_str());
-    if (checkf_exist.good()) {
-        // cout<<fout.c_str()<<" exist\n";
-    }
-    else {
-        file.open(fout, ios::out | ios::trunc);
-        file<<setw(16)<<"tree"<<setw(16)<<"i_bsm"<<setw(16)<<"iso_col";
-        file<<setw(16)<<"z_col"<<setw(16)<<"Mh_col"<<setw(16)<<"Tg_col"<<setw(16)<<"J_col";
-        file<<setw(16)<<"z_1e4"<<setw(16)<<"Mh_1e4"<<setw(16)<<"Tg_1e4"<<setw(16)<<"J_1e4";
-        file<<endl;
-        file.close();
-    }
-    file.open(fout, ios::out | ios::app);
-
     int index=treename.find("_");
     string tree = treename.substr(index+1); // tree_id 输出
 
-    file<<setw(16)<<stoi(tree)<<setw(16)<<i_bsm<<setw(16)<<iso_col;
-    file<<setw(16)<<y[0]<<setw(16)<<y[1]<<setw(16)<<y[2]<<setw(16)<<y[3];
-    file<<setw(16)<<y[4]<<setw(16)<<y[5]<<setw(16)<<y[6]<<setw(16)<<y[7];
-    file<<endl;
-    file.close();
+    vi[0] = stoi(tree);
+    vi[1] = i_bsm;
+    vi[2] = iso_col;
+    for (int i=0;i<c;i++) vd[i] = y[i];
 }
 
 void evol_Jc(string treename, string Jzname, string fout, double Tb, int MerMod, bool spec, bool Ma_on, int i_bsm){

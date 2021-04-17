@@ -223,8 +223,9 @@ double Gamma_chem(double nH, double T_K, double* y, double* k){
 }
 
 
-double Gamma_compr(double cs, double f_Ma, double t_ff){
-    return f_Ma * pow(cs,2)/gamma_adb / t_ff; // in erg/g/s
+double Gamma_compr(double cs2_eff, double t_ff){
+    // cs2_eff = P_tot/rho
+    return cs2_eff / t_ff; // in erg/g/s
 }
 /* 
 // Yoshida et al.(2006) -> Λ in erg /cm^3/s

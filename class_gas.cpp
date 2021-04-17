@@ -56,6 +56,8 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
 
     // initial density & T setting.
     T_K0 = halo.Tvir;
+    Tg_max = T_K0;
+    Tg_loi = 1.e100;
     nH0 = MPs[iMP].ng_adb;
 
     /* if (MerMod==0){
@@ -72,7 +74,6 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     // if (MerMod==0)  t_ff = 1./C/sqrt(nH0);
     cs = sqrt( gamma_adb*k_B*T_K0/(mu*m_H) );
     Mgas = Mh*fb;
-    Mcore = 4.*pi/3.*pow(0.1*halo.Rvir,3)* nH0;
     M_BE = 1.18*sqrt(fb)*pow(cs,4)/(sqrt(P0*pow(G,3)));
     Mg_intg = 0;
 
@@ -335,7 +336,7 @@ void GAS:: react_sol(bool write){
 
 
     // sufficient cooling fraction. Λ_H2 (erg/cm^3/s) v.s. Γ_compr(g_Ma) (erg/g/s) 
-    ycool = g_Ma* rho0*Gamma_compr(cs,1.,t_ff) * y0[2]/Lambda_H2(nH0,T_K0,y0);
+    ycool = g_Ma* rho0*Gamma_compr(cs*cs,t_ff) * y0[2]/Lambda_H2(nH0,T_K0,y0);
 
     Jc_pd = rform / (ycool * kH2_pd/J_LW);
 
@@ -346,7 +347,7 @@ void GAS:: react_sol(bool write){
     c = beta_Hm/nH0;
     Jc_cd = (a/ycool - b)/c; 
 
-    delta_H2_compr = abs(r_cH2 - Gamma_compr(cs,f_Ma,t_ff))/r_cH2 ;
+    delta_H2_compr = abs(r_cH2 - Gamma_compr(cs2_eff,t_ff))/r_cH2 ;
 
     a = nH0*y0[1]*y0[3]*kHm_e*kH2_Hm*y0[1];
     b = kH2_Hm*y0[1] + kHm_rcb*y0[4] + kHm_cd*y0[1];
@@ -435,11 +436,9 @@ void GAS:: timescales(){
     Gamma_mer_th = fraction * Gamma_mer;
     Gamma_mer_k = (1-fraction) * Gamma_mer;
 // merger case (evol_stage=4 is freefall) !wli!!!
-    //if (evol_stage ==4) r_h = Gamma_compr(cs,1,t_ff) + Gamma_chem(nH0, T_K0, y0, k)/rho0;
-    if (evol_stage ==4) r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0;
+    if (evol_stage ==4) r_h = Gamma_compr(cs2_eff,t_ff) + Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0;
     else r_h = Gamma_mer_th + Gamma_chem(nH0, T_K0, y0, k)/rho0; //no compressional
 
-    //printf("f_Ma=%3.2e, cs=%3.2e, t_ff=%3.2e, compr=%3.2e mer=%3.2e mer_th=%3.2e\n", f_Ma, cs, t_ff, Gamma_compr(cs,f_Ma,t_ff),Gamma_mer,Gamma_mer_th);
 
     t_c = e0/r_c;
     t_h = abs(e0/r_h);  //可能为负 potential well dilution
@@ -460,7 +459,7 @@ void GAS:: timescales(){
 
 // no merger case, just free fall; one-zone case of former work
     if (MerMod==0) { 
-        r_h = Gamma_compr(cs,f_Ma,t_ff) + Gamma_chem(nH0, T_K0, y0, k)/rho0;
+        r_h = Gamma_compr(cs2_eff,t_ff) + Gamma_chem(nH0, T_K0, y0, k)/rho0;
         t_c = e0/r_c;
         t_h = abs(e0/r_h);
         //不需要t_rcb //如果加细Dt 用0.001仍然converge而且似乎更smooth但是慢得多 //不能放宽了 0.1明显不行
@@ -485,7 +484,9 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     double nvir_max, nvir;
     double Vc0 = 3.7*km;
     double alpha = 4.7;
-    double v_tur2_eff = v_tur2/3. + pow(alpha*v_bsm,2); // Ptur = rho*v_tur2_eff
+    v_tur2_eff = v_tur2/3. + pow(alpha*v_bsm,2); // Ptur = rho*v_tur2_eff
+    cs2_eff = k_B*T_K0/(mu*m_H) + v_tur2_eff; // Ptot = rho*cs2_eff
+    Ma = sqrt(v_tur2_eff)/cs;
 
     switch(evol_stage){
         case 0: // not combined w/ mergers
@@ -551,11 +552,13 @@ void GAS:: freefall(){  //module of explicit integration over Dt
             }
             break;
         case 4:
-            Mg_intg = 0; // gas mass within Rvir
             if (z_col<0.) {
                 z_col = z0; // mark collapse redshift
                 Mh_col = Mh;
+                ng_col = nH0;
                 Tg_col = T_K0;
+                f_col = f_Ma;
+                MJ_col = MJ_eff;
                 J_col = J_LW;
             }
             nH0 = n_ff(z0,nH0,rhoc_DM,Dt);
@@ -589,6 +592,16 @@ void GAS:: freefall(){  //module of explicit integration over Dt
         Mh_1e4 = Mh;
         Tg_1e4 = T_K0;
         J_1e4 = J_LW;
+        f_1e4 = f_Ma;
+    }
+    if (T_K0<Tg_loi and nH0>=1.e3) {
+        z_loi = z0; // mark collapse redshift
+        Mh_loi = Mh;
+        ng_loi = nH0;
+        Tg_loi = T_K0;
+        J_loi = J_LW;
+        f_loi = f_Ma;
+        MJ_loi = MJ_eff;
     }
     v_tur2 += Dt * Gamma_mer_k*2; // 2 coz e=1/2v^2
 
@@ -596,18 +609,17 @@ void GAS:: freefall(){  //module of explicit integration over Dt
     double b = 1./3.; // [1/3, 0.5)
     f_Ma = 1;
     // turbulence
-    if (Ma_on) f_Ma += v_tur2/pow(cs,2) * gamma_adb*b; // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
+    if (Ma_on) f_Ma += v_tur2 * b / (k_B*T_K0/(mu*m_H)); // corrected f_Ma, using P = rho_g v_tur^2/3 from Chandrasekhar 1951
     // bsm velocity: alpha = 4.7; // [4, 8)
-    if (i_bsm) f_Ma += pow(alpha*v_bsm/cs,2) * gamma_adb; //Eq(3) in Hirano+2018. from Fialkov2012
+    if (i_bsm) f_Ma += pow(alpha*v_bsm,2) / (k_B*T_K0/(mu*m_H)); //Eq(3) in Hirano+2018. from Fialkov2012
 
-    Ma = sqrt(v_tur2)/cs;
     // if (evol_stage==3) {
     //     printf("f_Ma=%3.2e v_bsm=%3.2e, Vc=%3.2e\n",f_Ma, v_bsm/km, cs/km, halo1.Vc/km);
     //     printf("Vc^2/ (cs^2 + v_tur^2 + v_bsm^2)=%3.2e\n",pow(halo1.Vc,2)/(pow(cs,2)+v_tur2+pow(v_bsm,2)));
     //     printf("concentration c=%3.2e\n",halo1.Rs/halo1.Rvir);
     // }
 
-    if (evol_stage==4) g_Ma = f_Ma + Gamma_mer_th/Gamma_compr(cs,1.,t_ff);
+    if (evol_stage==4) g_Ma = f_Ma + Gamma_mer_th/Gamma_compr(cs*cs,t_ff);
     else g_Ma = 1.;
 
  //for MerMod=0 case
@@ -622,10 +634,10 @@ void GAS:: freefall(){  //module of explicit integration over Dt
 void GAS:: T_sol(){
     //开关 turn_off cooling
     //if (MerMod != 0) r_c = 0;
-
     e0 += (r_h-r_c)*Dt;
     P0 = (gamma_adb-1) * rho0 * e0;
     T_K0 = e0*(gamma_adb-1)*(mu*m_H)/k_B;
+    if (T_K0>Tg_max) Tg_max = T_K0;
 }
 
 void GAS:: get_para(){
