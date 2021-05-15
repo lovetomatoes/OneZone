@@ -386,7 +386,7 @@ void read_spec(double* nub, double* fluxb_cont, double* fluxb_line, string fspec
 
 ///**************************************************************************************
 ///                         H- from radiative attatchment  H + e- --> H- + ph  
-
+///                              McLaughlin et al 2017
 void read_k(int n_ra, double* Ta, double* ka){
    string line, T_str, k_str, name;
    int i,j;

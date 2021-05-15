@@ -166,7 +166,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
     else k[5] = pow(10., (-18.20 - 3.194*lgT + 1.786* pow(lgT,2) - 0.2072*pow(lgT,3) ) );
 
 //  (6)   H2+   +   H     ->   H2    +   H+         
-//     Galli  Palla (1998): GA08 TableA1-4
+//    Karpas et al. 1979 : GA08 TableA1-4 also adopted in Galli  Palla (1998)
     k[6]=6.4e-10;
       
 //  (7)   H2    +   H     -> 3 H    // cd1     
@@ -202,13 +202,13 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
  */
 
 //  (8)   H2    +   H+    ->   H2+   +   H        
-//     Savin (2004) low density: GA08 TableA1-7 // wli in table should be loge(T_K) not log10(T_K)
+//     Savin (2004) Table1, Eq4 low density: GA08 TableA1-7 // wli in table should be loge(T_K) not log10(T_K)
     xk_L = (-3.3232183e-7 + (3.3735382e-7 + (-1.4491368e-7 
          + (3.4172805e-8  + (-4.7813720e-9 + (3.9731542e-10 
          + (-1.8171411e-11 + 3.5311932e-13*log(T_K))
          *log(T_K))*log(T_K))*log(T_K))*log(T_K))*log(T_K))*log(T_K) )
          *exp(-21237.15/T_K);
-//     Coppola et al.(2011) high density Table3-4
+//     Coppola et al.(2011) high density Table3-2
     xk_H=exp(-33.081+6.3173e-5*T_K-2.3478e4/T_K
         -1.8691e-9*pow(T_K,2) )*1.e6;
 // wli if T_K < 30.0 xk_L NEGATIVE...
@@ -245,12 +245,12 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
     else k[12] = 9.6e-7/pow(T_K,0.9);
 
 //  (13)   H2+   +   e     -> 2 H                
-//     Savin et al. (2004): GA08 TableA1-6
+//     Schneider et al. (1994): GA08 TableA1-6
     if(T_K<=617.0) k[13]=1.e-8;
     else k[13]=1.32e-6*pow(T_K,-0.76);
 
 //  (14)   H2+   +   H-    ->   H2    +   H         
-//     Dalgarno  Lepp (1987): GA08 TableA1-21
+//     Dalgarno & Lepp (1987): GA08 TableA1-21
     k[14] = 1.40e-7/sqrt(T_K/300.);
 
 //  (15) 3 H               ->   H2    +   H                
@@ -260,7 +260,7 @@ void react_coef(double *k, double nH, double y_H, double y_H2, double T_K, doubl
     if (T_K<=300.) k[15] = 1.14e-31*pow(T_K,-0.38);
     else k[15] = 3.9e-30/T_K;
 
-//  (16) 2 H2           -> 2 H    +   H2
+//  (16) 2 H2           -> 2 H    +   H2 // in my paper table 16<->17
 //     Martin+1998; Shapiro&Kang 1987 GA08 TableA1-10 
     xk_L=5.996e-30*pow(T_K,4.1881) / pow(1.0+6.761e-6*T_K, 5.6881) *exp(-54657.4/T_K);
     xk_H=1.3e-9*exp(-53300.0/T_K);

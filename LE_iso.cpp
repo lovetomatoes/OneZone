@@ -97,7 +97,7 @@ void profile(string filename, double Tg, double R, double z=z1, double Mh=Mh1){
         file<<" "<<B*(1- log(1+alpha*x[i])/ (alpha*x[i])); // B*fx Eq(11) Suto98; gas self-gravity 
         file<<" "<<B/2.*(alpha*x[i]); // Eq(36) Suto98; g(x)= -Φ 
         file<<endl; // B*fx Eq(11) Suto98; gas self-gravity
-
+        if (a*x[i]/halo1.Rvir>1) break;
         // printf("x[%d]/x_vir=%3.2f\n",i,x[i]/x_vir);
     }
     file.close();
@@ -114,6 +114,7 @@ void profile(string filename, double Tg, double R, double z=z1, double Mh=Mh1){
 void BOUNDARY(double& N_VIR, double& MG_VIR, double Tg, double R, double z=z1, double Mh=Mh1){
     MG_VIR = 0;
     HALO halo1(Mh,z);
+    // printf("Mh=%3.2e, rho_vir=%3.2e\n",Mh/Ms,halo1.Rho_r(halo1.Rvir)*fb);
     rho_g0 = halo1.rho_c * R;
     a = sqrt(k_B*Tg/(4*pi*G*mu*m_H*rho_g0));
     alpha = a/halo1.Rs;
@@ -229,10 +230,10 @@ g++ -c LE_iso.cpp RK4.cpp && g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_lin
     double R = .01;
     double Tg = 1.e4;
     double Mg, nvir;
-    double R1 = 1.e2, Rrat = exp(log(R1/R)/20.);
-    double z = 20, Mh = 1.e5*Ms;
+    double R1 = 1.e5, Rrat = exp(log(R1/R)/50.);
+    double z = 30, Mh = 6e6*Ms;
     fstream f;
-    string fname;
+    string fname, pfile;
     clock_t t0 = clock();
 
 // 0. profile & boundary
@@ -245,41 +246,58 @@ g++ -c LE_iso.cpp RK4.cpp && g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_lin
     // BOUNDARY(nsol,Mgas,Tg,1.,z0,Mh);
 
 // 1. density profile in 3 halos; 
-    // HALO halo1(Mh,z);
-    // printf("1.e5Ms: Tvir=%3.2e\t",halo1.Tvir);
-    // string pfile1 = "profile1e5.txt";
-    // profile(pfile1, Tg, R, z, Mh);
+    HALO halo1(Mh,z);
+    R = 1.e-23/halo1.rho_c;
+    printf("Tvir=%3.2e\t",halo1.Tvir);
+    pfile = "profilerhog0_23.txt";
+    profile(pfile, Tg, R, z, Mh);
 
-    // Mh = 2.e6*Ms;
-    // HALO halo2(Mh, z);
-    // printf("2.e6Ms: Tvir=%3.2e\t",halo2.Tvir);
-    // string pfile2 = "profile2e6.txt";
-    // profile(pfile2, Tg, R, z, Mh);
+    R = 1.e-22/halo1.rho_c;
+    pfile = "profilerhog0_22.txt";
+    profile(pfile, Tg, R, z, Mh);
 
-    // Mh = 1.e7*Ms;
-    // HALO halo3(Mh, z);
-    // printf("1.e7Ms: Tvir=%3.2e\t",halo3.Tvir);
-    // string pfile3 = "profile1e7.txt";
-    // profile(pfile3, Tg, R, z, Mh);
+    R = 1.e-21/halo1.rho_c;
+    pfile = "profilerhog0_21.txt";
+    profile(pfile, Tg, R, z, Mh);
 
-// 2.1 画Mg (n_vir) v.s. R
-    z = 20, Mh = 1.e7*Ms;
-    HALO halo(Mh,z);
-    fname = "boundary_Tg1e4z20Mh1e7.txt";
-    f.open(fname, ios::out | ios::trunc );
-    f<<" R n_0 M_g n_vir\n";
-    while (R<R1){
-        BOUNDARY(nvir,Mg,Tg,R,z,Mh);
-        f<<" "<<R<<" "<<R*halo.rho_c/(mu*m_H)<<" "<<Mg/Ms<<" "<<nvir<<endl;
-        R *= Rrat;
-    }
-    f.close();
+    R = 1.e-20/halo1.rho_c;
+    pfile = "profilerhog0_20.txt";
+    profile(pfile, Tg, R, z, Mh);
 
-// 2.2 检查Nvir2N0是否给出正确的nvir_max, n0 solution
-    double n0_sol_N,nvir_max,ni=1;
-    string f_Nsol = "profile_Nsol.txt";
-    Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
-    profile(f_Nsol,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
+// // 2.1 画Mg (n_vir) v.s. R
+//     z = 30, Mh = 6.e6*Ms, R = 0.1;
+//     HALO halo(Mh,z);
+//     printf("rho_vir=%3.2e\t", fb*halo.Rho_r(halo.Rvir));
+//     printf("halo Rvir = %3.2e pc\t",halo.Rvir/pc);
+//     printf("c_eff = %3.2e km/s\n",sqrt(k_B*Tg/(mu*m_H))/km);
+//     fname = "boundary_Tg1e4z30Mh5e6.txt";
+//     f.open(fname, ios::out | ios::trunc );
+//     f<<" R n_0 M_g n_vir\n";
+//     while (R<R1){
+//         BOUNDARY(nvir,Mg,Tg,R,z,Mh);
+//         f<<" "<<R<<" "<<R*halo.rho_c/(mu*m_H)<<" "<<Mg/Ms<<" "<<nvir<<endl;
+//         R *= Rrat;
+//     }
+//     f.close();
+
+// // 2.2 检查Nvir2N0是否给出正确的nvir_max, n0 solution
+//     double n0_sol_N,nvir_max,ni=1;
+//     string f_Nsol = "profile_Nsol.txt";
+//     Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
+//     profile(f_Nsol,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
+
+// // 1. density profile in 3 rho_0s; 
+//     R = .1; string pfile1 = "profileR1e-1.txt";
+//     profile(pfile1, Tg, R, z, Mh);
+
+//     R = 1; pfile1 = "profileR1e0.txt";
+//     profile(pfile1, Tg, R, z, Mh);
+
+//     R = 10; pfile1 = "profileR1e1.txt";
+//     profile(pfile1, Tg, R, z, Mh);
+
+//     R = 100; pfile1 = "profileR1e2.txt";
+//     profile(pfile1, Tg, R, z, Mh);
 
 // 3. Tvir_crit value v.s. Tg (z as input parameter)
     //:   gravity v.s. pressure, hope linear 
@@ -320,8 +338,9 @@ g++ -c LE_iso.cpp RK4.cpp && g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_lin
     //     Tg *= Tgrat;
     // }
     // f.close();
-    clock_t t1 = clock();
-    printf("executing time: %.2fs s\n", (double)(t1-10)/CLOCKS_PER_SEC);
+
+    // clock_t t1 = clock();
+    // printf("executing time: %.2fs s\n", (double)(t1-10)/CLOCKS_PER_SEC);
     return 0;
 }
  */
