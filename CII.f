@@ -1,3 +1,26 @@
+   !    PROGRAM test
+   !    implicit none 
+   !    integer :: i,k
+   !    real*8 :: xnH, T_K, xNc_CII, y_m, y_a, y_e,
+   !   &     esc_10, tau_c, xLd_CII, a, beta_esc
+
+   !    xnH = 1.0d3
+   !    T_K = 1.0d3
+   !    xNc_CII = 1.d10
+   !    y_m = 1.d-3
+   !    y_a = 1.0
+   !    y_e = 1.d-3
+   !    esc_10 = 0.5
+   !    tau_c = 0.5
+   !    xLd_CII = 0.0
+
+   !    call CIIcool(xnH,T_K,xNc_CII,y_m,y_a,y_e,esc_10,tau_c,xLd_CII)
+
+   !    END
+
+c   (alias gg='gfortran cooling_rate.f CII.f GaussJordan.f -o cooling.o && ./cooling.o')
+c   gfortran OI.f CII.f GaussJordan.f -o cooling.out && ./cooling.out
+
       subroutine CIIcool(xnH,T_K,xNc_CII,y_m,y_a,y_e,
      &     esc_10,tau_c,xLd_CII)
       implicit real*8(a-h,o-z)
@@ -13,7 +36,7 @@ c
       DE_10=DT_10*xk_B
       xnu_10=DE_10/h_P
 c
-      Q_10=Q_bg(DT_10)
+      Q_10=Q_bg(DT_10) ! wli: = 0
 c
       A_10=2.4d-6
       gamma_e=2.8d-7/dsqrt(T_K*1.d-2)
@@ -31,6 +54,7 @@ c
       S_10=1.d0/(g_1*f_0/(g_0*f_1)-1.d0)
       xLd_CII=DE_10*A_10*f_1*esc_10*(1.d0-Q_10/S_10)/xnH
 
+      print*, xLd_CII
       return
       END
 

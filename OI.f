@@ -1,3 +1,29 @@
+      PROGRAM test
+      implicit none 
+      integer :: i,k
+      real*8 :: xnH, T_K, xNc_OI, y_m, y_a, y_e,
+     &          tau_c, xLd_OI, a, beta_esc
+      real*8 :: esc(1:3)
+
+      xnH = 1.0d3
+      T_K = 1.0d3
+      xNc_OI = 1.d10
+      y_m = 1.d-3
+      y_a = 1.0
+      y_e = 1.d-3
+      esc(1) = 0.5
+      esc(2) = 0.5
+      esc(3) = 0.5
+      tau_c = 0.
+      xLd_OI = 0.0
+
+      call OIcool(xnH,T_K,xNc_OI,y_m,y_a,y_e,esc,tau_c,xLd_OI)
+      print*, xLd_OI
+      END
+
+c   gfortran OI.f CII.f GaussJordan.f -o cooling.out && ./cooling.out
+
+
       subroutine OIcool(xnH,T_K,xNc_OI,y_m,y_a,y_e,
      &     esc,tau_c,xLd_OI)
       implicit real*8(a-h,o-z)
