@@ -126,6 +126,15 @@ void pop3lev(double &f_0, double &f_1, double &f_2, double *esc){
 
    // C ------- solve linear equations
    //          call gaussj(A,1,1,desc,1,1,0)
+      double aa=A[0],bb=A[1],cc=A[2],dd=A[3],ee=A[4],ff=A[5],gg=A[6],hh=A[7],ii=A[8];
+      double det = aa*(ee*ii-ff*hh)-bb*(dd*ii-ff*gg)+cc*(dd*hh-ee*gg);
+      if (det== 0 ) {
+         printf("det_A=0");
+         printf("%3.2e\t%3.2e\t%3.2e\t%3.2e\t%3.2e\t%3.2e\t%3.2e\t%3.2e\t%3.2e\t",
+         aa,bb,cc,dd,ee,ff,gg,hh,ii);
+         // exit(0);
+         break;
+      }
       get_inverse(A_inv, A, N);
       dot(desc,N,A_inv,error);
 

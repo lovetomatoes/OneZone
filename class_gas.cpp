@@ -39,10 +39,11 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     //------------ set metallicity ---------------
     int index=treefile.find("_");
     int tree_id = stoi(treefile.substr(index+1));
-    if (tree_id == 4479) Z = 5.2e-4*0.6*Zsun;
-    else if (tree_id == 14) Z = 5.2e-4*16*Zsun;
-    else if (tree_id == 23) Z = 5.2e-4*120*Zsun;
+    if (tree_id == 4479) Z = 3e-4*Zsun;
+    else if (tree_id == 14) Z = 1e-3*Zsun;
+    else if (tree_id == 23) Z = 2e-3*Zsun;
     else Z = 0.;
+    // Z = 5.2e-4*Zsun;
 
     z0 = MPs[iMP].z;
     z = z0;

@@ -204,8 +204,9 @@ double Lambda_Hep(double nH, double T_K, double y_Hep, double y_e, double y_He, 
 double Lambda_metal(double nH, double T_K, double y_H, double y_H2, double y_e, double Z, double f_C){
     double mu_C = 12., mu_O = 16.;
     double R_core = sqrt(pi*k_B*T_K/(G*m_H*nH*mu*m_H));
-    double Nc_CII = nH* mu/mu_C*f_C*Z * R_core;
-    double Nc_OI = nH* mu/mu_O*(1.-f_C)*Z * R_core;
+    double y_C = 0.927e-4*Z/Zsun, y_O = 3.568e-4*Z/Zsun;
+    double Nc_CII = nH* y_C * R_core;
+    double Nc_OI = nH* y_O * R_core;
     double esc_10 = .5, esc[3] = {.5,.5,.5};
     double tau_c = 0.;
 
@@ -216,7 +217,7 @@ double Lambda_metal(double nH, double T_K, double y_H, double y_H2, double y_e, 
     double L2 =  OIcool(nH, T_K, Nc_OI, y_H2,y_H,y_e,esc,tau_c);
     // printf("L1=%15.10e\t, L2=%15.10e\n",L1,L2);
     // exit(0);
-    return (L1*mu/mu_C*f_C+L2*mu/mu_O*(1.-f_C))*Z*nH/(mu*m_H);
+    return (L1*y_C+L2*y_O)*nH/(mu*m_H);
 }
 
 double Gamma_chem(double nH, double T_K, double* y, double* k){
