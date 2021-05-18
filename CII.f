@@ -11,7 +11,7 @@
    !    y_a = 1.0
    !    y_e = 1.d-3
    !    esc_10 = 0.5
-   !    tau_c = 0.5
+   !    tau_c = 0.
    !    xLd_CII = 0.0
 
    !    call CIIcool(xnH,T_K,xNc_CII,y_m,y_a,y_e,esc_10,tau_c,xLd_CII)

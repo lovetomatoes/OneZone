@@ -40,7 +40,8 @@ class GAS
         double delta_H2_compr, delta_H2_compr_min;
         double fMa_H2crit, gMa_H2crit, n_H2crit, z_H2crit;
         double a, b, c, d, e;
-        double r_h, r_c, r_cH, r_cH2;
+        double r_h, r_c, r_cH, r_cH2, r_cMetal;
+        double Z;
         double t_ff, t_h, t_c, t_rcb, t_chem, t_ion;
         int evol_stage, i_bsm;
         bool intoequi;

@@ -94,6 +94,10 @@ void CIIpop(double &f_0, double& f_1, double &esc_10){
 
 // C ------- solve linear equations
 //          call gaussj(A,1,1,desc,1,1,0)
+      if (A[0]==0) {
+         cout<<"A=0\n";
+         break;
+      }
       get_inverse(A_inv, A, N);
       dot(desc,N,A_inv,error);
 
@@ -167,7 +171,7 @@ g++ -L/usr/local/lib -lgsl -lgslcblas -lm CII.cpp OI.cpp gsl_inverse.o my_linalg
 // int main(){
 
 //     double xnH = 1.0e3, T_K = 1.0e3, xNc_CII = 1.e10, y_m = 1.e-3;
-//     double y_a = 1.0, y_e = 1.e-3, esc_10 = 0.5, tau_c = 0.5;
+//     double y_a = 1.0, y_e = 1.e-3, esc_10 = 0.5, tau_c = 0.;
 //     printf("%15.10e\n",CIIcool(xnH, T_K,  xNc_CII,  y_m,  y_a, y_e, esc_10,  tau_c));
 //    //  printf("%5.4e\n",beta_esc(.5,.5));
 //     return 0;

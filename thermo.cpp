@@ -6,7 +6,9 @@
 # include "dyn.h"
 # include "PARA.h"
 # include <cmath>
-#include<algorithm>
+# include "CII.h"
+# include "OI.h"
+# include <algorithm>
 
 using namespace std;
 //****************************************************************
@@ -197,6 +199,24 @@ double Lambda_Hep(double nH, double T_K, double y_Hep, double y_e, double y_He, 
     double He2s = 9.1e-27/pow(T_K,0.1687)/(1.+sqrt(T_K/1.e5))*exp(-13179./T_K)*pow(y_e,2)*y_Hep*pow(nH,3);
     double He_ion = 3.94e-11*k_Heion*y_He*y_e*pow(nH,2);
     return col_exc+He1s+He2s;
+}
+
+double Lambda_metal(double nH, double T_K, double y_H, double y_H2, double y_e, double Z, double f_C){
+    double mu_C = 12., mu_O = 16.;
+    double R_core = sqrt(pi*k_B*T_K/(G*m_H*nH*mu*m_H));
+    double Nc_CII = nH* mu/mu_C*f_C*Z * R_core;
+    double Nc_OI = nH* mu/mu_O*(1.-f_C)*Z * R_core;
+    double esc_10 = .5, esc[3] = {.5,.5,.5};
+    double tau_c = 0.;
+
+    // test w/ CII.f, OI.f
+    // nH = 1e3; T_K = 1e3; y_H2 = 1e-3; y_H = 1.; y_e = 1e-3; Nc_CII = 1e10; Nc_OI = 1e10;
+
+    double L1 = CIIcool(nH, T_K, Nc_CII, y_H2, y_H, y_e, esc_10, tau_c);
+    double L2 =  OIcool(nH, T_K, Nc_OI, y_H2,y_H,y_e,esc,tau_c);
+    // printf("L1=%15.10e\t, L2=%15.10e\n",L1,L2);
+    // exit(0);
+    return (L1*mu/mu_C*f_C+L2*mu/mu_O*(1.-f_C))*Z*nH/(mu*m_H);
 }
 
 double Gamma_chem(double nH, double T_K, double* y, double* k){

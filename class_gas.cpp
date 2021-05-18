@@ -36,6 +36,14 @@ GAS:: GAS(double *frac0, int MergerModel, double J21, double Tbb, string treefil
     MPs = NULL;
     MPs = new MainProgenitor [Nmp];
     aTree(nMer,treefile,MPs); // printf("read tree done\n");
+    //------------ set metallicity ---------------
+    int index=treefile.find("_");
+    int tree_id = stoi(treefile.substr(index+1));
+    if (tree_id == 4479) Z = 5.2e-4*0.6*Zsun;
+    else if (tree_id == 14) Z = 5.2e-4*16*Zsun;
+    else if (tree_id == 23) Z = 5.2e-4*120*Zsun;
+    else Z = 0.;
+
     z0 = MPs[iMP].z;
     z = z0;
     z_col = -1.;
@@ -429,6 +437,7 @@ void GAS:: timescales(){
 
     r_cH = Lambda_H(nH0,T_K0,y_H,y_e, k_Hion)/rho0;
     r_cH2 = Lambda_H2(nH0,T_K0,y0)/rho0;
+    r_cMetal = Lambda_metal(nH0,T_K0,y0[1],y0[2],y0[3],Z,.25);
     r_c =  r_cH2 + r_cH + Lambda_Hep(nH0, T_K0, y_Hep, y_e, y_He, k_Heion)/rho0;
     //开关 turn_off H2 cooling wli!
     // r_c -= r_cH2;

@@ -15,6 +15,7 @@ const double pc = 3.e18, kpc = 3.e21, Mpc = 3.e24;
 const double Myr = 1.e6*(365*24*3600);
 const double yr = 365*24*3600;
 const double Ms = 2.e33;
+const double Zsun = 0.02;
 const double h0 = .677;
 const double H0 = h0*100*km/Mpc;
 

@@ -1,9 +1,9 @@
-main: main.cpp evol.o class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
-	g++ main.cpp -L/usr/local/lib evol.o class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o main
+main: main.cpp evol.o class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o CII.o OI.o
+	g++ main.cpp -L/usr/local/lib evol.o class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o CII.o OI.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o main
 
 # 用 make evol 生成cc.so以供evol.py 
-evol.o: evol.cpp class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
-	g++ evol.cpp -L/usr/local/lib class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o cc.so -shared -fPIC
+evol.o: evol.cpp class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o CII.o OI.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o PARA.o RK4.o
+	g++ evol.cpp -L/usr/local/lib class_gas.o LE_iso.o LE_adb.o read_aTree.o class_halo.o dyn.o thermo.o CII.o OI.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -lgsl -lgslcblas -lm -o cc.so -shared -fPIC
 	g++ evol.cpp -L/usr/local/lib -Wall -I/usr/local/include -c class_gas.o LE_iso.o read_aTree.o class_halo.o dyn.o thermo.o kpd.o reaction.o Newton.o my_linalg.o gsl_inverse.o RK4.o -shared -fPIC
 
 LE_iso.o: LE_iso.cpp RK4.o class_halo.o dyn.o PARA.o
@@ -36,7 +36,7 @@ kpd.o: kpd.cpp PARA.o
 dyn.o: dyn.cpp PARA.o
 	g++ -c dyn.cpp -shared -fPIC
 
-thermo.o: thermo.cpp PARA.o
+thermo.o: thermo.cpp PARA.o CII.o OI.o
 	g++ -c thermo.cpp -shared -fPIC
 
 PARA.o: PARA.cpp
@@ -44,6 +44,12 @@ PARA.o: PARA.cpp
 
 Newton.o: Newton.cpp gsl_inverse.o
 	g++ -c  Newton.cpp gsl_inverse.o -shared -fPIC
+
+CII.o: CII.cpp gsl_inverse.o my_linalg.o 
+	g++ -Wall -L/usr/local/lib -I/usr/local/include -c CII.cpp gsl_inverse.o my_linalg.o -shared -fPIC
+
+OI.o:  OI.cpp gsl_inverse.o my_linalg.o 
+	g++ -Wall -L/usr/local/lib -I/usr/local/include -c OI.cpp gsl_inverse.o my_linalg.o -shared -fPIC
 
 my_linalg.o: my_linalg.cpp
 	g++ -c my_linalg.cpp -shared -fPIC

@@ -250,8 +250,8 @@ void evol(string treename, string Jzname, string fout, int MerMod, double Tbb, d
 
         if (mer) {
             HALO halo(gas.Mh, gas.z);
-            if (i==0) file<<setw(16)<<"iMP"<<setw(16)<<"nc_DM"<<setw(16)<<"dMdt"<<setw(16)<<"Gamma_mer";
-            else file<<setw(16)<<gas.iMP<<setw(16)<<halo.rho_c/(mu*m_H)<<setw(16)<<gas.dMdt<<setw(16)<<gas.Gamma_mer;
+            if (i==0) file<<setw(16)<<"r_cMetal"<<setw(16)<<"iMP"<<setw(16)<<"nc_DM"<<setw(16)<<"dMdt"<<setw(16)<<"Gamma_mer";
+            else file<<setw(16)<<gas.r_cMetal<<setw(16)<<gas.iMP<<setw(16)<<halo.rho_c/(mu*m_H)<<setw(16)<<gas.dMdt<<setw(16)<<gas.Gamma_mer;
         }
         file<<endl;
         i++;
