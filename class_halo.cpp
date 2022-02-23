@@ -88,21 +88,24 @@ g++ class_halo.cpp PARA.cpp dyn.cpp -o halo.out && ./halo.out
 
 // halo Vc, Rvir, n_crit at z...
 // int main(){
-//     double z = 20;
-//     double Mh = Mh_Vc(4*km, z); Mh = Mh_Tz(1000,z);
-// // checking Omukai 2001 rho_dm evolution
-//     // printf("t from bigbang:%3.2e s\n",t_from_z(0));
-//     // printf("Omega_0=%3.2e\n", pow(t_from_z(0)/3.1e17*h0, -2.) );
+//     double z = 9;
+//     double Mh = 1e8*Ms/h0;
 //     printf("Mh=%3.2e\n",Mh/Ms);
 //     HALO halo(Mh,z);
-//     printf("Vc=%3.2e, ",halo.Vc/km);
-//     printf("n_crit:%6.4e, Rvir=%6.4e kpc, Tvir=%6.4e K\n",halo.rho_crit/(mu*m_H), halo.Rvir/kpc, halo.Tvir);
+//     printf("Rvir=%3.2e, Tvir=%3.2eK",halo.Rvir/kpc*h0*pow(Omega_m0,1./3.),halo.Tvir/pow(Omega_m0,1./3.)/(mu/.6));
+//     printf("n_crit:s%6.4e, Rvir=%6.4e kpc, Tvir=%6.4e K\n",halo.rho_crit/(mu*m_H), halo.Rvir/kpc, halo.Tvir);
 //     printf("K1=%3.2e,K2=%3.2e,Kvir=%3.2e\n",K_Tn(100,.1), K_Tn(1000,.01), halo.Kvir);
     
-//     Mh = 1.e4*Ms;
-//     z = 0; Mh = 1.e15/h0*Ms;
+//     printf("t_Edd/Myr:%3.2e\n",t_Edd/Myr);
+//     exit(0);
+//     z = 10; Mh = Mh_Tz(1e4,z);
+//     printf("z=%4f, Mh: %3.2e\n", z, Mh/Ms);
+
 //     HALO halo1(Mh,z);
-//     printf("K200:%5.3e\n",halo1.Kvir);
+//     printf("Rvir/rs:%5.3e\n",halo1.Rvir/halo1.Rs);
+//     printf("t from z: %3.2e Gyr\n", t_from_z(z)/1e3/Myr);
+//     printf("t_efold: %3.2e Myr\n",1./(10*4*pi*G*c/.4/c/c)/Myr);
+//     printf("t_efold: %3.2e Myr\n",t_Edd/Myr);
 
 //     z = 10;
 //     Mh = 1.e5*Ms;

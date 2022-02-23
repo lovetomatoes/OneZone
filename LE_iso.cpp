@@ -35,7 +35,7 @@ void profile(string filename, double Tg, double R, double z=z1, double Mh=Mh1){
     file<<setiosflags(ios::scientific)<<setprecision(3);
     file<<setw(12)<<"r_pc"<<setw(12)<<"r_Rvir"<<setw(12)<<"r_Rs"<<setw(12)<<"phi"<<setw(12)<<"psi";
     file<<setw(12)<<"ng_ng0"<<setw(12)<<"ng"<<setw(12)<<"nDM_ng0"<<setw(12)<<"nDM";
-    file<<setw(12)<<"M_intg"<<setw(12)<<"Bfx"<<setw(12)<<"gx";
+    file<<setw(12)<<"M_intg"<<setw(12)<<"M_DMr"<<setw(12)<<"g_r";
     file<<endl;
 
     HALO halo1(Mh,z);
@@ -88,14 +88,16 @@ void profile(string filename, double Tg, double R, double z=z1, double Mh=Mh1){
 
     // "r_pc r_Rvir r_Rs phi psi ng_ng0 ng nDM_ng0 nDM M_intg Bfx gx";
         file<<setw(12)<<a*x[i]/pc<<setw(12)<<a*x[i]/halo1.Rvir<<setw(12)<<alpha*x[i];
-        file<<" "<<y[i][0]<<" "<<y[i][1];
-        file<<" "<<exp(-y[i][0]); //rhog_over_rhog0
-        file<<" "<<rho_g0*exp(-y[i][0])/(mu*m_H); // n_gas
-        file<<" "<< 1./(R* alpha*x[i]* pow((1+alpha*x[i]),2) );// rhoDM_over_rhog0
-        file<<" "<<halo1.rho_c/( alpha*x[i] * pow((1+alpha*x[i]),2) )/(mu*m_H);// n_DM
-        file<<" "<<M_intg/Ms; //M(r) in solar mass
-        file<<" "<<B*(1- log(1+alpha*x[i])/ (alpha*x[i])); // B*fx Eq(11) Suto98; gas self-gravity 
-        file<<" "<<B/2.*(alpha*x[i]); // Eq(36) Suto98; g(x)= -Φ 
+        file<<setw(12)<<y[i][0]<<setw(12)<<y[i][1];
+        file<<setw(12)<<exp(-y[i][0]); //rhog_over_rhog0
+        file<<setw(12)<<rho_g0*exp(-y[i][0])/(mu*m_H); // n_gas
+        file<<setw(12)<< 1./(R* alpha*x[i]* pow((1+alpha*x[i]),2) );// rhoDM_over_rhog0
+        file<<setw(12)<<halo1.rho_c/( alpha*x[i] * pow((1+alpha*x[i]),2) )/(mu*m_H);// n_DM
+        file<<setw(12)<<M_intg/Ms; //M(r) in solar mass
+        file<<setw(12)<<4*pi*halo1.rho_c*pow(halo1.Rs,3)*(1./(1+alpha*x[i])-1+log(1+alpha*x[i])); //M_DM(r)
+        file<<setw(12)<<G/pow(a*x[i],2)*4*pi*halo1.rho_c*pow(halo1.Rs,3)*(1./(1+alpha*x[i])-1+log(1+alpha*x[i])); //g(r)
+        // file<<setw(12)<<B*(1- log(1+alpha*x[i])/ (alpha*x[i])); // B*fx Eq(11) Suto98; gas self-gravity 
+        // file<<setw(12)<<B/2.*(alpha*x[i]); // Eq(36) Suto98; g(x)= -Φ 
         file<<endl; // B*fx Eq(11) Suto98; gas self-gravity
         if (a*x[i]/halo1.Rvir>1) break;
         // printf("x[%d]/x_vir=%3.2f\n",i,x[i]/x_vir);
@@ -231,6 +233,39 @@ g++ -c LE_iso.cpp RK4.cpp && g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_lin
     double Tg = 1.e4;
     double Mg, nvir;
     double R1 = 1.e5, Rrat = exp(log(R1/R)/50.);
+    double z = 10, Mh = 2.86e7*Ms;
+    fstream f;
+    string fname, pfile;
+
+// 1. density profile in 3 halos; 
+    HALO halo1(Mh,z);
+    // R = 1.e-23/halo1.rho_c;
+    // printf("rs = %3.2e in kpc, %3.2e in cgs; Tvir=%3.2e\n",halo1.Rs/kpc,halo1.Rs,halo1.Tvir);
+    // pfile = "profilerhog0_23.txt";
+    // profile(pfile, Tg, R, z, Mh);
+
+    double n0_sol_N,nvir_max,ni=1;
+    string f_Nsol = "profile_Nsol.txt";
+    Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
+    profile(f_Nsol,Tg,n0_sol_N*(mu*m_H)/halo1.rho_c,z,Mh);
+    
+    printf("Myr=%3.2e\n",Myr);
+    printf("halo1.Rvir =%3.2e pc, t_ff = %3.2e\n",halo1.Rvir/pc, t_freefall(10.)/Myr);  
+    printf("1e4 K sound speed:=%3.2e km/s\n",sqrt(k_B*Tg/(mu*m_H))/km);
+    double density_u =  1.e-3*m_H;
+    double time_u = Myr;
+    cout<<4*pi*G*density_u*pow(time_u,2)<<endl;
+    
+
+    return 0;
+}
+
+ */
+/* int main(){
+    double R = .01;
+    double Tg = 1.e4;
+    double Mg, nvir;
+    double R1 = 1.e5, Rrat = exp(log(R1/R)/50.);
     double z = 30, Mh = 6e6*Ms;
     fstream f;
     string fname, pfile;
@@ -275,7 +310,7 @@ g++ -c LE_iso.cpp RK4.cpp && g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_lin
 //     f<<" R n_0 M_g n_vir\n";
 //     while (R<R1){
 //         BOUNDARY(nvir,Mg,Tg,R,z,Mh);
-//         f<<" "<<R<<" "<<R*halo.rho_c/(mu*m_H)<<" "<<Mg/Ms<<" "<<nvir<<endl;
+//         f<<setw(12)<<R<<setw(12)<<R*halo.rho_c/(mu*m_H)<<setw(12)<<Mg/Ms<<setw(12)<<nvir<<endl;
 //         R *= Rrat;
 //     }
 //     f.close();
@@ -334,7 +369,7 @@ g++ -c LE_iso.cpp RK4.cpp && g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_lin
     //     }
     //     Tv_sol = (Tv0+Tv1)/2.;
     //     double cs2 = gamma_adb*k_B*8000/(mu*m_H);
-    //     f<<" "<<Tg<<" "<<Tv_sol<<endl;
+    //     f<<setw(12)<<Tg<<setw(12)<<Tv_sol<<endl;
     //     Tg *= Tgrat;
     // }
     // f.close();
@@ -366,7 +401,7 @@ g++ -c LE_iso.cpp RK4.cpp && g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_lin
     while (Mh<Mh1){
         Nvir2N0(n0_sol_N,nvir_max,ni,Tg,z,Mh);
         BOUNDARY(n_vir, Mg_vir,Tg,n0_sol_N*(mu*m_H)/halo.rho_c,z,Mh);
-        f<<Mh/Ms<<" "<<Mg_vir/Mh<<endl;
+        f<<Mh/Ms<<setw(12)<<Mg_vir/Mh<<endl;
         Mh *= Mhrat;
     }
     f.close();
@@ -408,7 +443,7 @@ g++ -c LE_iso.cpp RK4.cpp && g++ LE_iso.o class_halo.o dyn.o PARA.o RK4.o my_lin
         }
         Tv_sol = (Tv0+Tv1)/2.;
         double cs2 = gamma_adb*k_B*8000/(mu*m_H);
-        f<<" "<<z0<<" "<<Tv_sol<<" "<<Mh_Tz(Tv_sol,z0)/Ms<<endl;
+        f<<setw(12)<<z0<<setw(12)<<Tv_sol<<setw(12)<<Mh_Tz(Tv_sol,z0)/Ms<<endl;
         z0 *= z_rat;
     }
     f.close();

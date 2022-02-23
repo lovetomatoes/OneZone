@@ -83,7 +83,7 @@ void aTree(int& nMP, string treename, MainProgenitor* MPs){
             HALO halo(MPs[i].mhalo,MPs[i].z);
             MPs[i].ng_adb = 1;
             // only calculate ng_adb for halo w/ Tvir <1.e5 K; cs_eff_2 = 0
-            if (MPs[i].Tvir<1.e5) Mg2N0_adb(MPs[i].ng_adb,0.,MPs[i].z,MPs[i].mhalo);
+            // if (MPs[i].Tvir<1.e5) Mg2N0_adb(MPs[i].ng_adb,0.,MPs[i].z,MPs[i].mhalo);
             MPs[i].dm = (i==nMP)? 0: MPs[i+1].mhalo - MPs[i].mhalo;
             MPs[i].mratio = (i==nMP)? 0:MPs[i].dm/MPs[i].mhalo;
         }

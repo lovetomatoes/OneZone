@@ -18,6 +18,7 @@ const double Ms = 2.e33;
 const double Zsun = 0.02;
 const double h0 = .677;
 const double H0 = h0*100*km/Mpc;
+const double t_Edd = 1./(4*pi*G/.4/(.1*c));
 
 // Planck constant
 const double h_p = 6.63e-27, eV = 1.60217657e-12, Angstron = 1.e-8;
